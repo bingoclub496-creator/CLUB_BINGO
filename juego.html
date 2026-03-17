@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bingo Club - En Vivo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="game-page">
+    <img src="logo.png" class="corner-logo" alt="Logo">
+
+    <div id="pantallaEspera" class="timer-float">
+        EL JUEGO INICIA EN:
+        <span id="relojDiscreto">00:00</span>
+    </div>
+
+    <div id="areaJuego" style="display:none;">
+        <header class="game-top-nav">
+            <div id="userName" class="user-label"></div>
+            <div class="ball-display">
+                <div class="ball-letter" id="letraBola">?</div>
+                <div class="ball-number" id="numeroBola">--</div>
+            </div>
+        </header>
+        
+        <main id="cartonesContainer" class="compact-container"></main>
+    </div>
+
+    <div id="winnerOverlay" class="winner-popup" style="display:none;">
+        <div class="winner-content">
+            <img src="logo.png" style="width:100px;">
+            <h1>¡BINGO!</h1>
+            <h2 id="ganadorNombre">---</h2>
+            <button onclick="location.reload()" class="btn-glow">CERRAR</button>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

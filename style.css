@@ -1,0 +1,47 @@
+:root { --mango: #ff9800; --marine: #004d61; --glass: rgba(255,255,255,0.25); }
+* { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
+body { font-family: 'Segoe UI', sans-serif; background: url('fondo.jpg') no-repeat center center fixed; background-size: cover; min-height: 100vh; overflow-x: hidden; }
+
+/* SIMETRÍA BIENVENIDA */
+.login-page .glass-container { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.brand-header { width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; }
+.main-logo-img { width: 110px; height: auto; margin-bottom: 15px; }
+.welcome-img { width: 85%; max-width: 280px; height: auto; }
+
+.glass-container { background: var(--glass); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 25px; padding: 25px; border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 32px rgba(0,0,0,0.2); width: 90%; margin: 20px auto; }
+
+/* INPUTS */
+.input-modern { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 12px; border: none; text-align: center; font-size: 1rem; }
+.btn-glow { width: 100%; padding: 15px; background: var(--marine); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+
+/* CABECERA DE JUEGO MEJORADA */
+.corner-logo { position: fixed; top: 10px; right: 10px; width: 65px; z-index: 2000; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
+
+.game-top-nav { position: fixed; top: 0; width: 100%; background: var(--marine); padding: 10px; display: flex; justify-content: space-around; align-items: center; z-index: 1000; height: 100px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+.user-label { color: white; font-size: 0.8rem; font-weight: bold; max-width: 40%; text-align: left; }
+.ball-display { background: white; width: 75px; height: 75px; border-radius: 50%; border: 4px solid var(--mango); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ball-letter { font-size: 0.8rem; color: var(--mango); font-weight: 900; }
+.ball-number { font-size: 2rem; color: #333; font-weight: 900; line-height: 0.9; }
+
+/* CARTONES COMPACTOS PARA CELULAR */
+.compact-container { padding: 110px 10px 20px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
+.carton-card { background: white; padding: 8px; border-radius: 15px; border: 3px solid var(--marine); width: 100%; max-width: 330px; }
+.bingo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin-top: 5px; }
+.cell { aspect-ratio: 1; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; font-weight: 900; border-radius: 5px; font-size: 1rem; background: #fff; position: relative; color: #444; }
+
+/* MARCA CON LOGO */
+.cell.marked { background: none; }
+.cell.marked::after { content: ""; position: absolute; width: 100%; height: 100%; background: url('logo.png') no-repeat center; background-size: 90%; opacity: 0.8; top: 0; left: 0; }
+
+/* COMODÍN CENTRO GRANDE */
+.cell.comodin { background: none !important; }
+.cell.comodin::before { content: ""; position: absolute; width: 100%; height: 100%; background: url('logo.png') no-repeat center; background-size: 95% !important; top: 0; left: 0; }
+
+.btn-bingo { width: 100%; margin-top: 10px; padding: 10px; background: #d32f2f; color: white; border: none; border-radius: 8px; font-weight: 900; letter-spacing: 1px; }
+
+/* POPUP GANADOR */
+.winner-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; display: flex; align-items: center; justify-content: center; }
+.winner-content { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 80%; border: 5px solid var(--mango); }
+
+.master-ball { width: 110px; height: 110px; background: var(--marine); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; margin: 0 auto; border: 6px solid var(--mango); }
+.timer-float { position: fixed; top: 0; width: 100%; height: 100%; background: var(--mango); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2500; }
