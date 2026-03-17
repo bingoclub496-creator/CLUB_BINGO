@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bingo Club - En Vivo</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body class="game-page">
     <img src="logo.png" class="corner-logo" alt="Logo">
 
     <div id="pantallaEspera" class="timer-float">
+        <img src="logo.png" style="width:120px; margin-bottom:20px;">
         EL JUEGO INICIA EN:
         <span id="relojDiscreto">00:00</span>
     </div>
@@ -21,6 +23,7 @@
                 <div class="ball-letter" id="letraBola">?</div>
                 <div class="ball-number" id="numeroBola">--</div>
             </div>
+            <div class="history-balls" id="bolaHistorial"></div>
         </header>
         
         <main id="cartonesContainer" class="compact-container"></main>
@@ -28,10 +31,10 @@
 
     <div id="winnerOverlay" class="winner-popup" style="display:none;">
         <div class="winner-content">
-            <img src="logo.png" style="width:100px;">
-            <h1>¡BINGO!</h1>
+            <img src="logo.png" style="width:120px;">
+            <h1 class="glow-text">¡TENEMOS GANADOR!</h1>
             <h2 id="ganadorNombre">---</h2>
-            <button onclick="location.reload()" class="btn-glow">CERRAR</button>
+            <button onclick="window.location.href='index.html'" class="btn-glow">SALIR AL INICIO</button>
         </div>
     </div>
 
