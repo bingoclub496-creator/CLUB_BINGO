@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, where, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, where, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
@@ -12,6 +12,19 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// --- CONFIGURACIÓN WHATSAPP ---
+const PHONE = "584265709830";
+const WA_MSG = encodeURIComponent("Hola Bingo Club, deseo solicitar mi código de acceso.");
+if(document.getElementById('waLink')) document.getElementById('waLink').href = `https://wa.me/${PHONE}?text=${WA_MSG}`;
+
+// --- AUTO-LOGIN POR LINK ---
+const urlParams = new URLSearchParams(window.location.search);
+const codeParam = urlParams.get('code');
+if(codeParam && document.getElementById('accessCode')) {
+    document.getElementById('accessCode').value = codeParam;
+    setTimeout(() => validarEntrada(), 500);
+}
 
 // --- UTILIDADES ---
 function generarCarton() {
@@ -28,23 +41,30 @@ function generarCarton() {
     return tab;
 }
 
-// --- ADMIN ---
+// --- ADMIN FUNCTIONS ---
 window.crearSocioMaestro = async function() {
     const nom = document.getElementById('nombreSocio').value;
-    const can = parseInt(document.getElementById('cantCartones').value);
-    if(!nom) return alert("Nombre requerido");
+    const can = document.getElementById('cantCartones').value;
+    if(!nom) return alert("Nombre!");
     const cod = Math.random().toString(36).substring(2,7).toUpperCase();
     await addDoc(collection(db, "socios"), { nombre: nom, codigo: cod, cartones: Array.from({length: can}, generarCarton) });
-    alert("Código: " + cod);
+    const link = `${window.location.origin}${window.location.pathname.replace('admin.html','index.html')}?code=${cod}`;
+    document.getElementById('linkGenerado').innerHTML = `Socio: ${nom}<br>Código: <b>${cod}</b><br><a href="${link}">${link}</a>`;
+};
+
+window.borrarSorteo = async () => { await setDoc(doc(db, "configuracion", "sorteo"), { inicio: null, ganador: null }); location.reload(); };
+window.borrarTodosLosSocios = async () => {
+    const q = await getDocs(collection(db, "socios"));
+    q.forEach(async (d) => await deleteDoc(doc(db, "socios", d.id)));
+    alert("Socios eliminados");
 };
 
 window.guardarProgramacion = async function() {
     const f = document.getElementById('fechaSorteo').value;
     await setDoc(doc(db, "configuracion", "sorteo"), { inicio: f, ganador: null });
-    alert("Sorteo Programado");
+    alert("Sorteo Iniciado!");
 };
 
-// --- LOGIN ---
 window.validarEntrada = async function() {
     const cod = document.getElementById('accessCode').value.toUpperCase();
     const q = query(collection(db, "socios"), where("codigo", "==", cod));
@@ -52,22 +72,23 @@ window.validarEntrada = async function() {
     if (!snap.empty) {
         sessionStorage.setItem('socioActual', JSON.stringify(snap.docs[0].data()));
         window.location.href = 'juego.html';
-    } else { alert("Código inválido"); }
+    } else { alert("Código no válido"); }
 };
 
-// --- LÓGICA DE JUEGO ---
+// --- JUEGO CORE ---
 let secuenciaBolas = [];
-let juegoDetenido = false;
+let bolasCantadas = [];
+let voiceEnabled = true;
 
-function obtenerSecuenciaFija(seed) {
-    let bolas = Array.from({length: 75}, (_, i) => i + 1);
-    let tempSeed = seed;
-    for (let i = bolas.length - 1; i > 0; i--) {
-        tempSeed = (tempSeed * 9301 + 49297) % 233280;
-        let j = Math.floor((tempSeed / 233280) * (i + 1));
-        [bolas[i], bolas[j]] = [bolas[j], bolas[i]];
+function obtenerSecuencia(seed) {
+    let b = Array.from({length: 75}, (_, i) => i + 1);
+    let s = seed;
+    for (let i = b.length - 1; i > 0; i--) {
+        s = (s * 9301 + 49297) % 233280;
+        let j = Math.floor((s / 233280) * (i + 1));
+        [b[i], b[j]] = [b[j], b[i]];
     }
-    return bolas;
+    return b;
 }
 
 function iniciarProcesosJuego() {
@@ -80,68 +101,85 @@ function iniciarProcesosJuego() {
         if(!docSnap.exists()) return;
         const config = docSnap.data();
         
-        // Si hay un ganador, detener todo
         if(config.ganador) {
-            juegoDetenido = true;
+            confetti();
             document.getElementById('winnerOverlay').style.display = 'flex';
             document.getElementById('ganadorNombre').innerText = config.ganador;
-            if(document.getElementById('statusSorteo')) document.getElementById('statusSorteo').innerText = "SORTEO FINALIZADO - GANADOR: " + config.ganador;
             return;
         }
 
+        if(!config.inicio) return;
         const horaInicio = new Date(config.inicio).getTime();
-        secuenciaBolas = obtenerSecuenciaFija(horaInicio);
+        secuenciaBolas = obtenerSecuencia(horaInicio);
 
-        const monitor = setInterval(() => {
-            if(juegoDetenido) return clearInterval(monitor);
+        setInterval(() => {
             const ahora = new Date().getTime();
             const dist = horaInicio - ahora;
-
             if(dist > 0) {
-                const min = Math.floor(dist / 60000);
-                const seg = Math.floor((dist % 60000) / 1000);
-                document.getElementById('relojDiscreto').innerText = `${min}:${seg < 10 ? '0'+seg : seg}`;
+                const m = Math.floor(dist / 60000);
+                const s = Math.floor((dist % 60000) / 1000);
+                document.getElementById('relojDiscreto').innerText = `${m}:${s < 10 ? '0'+s : s}`;
             } else {
                 document.getElementById('pantallaEspera').style.display = 'none';
                 document.getElementById('areaJuego').style.display = 'block';
-                
-                const segTrans = Math.floor((ahora - horaInicio) / 1000);
-                const indice = Math.floor(segTrans / 10); // Nueva bola cada 10 seg
-                
-                if (indice < 75) {
-                    const b = secuenciaBolas[indice];
-                    document.getElementById('numeroBola').innerText = b;
-                    document.getElementById('letraBola').innerText = b <= 15 ? 'B' : b <= 30 ? 'I' : b <= 45 ? 'N' : b <= 60 ? 'G' : 'O';
-                    if(document.getElementById('bolaCantada')) document.getElementById('bolaCantada').innerText = b;
+                const idx = Math.floor((ahora - horaInicio) / 10000); // Cada 10 segundos
+                if(idx < 75) {
+                    const bola = secuenciaBolas[idx];
+                    if(document.getElementById('numeroBola').innerText != bola) {
+                        cantarBola(bola);
+                        bolasCantadas = secuenciaBolas.slice(0, idx + 1);
+                        actualizarUIBola(bola);
+                    }
                 }
             }
         }, 1000);
     });
 }
 
-// --- VERIFICACIÓN DE BINGO ---
-window.reclamarBingo = async function(btn, index) {
-    const socio = JSON.parse(sessionStorage.getItem('socioActual'));
-    const cartonDiv = btn.parentElement;
-    const celdas = cartonDiv.querySelectorAll('.cell');
-    
-    // Convertir DOM a matriz 5x5 de estados "marcado"
-    let matriz = [];
-    for(let i=0; i<25; i++) matriz.push(celdas[i].classList.contains('marked'));
+function cantarBola(n) {
+    const letra = n <= 15 ? 'B' : n <= 30 ? 'I' : n <= 45 ? 'N' : n <= 60 ? 'G' : 'O';
+    if('speechSynthesis' in window) {
+        const msg = new SpeechSynthesisUtterance(`${letra} ${n}`);
+        msg.lang = 'es-ES';
+        window.speechSynthesis.speak(msg);
+    }
+}
 
-    // Patrones ganadores (Filas, Columnas, Diagonales)
+function actualizarUIBola(n) {
+    document.getElementById('numeroBola').innerText = n;
+    document.getElementById('letraBola').innerText = n <= 15 ? 'B' : n <= 30 ? 'I' : n <= 45 ? 'N' : n <= 60 ? 'G' : 'O';
+    const hist = document.getElementById('bolaHistorial');
+    hist.innerHTML = bolasCantadas.slice(-5).reverse().map(b => `<div class="h-ball">${b}</div>`).join('') + hist.innerHTML;
+    if(document.getElementById('bolaCantada')) document.getElementById('bolaCantada').innerText = n;
+}
+
+window.reclamarBingo = async function(btn, idx) {
+    const socio = JSON.parse(sessionStorage.getItem('socioActual'));
+    const carton = socio.cartones[idx];
     const winPatterns = [
-        [0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24], // Horizontales
-        [0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24], // Verticales
-        [0,6,12,18,24],[4,8,12,16,20] // Diagonales
+        [0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],
+        [0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],
+        [0,6,12,18,24],[4,8,12,16,20]
     ];
 
-    const esGanador = winPatterns.some(p => p.every(idx => matriz[idx]));
+    // Obtener los números del cartón en orden lineal
+    let numsCarton = [];
+    for(let i=0; i<5; i++) {
+        ['B','I','N','G','O'].forEach(l => numsCarton.push(carton[l][i]));
+    }
+    numsCarton[12] = "FREE"; // Comodín siempre es válido
 
-    if(esGanador) {
+    const esBingoReal = winPatterns.some(pattern => {
+        return pattern.every(pIdx => {
+            const num = numsCarton[pIdx];
+            return num === "FREE" || bolasCantadas.includes(num);
+        });
+    });
+
+    if(esBingoReal) {
         await setDoc(doc(db, "configuracion", "sorteo"), { ganador: socio.nombre }, { merge: true });
     } else {
-        alert("¡Aún no completas una línea!");
+        alert("¡Verificación fallida! Aún no han salido todos tus números.");
     }
 };
 
@@ -153,12 +191,13 @@ function dibujarTablas(tabs) {
         for(let i=0; i<5; i++) {
             ['B','I','N','G','O'].forEach(l => {
                 const isC = l==='N' && i===2;
-                cells += `<div class="cell ${isC?'comodin marked':''}" onclick="this.classList.toggle('marked')">${t[l][i]}</div>`;
+                cells += `<div class="cell ${isC?'comodin marked':''}" onclick="this.classList.toggle('marked')">${isC?'':t[l][i]}</div>`;
             });
         }
         return `<div class="carton-card">
+            <div class="bingo-header"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>
             <div class="bingo-grid">${cells}</div>
-            <button class="btn-bingo" onclick="reclamarBingo(this, ${idx})">¡BINGO!</button>
+            <button class="btn-bingo" onclick="reclamarBingo(this, ${idx})">¡CANTA BINGO!</button>
         </div>`;
     }).join('');
 }
@@ -167,7 +206,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('relojDiscreto')) iniciarProcesosJuego();
     if(document.getElementById('listaSocios')) {
         onSnapshot(collection(db, "socios"), (s) => {
-            document.getElementById('listaSocios').innerHTML = s.docs.map(d => `<div style="font-size:0.8rem; padding:5px; border-bottom:1px solid #ccc;">${d.data().nombre} [${d.data().codigo}]</div>`).join('');
+            document.getElementById('listaSocios').innerHTML = s.docs.map(d => `<div style="font-size:0.8rem; padding:5px; border-bottom:1px solid #eee;">${d.data().nombre} [${d.data().codigo}]</div>`).join('');
+        });
+        onSnapshot(doc(db, "configuracion", "sorteo"), (d) => {
+           if(d.exists() && d.data().ganador) document.getElementById('infoGanador').innerText = "GANADOR ACTUAL: " + d.data().ganador;
         });
     }
 });
