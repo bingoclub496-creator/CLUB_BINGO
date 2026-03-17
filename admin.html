@@ -7,24 +7,29 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="admin-page">
-    <div class="glass-container" style="max-width: 500px; margin-bottom: 20px;">
-        <h2 style="text-align:center; color:var(--marine); font-size: 1rem; margin-bottom: 10px;">BOLA ACTUAL</h2>
+    <div class="glass-container admin-card">
+        <h2>CONTROL DE SORTEO</h2>
         <div class="master-ball" id="bolaCantada">--</div>
-        <div id="statusSorteo" style="text-align:center; margin-top:10px; font-weight:bold; color:red;"></div>
+        <p id="infoGanador" style="color:var(--mango); font-weight:bold; margin-top:10px;"></p>
+        <button class="btn-delete" onclick="borrarSorteo()">Limpiar Partida Actual</button>
     </div>
 
-    <div class="glass-container" style="max-width: 500px; margin-bottom: 20px;">
-        <h3>REGISTRO DE SOCIOS</h3>
-        <input type="text" id="nombreSocio" placeholder="Nombre completo" class="input-modern">
+    <div class="glass-container admin-card">
+        <h3>NUEVO SOCIO</h3>
+        <input type="text" id="nombreSocio" placeholder="Nombre" class="input-modern">
         <input type="number" id="cantCartones" min="1" max="6" value="1" class="input-modern">
-        <button class="btn-glow" onclick="crearSocioMaestro()">GENERAR SOCIO</button>
-        <div id="listaSocios" style="margin-top:15px; max-height: 150px; overflow-y: auto;"></div>
+        <button class="btn-glow" onclick="crearSocioMaestro()">GENERAR E IMPRIMIR LINK</button>
+        <div id="linkGenerado" class="link-box"></div>
+        <hr>
+        <h4>SOCIOS ACTIVOS</h4>
+        <div id="listaSocios" class="scroll-list"></div>
+        <button class="btn-delete" onclick="borrarTodosLosSocios()">Borrar Todos los Socios</button>
     </div>
 
-    <div class="glass-container" style="max-width: 500px;">
-        <h3>PROGRAMAR SORTEO</h3>
+    <div class="glass-container admin-card">
+        <h3>PROGRAMAR INICIO</h3>
         <input type="datetime-local" id="fechaSorteo" class="input-modern">
-        <button class="btn-glow" style="background:var(--mango);" onclick="guardarProgramacion()">ACTIVAR RELOJ GLOBAL</button>
+        <button class="btn-glow" style="background:#4CAF50;" onclick="guardarProgramacion()">ACTIVAR TODO EL CLUB</button>
     </div>
     <script type="module" src="app.js"></script>
 </body>
