@@ -2,22 +2,22 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bingo Club - Bienvenido</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="login-page">
     <div class="glass-container">
         <header class="brand-header">
-            <img src="logo.png" alt="Logo" class="main-logo-img giant-logo">
-            <img src="bienvenido.png" alt="Bienvenido" class="welcome-img">
+            <img src="logo.png" alt="Logo Bingo Club" class="main-logo-img">
+            <img src="bienvenido.png" alt="Bienvenido al Club" class="welcome-img">
         </header>
         <div class="access-box">
-            <input type="text" id="accessCode" placeholder="CÓDIGO DE ACCESO" maxlength="5" class="input-modern">
-            <button class="btn-glow" onclick="validarEntrada()">INGRESAR AL CLUB</button>
+            <input type="text" id="accessCode" placeholder="TU CÓDIGO DE ACCESO" maxlength="5" class="input-modern">
+            <button class="btn-login" onclick="validarEntrada()">INGRESAR AL CLUB</button>
         </div>
         <div class="support-footer">
-            <p>¿No tienes código?</p>
+            <p style="color: rgba(0,0,0,0.6); margin-top: 20px; font-size: 0.9rem;">¿No tienes código?</p>
             <a id="waLink" href="#" target="_blank" class="wa-link-btn">Solicitar por WhatsApp</a>
         </div>
     </div>
