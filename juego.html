@@ -11,19 +11,27 @@
     <img src="logo.png" class="corner-logo" alt="Logo">
 
     <div id="pantallaEspera" class="timer-float">
-        <img src="logo.png" style="width:120px; margin-bottom:20px;">
-        EL JUEGO INICIA EN:
+        <img src="logo.png" style="width: 120px; margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(255,152,0,0.5));">
+        <div style="font-weight: bold; font-size: 1.2rem;">EL SORTEO INICIA EN:</div>
         <span id="relojDiscreto">00:00</span>
     </div>
 
     <div id="areaJuego" style="display:none;">
         <header class="game-top-nav">
-            <div id="userName" class="user-label"></div>
-            <div class="ball-display">
-                <div class="ball-letter" id="letraBola">?</div>
-                <div class="ball-number" id="numeroBola">--</div>
+            <div id="userName" class="user-label">Cargando...</div>
+            <div class="top-main-content">
+                <div class="ball-display">
+                    <div class="ball-letter" id="letraBola">?</div>
+                    <div class="ball-number" id="numeroBola">--</div>
+                </div>
+                <div class="history-balls">
+                    <div class="h-ball" id="hist0">-</div>
+                    <div class="h-ball" id="hist1">-</div>
+                    <div class="h-ball" id="hist2">-</div>
+                    <div class="h-ball" id="hist3">-</div>
+                    <div class="h-ball" id="hist4">-</div>
+                </div>
             </div>
-            <div class="history-balls" id="bolaHistorial"></div>
         </header>
         
         <main id="cartonesContainer" class="compact-container"></main>
@@ -31,10 +39,11 @@
 
     <div id="winnerOverlay" class="winner-popup" style="display:none;">
         <div class="winner-content">
-            <img src="logo.png" style="width:120px;">
-            <h1 class="glow-text">¡TENEMOS GANADOR!</h1>
+            <img src="logo.png" style="width:100px;">
+            <h1 style="color: #d32f2f; text-transform: uppercase;">¡BINGO!</h1>
+            <p style="color: #555; margin-bottom: 5px;">Tenemos un ganador:</p>
             <h2 id="ganadorNombre">---</h2>
-            <button onclick="window.location.href='index.html'" class="btn-glow">SALIR AL INICIO</button>
+            <button onclick="location.href='index.html'" class="btn-login">CERRAR Y SALIR</button>
         </div>
     </div>
 
