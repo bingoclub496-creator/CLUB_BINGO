@@ -2,48 +2,35 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bingo Club - En Vivo</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="estilos.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
-<body class="game-page">
-    <img src="logo.png" class="corner-logo" alt="Logo">
-
-    <div id="pantallaEspera" class="timer-float">
-        <img src="logo.png" style="width: 120px; margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(255,152,0,0.5));">
-        <div style="font-weight: bold; font-size: 1.2rem;">EL SORTEO INICIA EN:</div>
-        <span id="relojDiscreto">00:00</span>
+<body>
+    <div id="displayPremio">ESPERANDO APERTURA...</div>
+    
+    <div class="game-header">
+        <div id="statusJuego">
+            <span id="letraBola">B</span>
+            <h1 id="numeroBola">00</h1>
+        </div>
+        <div class="historial-mini">
+            <div id="hist0" class="h-ball">-</div>
+            <div id="hist1" class="h-ball">-</div>
+            <div id="hist2" class="h-ball">-</div>
+        </div>
     </div>
 
-    <div id="areaJuego" style="display:none;">
-        <header class="game-top-nav">
-            <div id="userName" class="user-label">Cargando...</div>
-            <div class="top-main-content">
-                <div class="ball-display">
-                    <div class="ball-letter" id="letraBola">?</div>
-                    <div class="ball-number" id="numeroBola">--</div>
-                </div>
-                <div class="history-balls">
-                    <div class="h-ball" id="hist0">-</div>
-                    <div class="h-ball" id="hist1">-</div>
-                    <div class="h-ball" id="hist2">-</div>
-                    <div class="h-ball" id="hist3">-</div>
-                    <div class="h-ball" id="hist4">-</div>
-                </div>
-            </div>
-        </header>
-        
-        <main id="cartonesContainer" class="compact-container"></main>
-    </div>
+    <div id="userName" style="text-align:center; font-weight:bold; color:#666;"></div>
+    
+    <div id="cartonesContainer"></div>
 
-    <div id="winnerOverlay" class="winner-popup" style="display:none;">
-        <div class="winner-content">
-            <img src="logo.png" style="width:100px;">
-            <h1 style="color: #d32f2f; text-transform: uppercase;">¡BINGO!</h1>
-            <p style="color: #555; margin-bottom: 5px;">Tenemos un ganador:</p>
-            <h2 id="ganadorNombre">---</h2>
-            <button onclick="location.href='index.html'" class="btn-login">CERRAR Y SALIR</button>
+    <div id="winnerOverlay" style="display:none;">
+        <div class="winner-card">
+            <h1>¡BINGO!</h1>
+            <p id="ganadorNombre"></p>
+            <button onclick="location.href='index.html'">SALIR</button>
         </div>
     </div>
 
