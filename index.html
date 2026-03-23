@@ -2,24 +2,19 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bingo Club - Bienvenido</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Club Digital - Acceso</title>
+    <link rel="stylesheet" href="estilos.css">
 </head>
 <body class="login-page">
-    <div class="glass-container">
-        <header class="brand-header">
-            <img src="logo.png" alt="Logo Bingo Club" class="main-logo-img">
-            <img src="bienvenido.png" alt="Bienvenido al Club" class="welcome-img">
-        </header>
-        <div class="access-box">
-            <input type="text" id="accessCode" placeholder="TU CÓDIGO DE ACCESO" maxlength="5" class="input-modern">
+    <div class="login-container">
+        <img src="logo.png" alt="Logo" class="main-logo">
+        <h1>BINGO CLUB DIGITAL</h1>
+        <div class="input-group">
+            <input type="text" id="accessCode" placeholder="CÓDIGO DE ACCESO" maxlength="5">
             <button class="btn-login" onclick="validarEntrada()">INGRESAR AL CLUB</button>
         </div>
-        <div class="support-footer">
-            <p style="color: rgba(0,0,0,0.6); margin-top: 20px; font-size: 0.9rem;">¿No tienes código?</p>
-            <a id="waLink" href="#" target="_blank" class="wa-link-btn">Solicitar por WhatsApp</a>
-        </div>
+        <a id="waLink" href="#" target="_blank" class="wa-request">¿No tienes código? Solicítalo aquí</a>
     </div>
     <script type="module" src="app.js"></script>
 </body>
