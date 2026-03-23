@@ -3,26 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin - Bingo Club</title>
+    <title>Admin - Bingo Club</title>
     <link rel="stylesheet" href="estilos.css">
 </head>
-<body>
-    <div class="admin-wrapper">
-        <h2>CONFIGURACIÓN DE SALA</h2>
-        <input type="text" id="nombreSala" placeholder="Nombre de la Sala (Ej: Sala VIP)">
-        <input type="text" id="montoPremio" placeholder="Monto del Premio (Ej: 50$)">
+<body style="padding: 20px;">
+    <div class="admin-wrapper" style="max-width:600px; margin:auto; background:white; padding:20px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+        <h2 style="color:var(--rojo); text-align:center;">PANEL DE CONTROL</h2>
+        
+        <h3>1. APERTURA DE SALA</h3>
+        <input type="text" id="nombreSala" placeholder="Nombre de la Sala (Ej: Sala Principal)">
+        <input type="text" id="montoPremio" placeholder="Monto del Premio (Ej: 20$)">
         <input type="datetime-local" id="fechaSorteo">
-        <button onclick="aperturarPartida()" style="background:#2e7d32; color:white;">APERTURAR PARTIDA</button>
-        <button onclick="resetearPartida()" style="background:#d32f2f; color:white;">RESET PARTIDA</button>
+        <button onclick="aperturarPartida()" style="background:#2e7d32; color:white; width:100%; margin-top:10px; padding:12px; font-weight:bold;">APERTURAR PARTIDA</button>
+        
+        <button onclick="resetearPartida()" style="background:#d32f2f; color:white; width:100%; margin-top:10px; padding:12px; font-weight:bold;">FINALIZAR PARTIDA Y EXPIRAR CÓDIGOS</button>
 
-        <hr>
-        <h2>REGISTRO DE SOCIOS</h2>
+        <hr style="margin: 25px 0;">
+        
+        <h3>2. GESTIÓN DE SOCIOS</h3>
         <input type="text" id="nombreSocio" placeholder="Nombre del Socio">
-        <input type="number" id="cantCartones" value="1" min="1" max="10">
-        <button onclick="crearSocioMaestro()">GENERAR SOCIO Y LINK</button>
-        <div id="resultadLinkSocio"></div>
-
-        <div id="listaSocios"></div>
+        <input type="number" id="cantCartones" value="1" min="1" max="6" placeholder="Cantidad de Cartones">
+        <button onclick="crearSocioMaestro()" style="width:100%; padding:12px; background:var(--oro); color:black; font-weight:bold;">GENERAR CÓDIGO Y CARTONES</button>
+        
+        <div id="resultadLinkSocio" style="margin-top:15px; background:#f4f4f4; padding:10px; border-radius:5px; text-align:center; display:none;"></div>
     </div>
     <script type="module" src="app.js"></script>
 </body>
