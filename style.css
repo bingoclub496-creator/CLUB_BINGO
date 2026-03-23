@@ -1,88 +1,96 @@
-:root { --mango: #ff9800; --marine: #004d61; --glass: rgba(255,255,255,0.20); --clean-white: #ffffff; }
-* { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; background: url('fondo.jpg') no-repeat center center fixed; background-size: cover; min-height: 100vh; overflow-x: hidden; color: #333; }
+:root {
+    --primario: #d32f2f;
+    --oscuro: #1a1a1a;
+    --blanco: #ffffff;
+    --mango: #ffc107;
+}
 
-/* --- PANTALLA DE BIENVENIDA (INDEX) --- */
-.login-page { display: flex; align-items: center; justify-content: center; padding: 20px; }
-.login-page .glass-container { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 25px; max-width: 400px; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f4; margin: 0; }
 
-/* Corrección de Logos */
-.main-logo-img { width: 160px; /* Más grande */ height: auto; margin-bottom: 5px; filter: drop-shadow(0 0 10px rgba(255,152,0,0.3)); }
-.welcome-img { width: 60%; /* Más pequeño */ max-width: 220px; height: auto; margin-bottom: 30px; }
+/* Contenedor de 2 en 2 */
+#cartonesContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 8px;
+    padding: 10px;
+    max-width: 500px;
+    margin: 0 auto;
+}
 
-/* Botón de Ingreso Llamativo */
-.btn-login { width: 100%; padding: 18px; background: linear-gradient(135deg, var(--mango) 0%, #ffb74d 100%); color: var(--marine); border: none; border-radius: 50px; font-weight: 900; font-size: 1.2rem; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 20px rgba(255,152,0,0.4); transition: all 0.3s ease; border: 2px solid transparent; }
-.btn-login:active { transform: translateY(2px) scale(0.98); box-shadow: 0 5px 10px rgba(255,152,0,0.3); }
+/* Cartón reducido */
+.carton-card {
+    background: var(--blanco);
+    border-radius: 8px;
+    padding: 5px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border: 1px solid #ddd;
+}
 
-.wa-link-btn { background: #25D366; color: white; padding: 12px 25px; border-radius: 50px; text-decoration: none; font-weight: bold; margin-top: 15px; display: inline-block; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+.bingo-header {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    background: var(--primario);
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    font-size: 12px;
+}
 
-/* --- COMPONENTES GLOBALES --- */
-.glass-container { background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 30px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; margin: 10px auto; }
-.input-modern { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.5); text-align: center; font-size: 1.1rem; background: rgba(255,255,255,0.8); color: var(--marine); font-weight: bold; }
-.input-modern:focus { outline: none; border-color: var(--mango); box-shadow: 0 0 10px rgba(255,152,0,0.2); }
-.btn-glow { width: 100%; padding: 15px; background: var(--marine); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 1rem; text-transform: uppercase; }
+.bingo-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+}
 
-/* --- PANTALLA DE JUEGO --- */
-.game-page { background-attachment: scroll; }
-.corner-logo { position: fixed; top: 10px; right: 10px; width: 60px; z-index: 2000; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
+.cell {
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid #eee;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 3px;
+}
 
-/* Cabecera ergonómica */
-.game-top-nav { position: fixed; top: 0; width: 100%; background: linear-gradient(180deg, rgba(0,77,97,1) 0%, rgba(0,77,97,0.9) 100%); padding: 10px; display: flex; flex-direction: column; align-items: center; z-index: 1000; height: 130px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); }
-.user-label { color: rgba(255,255,255,0.8); font-size: 0.75rem; font-weight: bold; margin-bottom: 5px; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 60px 0 10px;}
-.top-main-content { display: flex; width: 100%; justify-content: center; align-items: center; gap: 15px; }
+/* MARCADOR OSCURO (Más ergonómico) */
+.cell.marked {
+    background-color: var(--oscuro) !important;
+    color: var(--blanco) !important;
+    border-radius: 50%;
+    transform: scale(0.9);
+    border: none;
+}
 
-.ball-display { background: var(--clean-white); width: 75px; height: 75px; border-radius: 50%; border: 5px solid var(--mango); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: inset 0 0 15px rgba(0,0,0,0.2); }
-.ball-letter { font-size: 0.9rem; color: var(--mango); font-weight: 900; line-height: 1; }
-.ball-number { font-size: 2.2rem; color: #222; font-weight: 900; line-height: 0.8; }
+.cell.comodin { background: #ffebee; color: var(--primario); font-size: 10px; }
+.cell.comodin::after { content: "CLUB"; }
 
-/* Historial Fijo de 5 Bolas (Corrección 3) */
-.history-balls { display: flex; gap: 6px; justify-content: center; }
-.h-ball { width: 35px; height: 35px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--clean-white); border: 1px solid rgba(255,255,255,0.3); font-weight: bold; opacity: 0.5; }
-.h-ball.active { opacity: 1; background: rgba(255,255,255,0.3); border-color: var(--clean-white); transform: scale(1.1); }
+.btn-bingo {
+    width: 100%;
+    margin-top: 5px;
+    padding: 6px;
+    background: var(--primario);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 10px;
+    cursor: pointer;
+}
 
-/* Distribución Cómoda de Cartones (Corrección 2) */
-.compact-container { padding: 145px 12px 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; justify-items: center; width: 100%; max-width: 1200px; margin: 0 auto; }
-
-.carton-card { background: var(--clean-white); padding: 10px; border-radius: 20px; border: 4px solid var(--marine); width: 100%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); position: relative; }
-.bingo-header { display: grid; grid-template-columns: repeat(5, 1fr); text-align: center; font-weight: 900; color: var(--marine); font-size: 1.3rem; margin-bottom: 3px; }
-.bingo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
-.cell { aspect-ratio: 1; border: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: center; font-weight: 900; border-radius: 6px; font-size: 1.15rem; background: #fafafa; position: relative; color: #333; }
-
-/* Sugerencia: Números Bold */
-.cell span { font-weight: 900; }
-
-/* Sugerencia: Marcado con Logo Sello */
-.cell.marked::after { content: ""; position: absolute; width: 100%; height: 100%; background: url('logo.png') no-repeat center; background-size: 90%; opacity: 0.85; top: 0; left: 0; animation: stamp 0.2s ease-out; z-index: 10; }
-@keyframes stamp { from { transform: scale(2); opacity: 0; } to { transform: scale(1); opacity: 0.85; } }
-
-/* Sugerencia/Corrección: Comodín Grande */
-.cell.comodin { background: none !important; border-color: #e0e0e0; }
-.cell.comodin::before { content: ""; position: absolute; width: 100%; height: 100%; background: url('logo.png') no-repeat center; background-size: 95% !important; top: 0; left: 0; z-index: 5; }
-
-/* Sugerencia: Margen en botón */
-.btn-bingo { width: 100%; margin-top: 15px; padding: 14px; background: linear-gradient(135deg, #d32f2f 0%, #ff1744 100%); color: white; border: none; border-radius: 12px; font-weight: 900; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(211,47,47,0.4); }
-.btn-bingo:active { transform: translateY(1px); box-shadow: 0 2px 5px rgba(211,47,47,0.3); }
-
-/* --- PANTALLA ADMINISTRADOR --- */
-.admin-page .glass-container { max-width: 500px; padding: 25px; margin-bottom: 15px; }
-.admin-page h3 { color: var(--marine); margin-bottom: 15px; text-align: center; }
-.master-ball { width: 110px; height: 110px; background: var(--marine); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; margin: 0 auto 15px; border: 6px solid var(--mango); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-
-/* Nuevo Botón Copiar */
-.link-result-wrapper { background: rgba(255,255,255,0.8); padding: 15px; border-radius: 15px; margin-top: 15px; border: 2px dashed var(--marine); display: flex; flex-direction: column; gap: 10px; align-items: center; }
-.link-text { word-break: break-all; font-size: 0.85rem; color: #333; text-align: center; width: 100%; }
-.btn-copy { background: var(--mango); color: var(--marine); border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.9rem; text-transform: uppercase; }
-
-.scroll-list { max-height: 180px; overflow-y: auto; background: white; border-radius: 15px; padding: 10px; margin-bottom: 10px; }
-.socio-item { font-size: 0.85rem; padding: 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-.socio-item b { color: var(--marine); }
-.btn-delete-small { background: #ff5252; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
-
-/* --- PANTALLA ESPERA Y GANADOR --- */
-.timer-float { position: fixed; top: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--marine) 0%, #002d39 100%); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2500; text-align: center; padding: 20px; }
-#relojDiscreto { display: block; font-size: 5rem; font-weight: 900; margin-top: 10px; color: var(--mango); text-shadow: 0 0 15px rgba(255,152,0,0.5); }
-
-.winner-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-.winner-content { background: var(--clean-white); padding: 40px 25px; border-radius: 25px; text-align: center; width: 100%; max-width: 350px; border: 5px solid var(--mango); box-shadow: 0 0 30px rgba(255,152,0,0.6); }
-.winner-content h1 { color: #d32f2f; font-size: 2rem; margin: 15px 0 5px; font-weight: 900; }
-.winner-content h2 { color: var(--marine); font-size: 1.4rem; margin-bottom: 25px; word-break: break-word; }
+/* Banner de Premio */
+#displayPremio {
+    background: var(--mango);
+    color: var(--oscuro);
+    text-align: center;
+    padding: 12px;
+    font-weight: 800;
+    font-size: 1.2rem;
+    border-radius: 0 0 15px 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
