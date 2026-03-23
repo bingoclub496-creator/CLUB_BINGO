@@ -3,18 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bingo Club - Acceso</title>
-    <link rel="stylesheet" href="estilos.css">
+    <title>Bingo Club - Bienvenido</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Arial Black', sans-serif; background: url('fondo.jpg') no-repeat center center fixed; background-size: cover; display: flex; justify-content: center; align-items: center; }
+        .glass-panel { background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 50px; border: 1.5px solid rgba(255, 255, 255, 0.4); width: 90%; max-width: 420px; padding: 50px 25px; text-align: center; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; align-items: center; }
+        .img-logo { width: 280px; margin-bottom: 20px; display: block; height: auto; }
+        .img-bienvenido { width: 280px; margin-bottom: 30px; display: block; height: auto; }
+        .label-codigo { color: #263238; font-size: 1.8rem; margin-bottom: 15px; letter-spacing: 4px; font-weight: 900; }
+        input { width: 100%; padding: 22px; margin-bottom: 25px; border: none; border-radius: 20px; text-align: center; font-size: 2rem; font-weight: 900; color: #004d61; box-sizing: border-box; background: #ffffff; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
+        .btn-ingresar { width: 100%; padding: 24px; background: #004d61; color: white; border: none; border-radius: 20px; font-weight: 900; font-size: 1.4rem; text-transform: uppercase; cursor: pointer; box-shadow: 0 8px 15px rgba(0,77,97,0.3); transition: 0.3s; }
+        .btn-ingresar:active { transform: scale(0.98); }
+        .footer-links { margin-top: 40px; }
+        .info-text { color: #004d61; font-weight: bold; margin-bottom: 12px; font-size: 1.1rem; }
+        .solicita-link { display: flex; align-items: center; justify-content: center; gap: 12px; color: #ffffff; text-decoration: none; font-weight: 900; background: #25D366; padding: 15px 30px; border-radius: 35px; font-size: 1.1rem; box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4); transition: 0.3s; }
+        .solicita-link:active { transform: scale(0.95); }
+    </style>
 </head>
-<body class="login-page">
-    <div class="login-container">
-        <h1 style="color:var(--rojo); margin-bottom:5px;">BINGO CLUB</h1>
-        <p style="margin-top:0; color:#666; font-size: 0.9rem;">Digital & Comunitario</p>
-        <div class="input-group">
-            <input type="text" id="accessCode" placeholder="CÓDIGO" maxlength="5" style="text-transform:uppercase; text-align:center;">
-            <button class="btn-login" onclick="validarEntrada()">INGRESAR</button>
+<body>
+    <div class="glass-panel">
+        <img src="logo.png" alt="Bingo Club" class="img-logo">
+        <img src="bienvenido.png" alt="Bienvenidos" class="img-bienvenido">
+        <div class="label-codigo">CÓDIGO</div>
+        <input type="text" id="accessCode" maxlength="6">
+        <button class="btn-ingresar" onclick="validarEntrada()">INGRESAR AL CLUB</button>
+        <div class="footer-links">
+            <p class="info-text">¿No tienes código?</p>
+            <a href="https://wa.me/584265709830?text=Hola%20Bingo%20Club,%20deseo%20solicitar%20mi%20código%20de%20acceso%20para%20el%20sorteo.%20Mi%20nombre%20es:%20" class="solicita-link" target="_blank">
+                <i class="fab fa-whatsapp" style="font-size: 1.6rem;"></i>
+                Solicita tu código aquí
+            </a>
         </div>
-        <a id="waLink" href="https://wa.me/584265709830" target="_blank" class="wa-request">Solicitar Código</a>
     </div>
     <script type="module" src="app.js"></script>
 </body>
