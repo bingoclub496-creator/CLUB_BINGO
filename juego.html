@@ -1,38 +1,104 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>En Vivo - Bingo Club</title>
-    <link rel="stylesheet" href="estilos.css">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-</head>
-<body>
-    <div id="displayPremio">ESPERANDO APERTURA...</div>
-    
-    <div class="game-header">
-        <div id="statusJuego" style="text-align: center;">
-            <span id="letraBola" style="display:block; font-size:1.5rem; font-weight:900; color:var(--rojo);">BOLA</span>
-            <h1 id="numeroBola" style="font-size:4.5rem; margin:0; line-height:1;">--</h1>
-        </div>
-        <div class="historial-mini" style="display:flex; gap:8px;">
-            <div id="hist0" class="h-ball">-</div>
-            <div id="hist1" class="h-ball">-</div>
-            <div id="hist2" class="h-ball">-</div>
-        </div>
-    </div>
+:root { 
+    --rojo: #d32f2f; 
+    --negro: #1a1a1a; 
+    --oro: #ffc107; 
+    --blanco: #ffffff; 
+    --fondo: #eceff1; 
+}
 
-    <div id="userName" style="text-align:center; padding:10px; font-weight:bold; color:#444; text-transform:uppercase;"></div>
-    
-    <div id="cartonesContainer"></div>
+/* IMPORTANTE: Esto evita que las cajas se deformen */
+* { box-sizing: border-box; }
 
-    <div id="winnerOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; flex-direction:column; align-items:center; justify-content:center; color:white; text-align:center;">
-        <h1 style="color:var(--oro); font-size:3.5rem; margin:0;">¡BINGO!</h1>
-        <h3 style="color:#ccc; margin-top:5px;">TENEMOS GANADOR(ES)</h3>
-        <h2 id="ganadorNombre" style="margin:20px; font-size:2rem;"></h2>
-        <button onclick="location.href='index.html'" style="margin-top:20px; padding:15px 40px; border-radius:30px; border:none; background:var(--rojo); color:white; font-weight:bold; font-size:1.2rem; cursor:pointer;">SALIR DE LA SALA</button>
-    </div>
+body { 
+    font-family: 'Segoe UI', Arial, sans-serif; 
+    background: var(--fondo); 
+    margin: 0; 
+    padding: 0; 
+    padding-bottom: 30px; 
+    /* Evita el scroll horizontal indeseado */
+    overflow-x: hidden; 
+}
 
-    <script type="module" src="app.js"></script>
-</body>
-</html>
+/* Header de Juego y Premio */
+#displayPremio { background: var(--oro); color: var(--negro); text-align: center; padding: 12px; font-weight: 900; font-size: 1.1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+.game-header { display: flex; justify-content: space-around; align-items: center; padding: 10px; background: white; border-bottom: 2px solid #ddd; }
+#numeroBola { font-size: 4rem; margin: 0; line-height: 1; color: var(--rojo); }
+.h-ball { width: 35px; height: 35px; background: #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: #999; }
+.h-ball.active { background: var(--rojo); color: white; }
+
+/* ERGONOMÍA CARTONES: 2 Columnas Estrictas */
+#cartonesContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 columnas exactas */
+    gap: 6px; /* Espacio reducido para pantallas pequeñas */
+    padding: 8px;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.carton-card {
+    background: var(--blanco);
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    border: 1px solid #ccc;
+    width: 100%;
+}
+
+/* Letras B-I-N-G-O sobre cada cartón */
+.bingo-header {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    margin-bottom: 2px;
+}
+
+.bingo-header span {
+    background: var(--rojo);
+    color: white;
+    font-weight: 900;
+    text-align: center;
+    border-radius: 3px;
+    padding: 3px 0;
+    /* Fuente elástica: se adapta a la resolución */
+    font-size: clamp(10px, 3vw, 14px); 
+}
+
+.bingo-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+}
+
+/* Celdas Ergonómicas y Proporcionadas */
+.cell {
+    aspect-ratio: 1/1; /* Cuadrado perfecto siempre */
+    background: #fafafa;
+    border: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* La fuente crece o se achica según la pantalla */
+    font-size: clamp(11px, 3.5vw, 16px);
+    font-weight: 900;
+    color: #333;
+    cursor: pointer;
+    border-radius: 4px;
+    user-select: none; /* Evita que el celular intente copiar el texto al hacer tap rápido */
+}
+
+/* MARCADOR OSCURO */
+.cell.marked {
+    background-color: var(--negro) !important;
+    color: var(--blanco) !important;
+    border-radius: 50%;
+    transform: scale(0.85); /* Se encoge un poquito para dejar un borde blanco */
+    border: none;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.cell.comodin { background: #fff5f5; color: var(--rojo); font-size: clamp(7px, 2vw, 9px); }
+.cell.comodin::after { content: "CLUB"; }
+
+.btn-bingo { width: 100%; background: var(--oro); color: var(--negro); font-weight: bold; margin-top: 6px; padding: 8px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; }
