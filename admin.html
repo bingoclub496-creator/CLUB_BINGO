@@ -2,37 +2,27 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin - Bingo Club</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Bingo Club</title>
+    <link rel="stylesheet" href="estilos.css">
 </head>
-<body class="admin-page">
-    <div class="glass-container">
-        <h3>CONTROL DEL SORTEO</h3>
-        <div class="master-ball" id="bolaCantada">--</div>
-        <div id="statusSorteo" style="text-align:center; font-weight:bold; color:#d32f2f; min-height: 1.2rem;"></div>
-        <button class="btn-glow" style="background:#ff5252; margin-top: 15px; font-size: 0.8rem; padding: 10px;" onclick="resetearPartida()">RESETEAR PARTIDA Y GANADOR</button>
-    </div>
+<body>
+    <div class="admin-wrapper">
+        <h2>CONFIGURACIÓN DE SALA</h2>
+        <input type="text" id="nombreSala" placeholder="Nombre de la Sala (Ej: Sala VIP)">
+        <input type="text" id="montoPremio" placeholder="Monto del Premio (Ej: 50$)">
+        <input type="datetime-local" id="fechaSorteo">
+        <button onclick="aperturarPartida()" style="background:#2e7d32; color:white;">APERTURAR PARTIDA</button>
+        <button onclick="resetearPartida()" style="background:#d32f2f; color:white;">RESET PARTIDA</button>
 
-    <div class="glass-container">
-        <h3>REGISTRO DE SOCIOS</h3>
-        <input type="text" id="nombreSocio" placeholder="Nombre completo del socio" class="input-modern">
-        <input type="number" id="cantCartones" min="1" max="6" value="1" class="input-modern">
-        <button class="btn-glow" onclick="crearSocioMaestro()">GENERAR SOCIO Y LINK</button>
-        
-        <div id="resultadLinkSocio" style="display:none;"></div>
-        
-        <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 20px 0;">
-        
-        <h4>SOCIOS ACTIVOS</h4>
-        <div id="listaSocios" class="scroll-list">Cargando socios...</div>
-        <button class="btn-glow" style="background:#555; font-size: 0.8rem; padding: 10px;" onclick="borrarTodosSocios()">BORRAR TODOS LOS SOCIOS</button>
-    </div>
+        <hr>
+        <h2>REGISTRO DE SOCIOS</h2>
+        <input type="text" id="nombreSocio" placeholder="Nombre del Socio">
+        <input type="number" id="cantCartones" value="1" min="1" max="10">
+        <button onclick="crearSocioMaestro()">GENERAR SOCIO Y LINK</button>
+        <div id="resultadLinkSocio"></div>
 
-    <div class="glass-container">
-        <h3>PROGRAMAR INICIO GLOBAL</h3>
-        <input type="datetime-local" id="fechaSorteo" class="input-modern">
-        <button class="btn-glow" style="background:var(--mango); color: var(--marine);" onclick="guardarProgramacion()">ACTIVAR RELOJ EN TODO EL CLUB</button>
+        <div id="listaSocios"></div>
     </div>
     <script type="module" src="app.js"></script>
 </body>
