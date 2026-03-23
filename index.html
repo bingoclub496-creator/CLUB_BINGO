@@ -8,13 +8,15 @@
 </head>
 <body class="login-page">
     <div class="login-container">
-        <img src="logo.png" alt="Logo" class="main-logo">
-        <h1>BINGO CLUB DIGITAL</h1>
+        <h1 style="color:var(--rojo); margin-bottom:5px;">BINGO CLUB</h1>
+        <p style="margin-top:0; color:#666; font-weight:bold;">Digital & Comunitario</p>
+        
         <div class="input-group">
-            <input type="text" id="accessCode" placeholder="CÓDIGO DE ACCESO" maxlength="5">
-            <button class="btn-login" onclick="validarEntrada()">INGRESAR AL CLUB</button>
+            <input type="text" id="accessCode" placeholder="CÓDIGO DE ACCESO" maxlength="5" style="text-transform:uppercase; text-align:center; font-size:1.2rem; letter-spacing:2px;">
+            <button class="btn-login" onclick="validarEntrada()">INGRESAR A LA SALA</button>
         </div>
-        <a id="waLink" href="#" target="_blank" class="wa-request">¿No tienes código? Solicítalo aquí</a>
+        
+        <a id="waLink" href="https://wa.me/584265709830?text=Hola%20Bingo%20Club%20Digital,%20deseo%20solicitar%20mi%20código%20de%20acceso." target="_blank" class="wa-request">¿No tienes código? Solicítalo aquí</a>
     </div>
     <script type="module" src="app.js"></script>
 </body>
