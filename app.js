@@ -1,156 +1,128 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, where, getDocs, doc, setDoc, updateDoc, arrayUnion, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, getDocs, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
-  authDomain: "bingo-club-6f019.firebaseapp.com",
-  projectId: "bingo-club-6f019",
-  storageBucket: "bingo-club-6f019.firebasestorage.app",
-  messagingSenderId: "1059179173812",
-  appId: "1:1059179173812:web:78b43eaac565d213bec4e1"
+    apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
+    authDomain: "bingo-club-6f019.firebaseapp.com",
+    projectId: "bingo-club-6f019",
+    storageBucket: "bingo-club-6f019.firebasestorage.app",
+    messagingSenderId: "1059179173812",
+    appId: "1:1059179173812:web:78b43eaac565d213bec4e1"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let bolasCantadasGuardadas = [];
-let juegoDetenido = false;
-let voiceSynth = window.speechSynthesis;
-
-// --- LÓGICA DE GANAR ---
-window.reclamarBingo = async function(btn, idx) {
-    if(juegoDetenido) return;
-    const socio = JSON.parse(sessionStorage.getItem('socioActual'));
-    const d = socio.cartones[idx];
-    let f = []; 
-    for(let i=0; i<5; i++) { ['B','I','N','G','O'].forEach(l => { f.push((l==='N' && i===2) ? "FREE" : d[l][i]); }); }
-
-    const p = [
-        [0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24], // H
-        [0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24], // V
-        [10,11,12,13,14, 2,7,17,22], // CRUZ GRANDE
-        [7,11,13,17] // CRUZ PEQUEÑA
-    ];
-
-    const esBingo = p.some(pat => pat.every(i => f[i] === "FREE" || bolasCantadasGuardadas.includes(f[i])));
-
-    if(esBingo) {
-        btn.innerText = "¡VERIFICADO!";
-        btn.disabled = true;
-        await updateDoc(doc(db, "configuracion", "sorteo"), { ganadores: arrayUnion(socio.nombre) })
-            .catch(async () => await setDoc(doc(db, "configuracion", "sorteo"), { ganadores: [socio.nombre] }, { merge: true }));
-    } else { alert("¡Aún no completas la figura!"); }
+// --- FUNCIÓN COPIAR AL PORTAPAPELES ---
+window.copiarCodigo = function(codigo) {
+    navigator.clipboard.writeText(codigo).then(() => {
+        const toast = document.getElementById('toast');
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    }).catch(err => {
+        console.error('Error al copiar: ', err);
+    });
 };
 
-// --- PROCESOS DE JUEGO ---
-function iniciarProcesosJuego() {
-    const socio = JSON.parse(sessionStorage.getItem('socioActual'));
-    if(!socio || !document.getElementById('cartonesContainer')) return;
+// --- 1. CREAR SALA CON FONDO ---
+window.crearSalaMaster = async function() {
+    const nombre = document.getElementById('nombreSala').value;
+    const tipo = document.getElementById('tipoSala').value;
+    const fecha = document.getElementById('fechaSorteo').value;
+    const premio = document.getElementById('premioSala').value;
+    const fondo = document.getElementById('fondoSala').value || "fondo.jpg";
+
+    if(!nombre || !fecha || !premio) return alert("Completa los datos de la sala");
+
+    await addDoc(collection(db, "salas"), {
+        nombre, tipo, fecha, premio, fondo,
+        estado: "abierta",
+        creadoEn: new Date().getTime()
+    });
+    alert("Sala creada exitosamente");
+    document.getElementById('nombreSala').value = "";
+    document.getElementById('premioSala').value = "";
+};
+
+// --- 2. VINCULAR SOCIO ---
+window.vincularSocioASala = async function() {
+    const nombre = document.getElementById('nombreSocio').value;
+    const idSala = document.getElementById('selectSalasDisponibles').value;
     
-    document.getElementById('userName').innerText = `SOCIO: ${socio.nombre}`;
-    dibujarTablas(socio.cartones);
+    if(!nombre || !idSala) return alert("Falta nombre del socio o seleccionar sala");
 
-    onSnapshot(doc(db, "configuracion", "sorteo"), (docSnap) => {
-        const config = docSnap.data();
-        if(!config) return;
+    const codigo = Math.random().toString(36).substring(2,8).toUpperCase();
+    const cartones = [generarCartonBingo(), generarCartonBingo()];
 
-        if(config.premio) document.getElementById('displayPremio').innerText = `${config.sala} | PREMIO: ${config.premio}`;
-
-        if(config.ganadores?.length > 0) {
-            juegoDetenido = true;
-            document.getElementById('winnerOverlay').style.display = 'flex';
-            document.getElementById('ganadorNombre').innerText = config.ganadores.join(" / ");
-            confetti({ particleCount: 150 });
-        }
-
-        if(config.inicio && !juegoDetenido) {
-            const h = new Date(config.inicio).getTime();
-            const sec = obtenerSecuenciaFija(h);
-            setInterval(() => {
-                const seg = Math.floor((Date.now() - h) / 5000);
-                if(seg >= 0 && seg < 75 && !juegoDetenido) {
-                    const b = sec[seg];
-                    if(document.getElementById('numeroBola').innerText != b) {
-                        document.getElementById('numeroBola').innerText = b;
-                        bolasCantadasGuardadas = sec.slice(0, seg + 1);
-                        actualizarHistorial(bolasCantadasGuardadas);
-                    }
-                }
-            }, 1000);
-        }
+    await addDoc(collection(db, "socios"), {
+        nombre, idSala, codigo, cartones
     });
-}
-
-function dibujarTablas(tabs) {
-    const cont = document.getElementById('cartonesContainer');
-    cont.innerHTML = tabs.map((t, idx) => {
-        let cells = "";
-        for(let i=0; i<5; i++) {
-            ['B','I','N','G','O'].forEach(l => {
-                const isC = l==='N' && i===2;
-                cells += isC ? `<div class="cell comodin marked"></div>` : `<div class="cell" onclick="this.classList.toggle('marked')">${t[l][i]}</div>`;
-            });
-        }
-        return `<div class="carton-card"><div class="bingo-header"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div><div class="bingo-grid">${cells}</div><button class="btn-bingo" onclick="reclamarBingo(this, ${idx})">¡BINGO!</button></div>`;
-    }).join('');
-}
-
-function obtenerSecuenciaFija(seed) {
-    let b = Array.from({length: 75}, (_, i) => i + 1);
-    for (let i = b.length - 1; i > 0; i--) {
-        seed = (seed * 9301 + 49297) % 233280;
-        let j = Math.floor((seed / 233280) * (i + 1));
-        [b[i], b[j]] = [b[j], b[i]];
-    }
-    return b;
-}
-
-function actualizarHistorial(bolas) {
-    bolas.slice(-3).reverse().forEach((b, i) => {
-        const el = document.getElementById(`hist${i}`);
-        if(el) { el.innerText = b; el.classList.add('active'); }
-    });
-}
-
-// Inicializadores
-window.validarEntrada = async function() {
-    const cod = document.getElementById('accessCode').value.toUpperCase();
-    const snap = await getDocs(query(collection(db, "socios"), where("codigo", "==", cod)));
-    if(!snap.empty) { sessionStorage.setItem('socioActual', JSON.stringify(snap.docs[0].data())); window.location.href='juego.html'; }
-    else { alert("Código Inválido"); }
+    alert(`Socio registrado: ${nombre}\nCódigo: ${codigo}`);
+    document.getElementById('nombreSocio').value = "";
 };
 
-window.aperturarPartida = async function() {
-    await setDoc(doc(db, "configuracion", "sorteo"), {
-        premio: document.getElementById('montoPremio').value,
-        sala: document.getElementById('nombreSala').value,
-        inicio: document.getElementById('fechaSorteo').value,
-        ganadores: [], estado: "activo"
+// --- 3. GENERAR CARTÓN (Centro Libre) ---
+function generarCartonBingo() {
+    const r = { B:[1,15], I:[16,30], N:[31,45], G:[46,60], O:[61,75] };
+    let carton = {};
+    ['B','I','N','G','O'].forEach(l => {
+        let nums = [];
+        while(nums.length < 5) {
+            let n = Math.floor(Math.random()*(r[l][1]-r[l][0]+1))+r[l][0];
+            if(!nums.includes(n)) nums.push(n);
+        }
+        carton[l] = nums.sort((a,b)=>a-b);
     });
-    alert("Partida Iniciada");
-};
+    return carton;
+}
 
-window.crearSocioMaestro = async function() {
-    const nom = document.getElementById('nombreSocio').value;
-    const can = parseInt(document.getElementById('cantCartones').value);
-    const cod = Math.random().toString(36).substring(2,7).toUpperCase();
-    await addDoc(collection(db, "socios"), { nombre: nom, codigo: cod, cartones: Array.from({length: can}, () => {
-        const r = { B:[1,15], I:[16,30], N:[31,45], G:[46,60], O:[61,75] };
-        let tab = {};
-        ['B','I','N','G','O'].forEach(l => {
-            let col = []; while(col.length < 5) { let n = Math.floor(Math.random() * (r[l][1]-r[l][0]+1)) + r[l][0]; if(!col.includes(n)) col.push(n); }
-            tab[l] = col.sort((a,b)=>a-b);
+// --- 4. MONITOREO REAL-TIME ---
+if (document.getElementById('contenedorTablas')) {
+    onSnapshot(query(collection(db, "salas"), orderBy("creadoEn", "desc")), (snapshot) => {
+        const select = document.getElementById('selectSalasDisponibles');
+        const contenedor = document.getElementById('contenedorTablas');
+        select.innerHTML = '<option value="">Selecciona una sala...</option>';
+        contenedor.innerHTML = "";
+
+        snapshot.forEach((doc) => {
+            const sala = doc.data();
+            const id = doc.id;
+            select.innerHTML += `<option value="${id}">${sala.nombre}</option>`;
+            
+            const tableWrap = document.createElement('div');
+            tableWrap.innerHTML = `
+                <div style="margin-bottom:20px; padding:15px; background:rgba(255,255,255,0.05); border-radius:15px;">
+                    <h3 style="margin:0; color:#25D366; font-size:1rem;">${sala.nombre}</h3>
+                    <p style="font-size:0.7rem; margin:5px 0;">🎁 Premio: ${sala.premio} | 🖼️ Fondo: ${sala.fondo}</p>
+                    <table class="tabla-socios">
+                        <thead><tr><th>Nombre Socio</th><th style="text-align:right;">Acción</th></tr></thead>
+                        <tbody id="body-${id}"></tbody>
+                    </table>
+                </div>`;
+            contenedor.appendChild(tableWrap);
+            escucharSocios(id);
         });
-        return tab;
-    })});
-    document.getElementById('resultadLinkSocio').innerHTML = `Socio: ${nom} | CÓDIGO: <b>${cod}</b>`;
-};
+    });
+}
 
-window.resetearPartida = async function() {
-    await setDoc(doc(db, "configuracion", "sorteo"), { estado: "finalizado", ganadores: [] });
-    const snap = await getDocs(collection(db, "socios"));
-    snap.forEach(async (d) => await deleteDoc(doc(db, "socios", d.id)));
-    alert("Sala Limpia");
-};
-
-document.addEventListener('DOMContentLoaded', () => { if(document.getElementById('cartonesContainer')) iniciarProcesosJuego(); });
+function escucharSocios(idSala) {
+    const q = query(collection(db, "socios"), where("idSala", "==", idSala));
+    onSnapshot(q, (snap) => {
+        const tbody = document.getElementById(`body-${idSala}`);
+        if(!tbody) return;
+        tbody.innerHTML = "";
+        snap.forEach(docS => {
+            const s = docS.data();
+            tbody.innerHTML += `
+                <tr>
+                    <td>${s.nombre}</td>
+                    <td style="text-align:right;">
+                        <span style="font-family:monospace; color:#ffeb3b; margin-right:10px;">${s.codigo}</span>
+                        <button class="btn-copy" onclick="copiarCodigo('${s.codigo}')">
+                            <i class="fas fa-copy"></i> COPIAR
+                        </button>
+                    </td>
+                </tr>`;
+        });
+    });
+}
