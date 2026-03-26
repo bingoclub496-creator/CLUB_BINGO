@@ -11,9 +11,10 @@
         .img-logo { width: 280px; margin-bottom: 20px; display: block; height: auto; }
         .img-bienvenido { width: 280px; margin-bottom: 30px; display: block; height: auto; }
         .label-codigo { color: #263238; font-size: 1.8rem; margin-bottom: 15px; letter-spacing: 4px; font-weight: 900; }
-        input { width: 100%; padding: 22px; margin-bottom: 25px; border: none; border-radius: 20px; text-align: center; font-size: 2rem; font-weight: 900; color: #004d61; box-sizing: border-box; background: #ffffff; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 22px; margin-bottom: 25px; border: none; border-radius: 20px; text-align: center; font-size: 2rem; font-weight: 900; color: #004d61; box-sizing: border-box; background: #ffffff; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); text-transform: uppercase; }
         .btn-ingresar { width: 100%; padding: 24px; background: #004d61; color: white; border: none; border-radius: 20px; font-weight: 900; font-size: 1.4rem; text-transform: uppercase; cursor: pointer; box-shadow: 0 8px 15px rgba(0,77,97,0.3); transition: 0.3s; }
         .btn-ingresar:active { transform: scale(0.98); }
+        .btn-ingresar:disabled { background: #555; opacity: 0.7; cursor: not-allowed; }
         .footer-links { margin-top: 40px; }
         .info-text { color: #004d61; font-weight: bold; margin-bottom: 12px; font-size: 1.1rem; }
         .solicita-link { display: flex; align-items: center; justify-content: center; gap: 12px; color: #ffffff; text-decoration: none; font-weight: 900; background: #25D366; padding: 15px 30px; border-radius: 35px; font-size: 1.1rem; box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4); transition: 0.3s; }
@@ -25,8 +26,9 @@
         <img src="logo.png" alt="Bingo Club" class="img-logo">
         <img src="bienvenido.png" alt="Bienvenidos" class="img-bienvenido">
         <div class="label-codigo">CÓDIGO</div>
-        <input type="text" id="accessCode" maxlength="6">
-        <button class="btn-ingresar" onclick="validarEntrada()">INGRESAR AL CLUB</button>
+        <input type="text" id="accessCode" maxlength="6" autocomplete="off">
+        <button class="btn-ingresar" id="btnIngresar">INGRESAR AL CLUB</button>
+        
         <div class="footer-links">
             <p class="info-text">¿No tienes código?</p>
             <a href="https://wa.me/584265709830?text=Hola%20Bingo%20Club,%20deseo%20solicitar%20mi%20código%20de%20acceso%20para%20el%20sorteo.%20Mi%20nombre%20es:%20" class="solicita-link" target="_blank">
@@ -35,6 +37,74 @@
             </a>
         </div>
     </div>
-    <script type="module" src="app.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
+            authDomain: "bingo-club-6f019.firebaseapp.com",
+            projectId: "bingo-club-6f019",
+            storageBucket: "bingo-club-6f019.firebasestorage.app",
+            messagingSenderId: "1059179173812",
+            appId: "1:1059179173812:web:78b43eaac565d213bec4e1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Lógica de validación interna
+        async function validarEntrada() {
+            const input = document.getElementById('accessCode');
+            const btn = document.getElementById('btnIngresar');
+            const codigo = input.value.trim().toUpperCase();
+
+            if(!codigo) {
+                alert("⚠️ Por favor, ingresa tu código de socio.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "VERIFICANDO...";
+
+            try {
+                // Buscamos al socio en la colección "socios" por su código
+                const q = query(collection(db, "socios"), where("codigo", "==", codigo));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    const socioDoc = querySnapshot.docs[0];
+                    const datosSocio = socioDoc.data();
+
+                    // Guardamos la sesión para que juego.html sepa quién es
+                    sessionStorage.setItem('socioActual', JSON.stringify({
+                        id: socioDoc.id,
+                        nombre: datosSocio.nombre,
+                        idSala: datosSocio.idSala,
+                        cartones: datosSocio.cartones
+                    }));
+
+                    // Redirigimos a la sala de juego
+                    window.location.href = 'juego.html';
+                } else {
+                    alert("❌ Código no encontrado. Por favor, solicita uno nuevo.");
+                    btn.disabled = false;
+                    btn.innerText = "INGRESAR AL CLUB";
+                }
+            } catch (error) {
+                console.error("Error de Firebase:", error);
+                alert("Hubo un problema de conexión. Inténtalo de nuevo.");
+                btn.disabled = false;
+                btn.innerText = "INGRESAR AL CLUB";
+            }
+        }
+
+        // Conectamos la función al botón y al evento de la tecla Enter
+        document.getElementById('btnIngresar').addEventListener('click', validarEntrada);
+        document.getElementById('accessCode').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') validarEntrada();
+        });
+    </script>
 </body>
 </html>
