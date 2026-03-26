@@ -6,139 +6,48 @@
     <title>Bingo Club - Sala de Juego</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primario: #004d61; --secundario: #25D366; --alerta: #d32f2f; --fondo-cristal: rgba(255, 255, 255, 0.15); }
-        
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body, html { 
-            margin: 0; padding: 0; min-height: 100%; 
-            font-family: 'Arial Black', sans-serif; 
-            background: url('fondo.jpg') no-repeat center center fixed; 
-            background-size: cover; color: white; overflow-x: hidden;
-        }
+        :root { --primario: #004d61; --secundario: #25D366; --alerta: #d32f2f; }
+        body, html { margin: 0; padding: 0; min-height: 100%; font-family: 'Arial Black', sans-serif; background: url('fondo.jpg') no-repeat center center fixed; background-size: cover; color: white; overflow-x: hidden; }
+        .overlay { background: rgba(0, 0, 0, 0.8); min-height: 100vh; width: 100%; padding-bottom: 40px; }
 
-        .overlay { background: rgba(0, 0, 0, 0.75); min-height: 100vh; width: 100%; padding-bottom: 40px; }
+        /* HEADER CON VISOR DE ÚLTIMAS 5 BOLAS */
+        .top-bar { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); position: sticky; top: 0; z-index: 1000; padding: 12px; border-bottom: 3px solid var(--secundario); }
+        .bolas-fila { display: flex; justify-content: center; gap: 10px; align-items: center; min-height: 70px; }
+        .bola { width: 40px; height: 40px; border-radius: 50%; background: white; color: var(--primario); display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 900; border: 2px solid #ddd; }
+        .bola.actual { width: 65px; height: 65px; background: var(--secundario); color: white; font-size: 1.8rem; border: 4px solid white; box-shadow: 0 0 15px var(--secundario); }
 
-        /* HEADER FIJO CON VISOR DE BOLAS */
-        .top-bar {
-            background: var(--fondo-cristal); backdrop-filter: blur(15px);
-            position: sticky; top: 0; z-index: 1000; padding: 12px;
-            border-bottom: 3px solid var(--secundario);
-            box-shadow: 0 4px 25px rgba(0,0,0,0.6);
-        }
+        /* PANTALLA DE ESPERA */
+        #pantallaEspera { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .pulse { animation: pulseAnim 1.5s infinite; color: var(--secundario); font-size: 1.1rem; margin-top: 20px; }
+        @keyframes pulseAnim { 0%, 100% {opacity: 1;} 50% {opacity: 0.4;} }
 
-        .visor-container { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .bolas-fila { display: flex; justify-content: center; gap: 8px; align-items: center; min-height: 65px; }
-        
-        .bola {
-            width: 40px; height: 40px; border-radius: 50%;
-            background: white; color: var(--primario);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1rem; font-weight: 900; box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            border: 2px solid #ddd;
-        }
-        
-        .bola.actual { 
-            width: 60px; height: 60px; background: var(--secundario); 
-            color: white; font-size: 1.6rem; border: 4px solid white;
-            box-shadow: 0 0 20px var(--secundario);
-            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes pop { 0% {transform: scale(0.5);} 100% {transform: scale(1);} }
-
-        /* INFO DE SALA Y PREMIO */
-        .info-game { display: flex; justify-content: space-between; width: 100%; max-width: 400px; font-size: 0.75rem; margin-top: 5px; }
-
-        /* CARTONES ERGONÓMICOS */
-        .carton-container { padding: 15px; display: flex; flex-direction: column; gap: 30px; align-items: center; }
-        .carton-card { 
-            background: rgba(255,255,255,0.98); border-radius: 25px; padding: 12px;
-            width: 100%; max-width: 380px; box-shadow: 0 20px 45px rgba(0,0,0,0.7);
-        }
-
+        /* CARTONES */
+        .carton-container { padding: 15px; display: flex; flex-direction: column; gap: 25px; align-items: center; }
+        .carton-card { background: rgba(255,255,255,0.98); border-radius: 25px; padding: 12px; width: 100%; max-width: 380px; color: #111; }
         .bingo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
-        .header-letra { color: var(--primario); text-align: center; font-size: 1.5rem; font-weight: 900; padding-bottom: 5px; }
-
-        .cell { 
-            aspect-ratio: 1/1; background: #f8f8f8; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem; color: #111; font-weight: 900; border: 2px solid #eee;
-            position: relative; transition: 0.15s;
-        }
-
-        /* LOGOS EN EL CENTRO Y AL MARCAR */
-        .cell.free { 
-            background: url('logo.png') no-repeat center !important; 
-            background-size: 85% !important; background-color: #fff !important; 
-        }
-
-        .cell.marked::after {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('logo.png') no-repeat center; background-size: 75%;
-            background-color: rgba(37, 211, 102, 0.5); border-radius: 50%;
-            animation: markAnim 0.2s ease-out;
-        }
-
-        @keyframes markAnim { from {transform: scale(1.5); opacity: 0;} to {transform: scale(1); opacity: 1;} }
-
-        .btn-bingo {
-            width: 100%; background: var(--alerta); color: white; border: none;
-            padding: 22px; border-radius: 20px; margin-top: 15px;
-            font-size: 1.6rem; font-weight: 900; cursor: pointer;
-            box-shadow: 0 8px 0 #800; transition: 0.1s;
-        }
-        .btn-bingo:active { transform: translateY(4px); box-shadow: 0 4px 0 #800; }
-
-        /* PANTALLAS DE ESPERA Y GANADORES */
-        #pantallaEspera, #modalGanadores {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 5000; display: none; flex-direction: column; 
-            align-items: center; justify-content: center; text-align: center;
-        }
-        #pantallaEspera { background: rgba(0,0,0,0.92); }
-        #modalGanadores { background: rgba(0,77,97,0.98); }
-
-        .glass-box {
-            background: var(--fondo-cristal); backdrop-filter: blur(20px);
-            padding: 40px 20px; border-radius: 45px; border: 1.5px solid rgba(255,255,255,0.3);
-            width: 88%; max-width: 400px;
-        }
+        .cell { aspect-ratio: 1/1; background: #eee; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 900; position: relative; }
+        .cell.free { background: url('logo.png') no-repeat center !important; background-size: 80% !important; background-color: #fff !important; }
+        .cell.marked::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('logo.png') no-repeat center; background-size: 70%; background-color: rgba(37, 211, 102, 0.5); border-radius: 50%; }
+        .btn-bingo { width: 100%; background: var(--alerta); color: white; border: none; padding: 20px; border-radius: 15px; margin-top: 15px; font-size: 1.5rem; font-weight: 900; }
     </style>
 </head>
 <body>
 
 <div id="pantallaEspera">
-    <div class="glass-box">
-        <img src="logo.png" style="width: 150px; margin-bottom: 20px;">
-        <h2 style="font-size: 1rem; letter-spacing: 3px; color: #25D366;">PRÓXIMO SORTEO EN:</h2>
-        <div id="timer" style="font-size: 3.8rem; color: white; margin: 15px 0; font-weight: 900;">00:00:00</div>
-        <p style="margin-bottom: 5px; opacity: 0.8;">PREMIO DISPONIBLE:</p>
-        <div id="txtPremioEspera" style="font-size: 2.2rem; color: var(--secundario); font-weight: 900;">$0.00</div>
-    </div>
-</div>
-
-<div id="modalGanadores">
-    <div class="glass-box">
-        <div style="font-size: 5rem; margin-bottom: 10px;">🏆</div>
-        <h1 style="color: white; font-size: 2.8rem; margin-bottom: 10px;">¡BINGO!</h1>
-        <p style="color: #25D366; font-size: 1rem; margin-bottom: 15px;">FELICIDADES A:</p>
-        <div id="listaGanadores" style="font-size: 1.8rem; color: white; font-weight: 900; margin-bottom: 35px; line-height: 1.2;"></div>
-        <button onclick="location.reload()" style="padding: 18px 45px; border-radius: 25px; border:none; background:white; color:var(--primario); font-weight:900; font-size: 1.2rem; cursor:pointer;">CONTINUAR JUGANDO</button>
-    </div>
+    <img src="logo.png" style="width: 140px; margin-bottom: 20px;">
+    <h1 style="color: white; font-size: 1.5rem;">SALA DE ESPERA</h1>
+    <p class="pulse">ESPERANDO QUE EL ADMINISTRADOR INICIE...</p>
+    <div style="margin-top: 20px;">PREMIO: <span id="txtPremioEspera" style="color:var(--secundario); font-weight:900;">$0.00</span></div>
 </div>
 
 <div class="overlay">
     <div class="top-bar">
-        <div class="visor-container">
-            <div class="bolas-fila" id="visorBolas"></div>
-            <div class="info-game">
-                <span id="txtModo" style="color:#ffc107; font-weight:bold;">MODO: CARGANDO...</span>
-                <span style="color:white;">PREMIO: <b id="txtPremio" style="color:var(--secundario);">$0.00</b></span>
-            </div>
+        <div class="bolas-fila" id="visorBolas"></div>
+        <div style="text-align: center; margin-top: 5px; font-size: 0.9rem;">
+            MODO: <span id="txtModo" style="color: #ffc107;">SALA NORMAL</span> | 
+            PREMIO: <span id="txtPremio" style="color: var(--secundario); font-weight: bold;">$0.00</span>
         </div>
     </div>
-
     <div class="carton-container" id="contCartones"></div>
 </div>
 
@@ -163,106 +72,68 @@
 
     let bolasCantadas = [];
     let tipoJuego = "salaNormal";
-    let timerRef = null;
 
-    // ESCUCHA DE LA SALA EN TIEMPO REAL
     onSnapshot(doc(db, "salas", sesion.idSala), (snapshot) => {
         const sala = snapshot.data();
         if(!sala) return;
 
+        // 1. Control de Pantalla de Espera (Estado)
+        document.getElementById('pantallaEspera').style.display = (sala.estado === "jugando") ? 'none' : 'flex';
+
+        // 2. Actualizar Premio y Modo
         bolasCantadas = sala.bolas || [];
-        tipoJuego = sala.tipo; // "cartonLleno" o "salaNormal"
+        tipoJuego = sala.tipo;
+        const p = `$${sala.premioActual.toFixed(2)}`;
+        document.getElementById('txtPremio').innerText = p;
+        document.getElementById('txtPremioEspera').innerText = p;
+        document.getElementById('txtModo').innerText = (tipoJuego === "cartonLleno") ? "CARTÓN LLENO" : "SALA NORMAL";
 
-        // Actualizar UI
-        const premioStr = `$${sala.premioActual.toFixed(2)}`;
-        document.getElementById('txtPremio').innerText = premioStr;
-        document.getElementById('txtPremioEspera').innerText = premioStr;
-        document.getElementById('txtModo').innerText = tipoJuego === "cartonLleno" ? "CARTÓN LLENO" : "SALA NORMAL";
-
-        // Control de Tiempo / Conteo
-        const ahora = new Date().getTime();
-        const inicio = new Date(sala.horaInicio).getTime();
-        
-        if (ahora < inicio) {
-            document.getElementById('pantallaEspera').style.display = 'flex';
-            startTimer(inicio);
-        } else {
-            document.getElementById('pantallaEspera').style.display = 'none';
-            clearInterval(timerRef);
-        }
-
-        // Visor de Bolas Cantadas
+        // 3. VISOR HISTORIAL ÚLTIMAS 5 BOLAS
         const visor = document.getElementById('visorBolas');
         visor.innerHTML = "";
         const ultimas = bolasCantadas.slice(-5).reverse();
         ultimas.forEach((b, i) => {
-            visor.innerHTML += `<div class="bola ${i===0?'actual':''}">${b}</div>`;
+            visor.innerHTML += `<div class="bola ${i === 0 ? 'actual' : ''}">${b}</div>`;
         });
 
-        // Alerta de Ganadores
-        if(sala.ganadores && sala.ganadores.length > 0) {
-            document.getElementById('modalGanadores').style.display = 'flex';
-            document.getElementById('listaGanadores').innerHTML = sala.ganadores.join("<br>");
-        }
+        // 4. Ganadores
+        if(sala.ganadores?.length > 0) alert("¡GANADORES: " + sala.ganadores.join(", ") + "!");
     });
 
-    function startTimer(target) {
-        if(timerRef) return;
-        timerRef = setInterval(() => {
-            const diff = target - new Date().getTime();
-            if(diff <= 0) { clearInterval(timerRef); return; }
-            const h = Math.floor(diff / 3600000).toString().padStart(2,'0');
-            const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2,'0');
-            const s = Math.floor((diff % 60000) / 1000).toString().padStart(2,'0');
-            document.getElementById('timer').innerText = `${h}:${m}:${s}`;
-        }, 1000);
-    }
-
-    // LÓGICA DE VALIDACIÓN MULTI-FORMA
     window.cantarBingo = async (idx) => {
         const c = sesion.cartones[idx];
         const bolas = bolasCantadas;
         let esGanador = false;
-
-        const checkArr = (arr) => arr.every(n => n === undefined || bolas.includes(n));
+        const check = (arr) => arr.every(n => n === undefined || bolas.includes(n));
 
         if(tipoJuego === "cartonLleno") {
-            // Requiere los 24 números
             esGanador = Object.values(c).flat().every(n => n === undefined || bolas.includes(n));
         } else {
-            // MODO SALA NORMAL: Cualquiera de estas figuras gana
-            // 1. Horizontales
-            for(let i=0; i<5; i++) if(checkArr([c.B[i], c.I[i], c.N[i], c.G[i], c.O[i]])) esGanador = true;
-            // 2. Verticales
-            if(!esGanador && (checkArr(c.B) || checkArr(c.I) || checkArr(c.N) || checkArr(c.G) || checkArr(c.O))) esGanador = true;
-            // 3. Diagonales
-            if(!esGanador && (checkArr([c.B[0], c.I[1], c.N[2], c.G[3], c.O[4]]) || checkArr([c.B[4], c.I[3], c.N[2], c.G[1], c.O[0]]))) esGanador = true;
-            // 4. Cruz Grande
-            if(!esGanador && (checkArr(c.N) && checkArr([c.B[2], c.I[2], c.N[2], c.G[2], c.O[2]]))) esGanador = true;
-            // 5. Cruz Pequeña (Vecinos del centro)
-            if(!esGanador && checkArr([c.I[2], c.G[2], c.N[1], c.N[3]])) esGanador = true;
+            // Validaciones Sala Normal
+            for(let i=0; i<5; i++) if(check([c.B[i], c.I[i], c.N[i], c.G[i], c.O[i]])) esGanador = true;
+            if(!esGanador && (check(c.B) || check(c.I) || check(c.N) || check(c.G) || check(c.O))) esGanador = true;
+            if(!esGanador && (check([c.B[0], c.I[1], c.N[2], c.G[3], c.O[4]]) || check([c.B[4], i[3], c.N[2], c.G[1], c.O[0]]))) esGanador = true;
+            if(!esGanador && (check(c.N) && check([c.B[2], c.I[2], c.N[2], c.G[2], c.O[2]]))) esGanador = true;
+            if(!esGanador && check([c.I[2], c.G[2], c.N[1], c.N[3]])) esGanador = true;
         }
 
-        if(esGanador) {
-            await updateDoc(doc(db, "salas", sesion.idSala), { ganadores: arrayUnion(sesion.nombre) });
-        } else {
-            alert("❌ ¡Aún no tienes Bingo! Sigue marcando tus cartones.");
-        }
+        if(esGanador) await updateDoc(doc(db, "salas", sesion.idSala), { ganadores: arrayUnion(sesion.nombre) });
+        else alert("❌ Aún no tienes una figura válida.");
     };
 
-    // GENERACIÓN DE CARTONES
+    // Renderizado de cartones
     const cont = document.getElementById('contCartones');
-    sesion.cartones.forEach((carton, idx) => {
-        let html = `<div class="carton-card"><div class="bingo-grid">`;
-        ['B','I','N','G','O'].forEach(l => html += `<div class="header-letra">${l}</div>`);
+    sesion.cartones.forEach((c, idx) => {
+        let h = `<div class="carton-card"><div class="bingo-grid">`;
+        ['B','I','N','G','O'].forEach(l => h += `<div style="text-align:center; font-weight:900;">${l}</div>`);
         for(let i=0; i<5; i++) {
             ['B','I','N','G','O'].forEach(l => {
-                if(l==='N' && i===2) html += `<div class="cell free"></div>`;
-                else html += `<div class="cell" onclick="this.classList.toggle('marked')">${carton[l][i]}</div>`;
+                if(l==='N' && i===2) h += `<div class="cell free"></div>`;
+                else h += `<div class="cell" onclick="this.classList.toggle('marked')">${c[l][i]}</div>`;
             });
         }
-        html += `</div><button class="btn-bingo" onclick="cantarBingo(${idx})">¡CANTAR BINGO!</button></div>`;
-        cont.innerHTML += html;
+        h += `</div><button class="btn-bingo" onclick="cantarBingo(${idx})">¡BINGO!</button></div>`;
+        cont.innerHTML += h;
     });
 </script>
 </body>
