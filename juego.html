@@ -3,72 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>En Juego - Bingo Club</title>
+    <title>Bingo Club - En Vivo</title>
     <style>
-        body { background: #000; color: white; text-align: center; font-family: sans-serif; }
-        #historial { display: flex; justify-content: center; gap: 10px; margin: 20px; min-height: 80px; }
-        .bola-actual { 
-            width: 70px; height: 70px; background: #fff; color: #000; 
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 1.8rem; font-weight: bold; border: 4px solid #25D366;
-            box-shadow: 0 0 15px #25D366;
-        }
-        .bola-vieja { 
-            width: 40px; height: 40px; background: rgba(255,255,255,0.2); 
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 0.9rem; opacity: 0.6; align-self: center;
-        }
-        #espera { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100; display: flex; align-items: center; justify-content: center; text-align: center; }
+        body { background: #000; color: white; font-family: sans-serif; text-align: center; }
+        .bola-principal { width: 80px; height: 80px; background: white; color: black; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; border: 5px solid #25D366; margin-top: 20px; }
+        .historial { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
+        .bola-h { width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+        #espera { position: fixed; top:0; left:0; width:100%; height:100%; background:black; display:flex; align-items:center; justify-content:center; z-index:99; }
     </style>
 </head>
 <body>
-    <div id="espera">
-        <div>
-            <img src="logo.png" width="100">
-            <h2>ESPERANDO AL ADMINISTRADOR...</h2>
-        </div>
-    </div>
-
-    <div id="panel-juego">
-        <div id="historial"></div>
-        <div id="contador" style="font-size: 0.8rem; opacity: 0.7;">BOLAS: 0</div>
-        <div id="mis-cartones"></div>
+    <div id="espera"><h1>ESPERANDO INICIO...</h1></div>
+    
+    <div id="juego">
+        <div id="bola-hoy" class="bola-principal">--</div>
+        <div class="historial" id="hist"></div>
+        <p id="total">Bolas: 0</p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { /* Misma config anterior */ };
+        const firebaseConfig = { /* ... tu config ... */ };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const socio = JSON.parse(sessionStorage.getItem('socioActual'));
+        const socio = JSON.parse(sessionStorage.getItem('socio'));
         if(!socio) window.location.href = "index.html";
 
         onSnapshot(doc(db, "salas", socio.idSala), (snap) => {
             const sala = snap.data();
             if(!sala) return;
 
-            // 1. Control de pantalla
+            // 1. Mostrar u ocultar espera
             document.getElementById('espera').style.display = sala.estado === "jugando" ? "none" : "flex";
 
-            // 2. Fondo dinámico
-            if(sala.fondo) document.body.style.backgroundImage = `url('${sala.fondo}')`;
-
-            // 3. Historial últimas 5 bolas
-            const contHist = document.getElementById('historial');
-            contHist.innerHTML = '';
-            const ultimas5 = (sala.bolas || []).slice(-5).reverse();
-            
-            ultimas5.forEach((b, i) => {
-                const div = document.createElement('div');
-                div.className = i === 0 ? "bola-actual" : "bola-vieja";
-                div.innerText = b;
-                contHist.appendChild(div);
-            });
-
-            document.getElementById('contador').innerText = `BOLAS CANTADAS: ${(sala.bolas || []).length}`;
+            // 2. Actualizar Bolas
+            const lista = sala.bolas || [];
+            if(lista.length > 0) {
+                document.getElementById('bola-hoy').innerText = lista[lista.length - 1];
+                
+                const histDiv = document.getElementById('hist');
+                histDiv.innerHTML = '';
+                // Mostrar las 4 anteriores a la actual
+                lista.slice(-5, -1).reverse().forEach(b => {
+                    histDiv.innerHTML += `<div class="bola-h">${b}</div>`;
+                });
+            }
+            document.getElementById('total').innerText = "Bolas cantadas: " + lista.length;
         });
     </script>
 </body>
