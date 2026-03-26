@@ -3,64 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Club - Master Admin</title>
+    <title>Bingo Club - Admin Master Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #004d61; color: white; margin: 0; padding: 20px; }
-        .admin-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
-        .card { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 25px; padding: 20px; border: 1px solid rgba(255,255,255,0.2); margin-bottom: 20px; }
-        h2 { font-size: 1.1rem; color: #25D366; text-transform: uppercase; margin-top: 0; border-bottom: 1px solid rgba(37, 211, 102, 0.3); padding-bottom: 10px; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: none; box-sizing: border-box; font-size: 1rem; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #004d61; color: white; margin: 0; padding: 20px; }
+        .admin-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; max-width: 1300px; margin: 0 auto; }
+        .card { background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); border-radius: 25px; padding: 20px; border: 1px solid rgba(255,255,255,0.2); position: relative; margin-bottom: 20px; }
+        h2 { font-size: 1.1rem; color: #25D366; text-transform: uppercase; margin-top: 0; border-bottom: 1px solid rgba(37, 211, 102, 0.2); padding-bottom: 10px; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 10px; border: none; box-sizing: border-box; font-size: 1rem; }
         button { background: #25D366; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
-        button:hover { background: #1eb954; transform: scale(1.01); }
-        .tabla-socios { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; color: white; }
-        th { text-align: left; padding: 10px; background: rgba(255,255,255,0.2); }
-        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .btn-copy { background: #ffffff; color: #004d61; padding: 5px 10px; border-radius: 5px; font-size: 0.7rem; border: none; cursor: pointer; font-weight: bold; }
-        .btn-copy:active { background: #25D366; color: white; }
-        #toast { display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#25D366; color:white; padding:10px 25px; border-radius:30px; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        button:hover { background: #1eb954; transform: translateY(-2px); }
+        
+        /* Estilos de Sala y Tablas */
+        .sala-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .btn-delete-sala { background: none; border: none; color: #ff5252; cursor: pointer; font-size: 1.3rem; padding: 5px; }
+        .btn-delete-sala:hover { color: #ff1744; transform: scale(1.1); }
+        
+        .tabla-socios { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(0,0,0,0.2); border-radius: 10px; overflow: hidden; }
+        th { text-align: left; padding: 12px; background: rgba(255,255,255,0.1); font-size: 0.8rem; text-transform: uppercase; }
+        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
+        
+        .btn-del-socio { background: #ff5252; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; margin-right: 5px; }
+        .btn-copy { background: #f8f9fa; color: #333; padding: 6px 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+        .btn-reset-pote { background: #ffa000; font-size: 0.8rem; margin-top: 15px; padding: 10px; }
+
+        #toast { display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#25D366; color:white; padding:12px 30px; border-radius:50px; z-index: 1000; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
+
     <div style="text-align:center; margin-bottom: 30px;">
-        <img src="logo.png" width="80">
-        <h1 style="margin:10px 0; font-size: 1.5rem; letter-spacing: 2px;">PANEL ADMINISTRADOR</h1>
+        <img src="logo.png" width="70">
+        <h1 style="margin:10px 0; font-size: 1.6rem; letter-spacing: 1px;">SISTEMA ADMINISTRATIVO BINGO CLUB</h1>
     </div>
 
     <div class="admin-grid">
         <div class="column">
             <div class="card">
-                <h2>1. Programar Sala</h2>
-                <input type="text" id="nombreSala" placeholder="Nombre de la Sala">
+                <h2>1. Crear Nueva Sala</h2>
+                <input type="text" id="nombreSala" placeholder="Nombre de la Sala (Ej: Sorteo de San Juan)">
                 <select id="tipoSala">
-                    <option value="normal">Normal (Líneas/Cruces)</option>
-                    <option value="cartonLleno">Cartón Lleno</option>
+                    <option value="normal">Normal (Línea / Cruz Grande)</option>
+                    <option value="cartonLleno">Cartón Lleno (Todas las casillas)</option>
                 </select>
+                <input type="number" id="premioInicial" placeholder="Premio Base Inicial ($)">
                 <input type="datetime-local" id="fechaSorteo">
-                <input type="text" id="premioSala" placeholder="Premio (Ej: 100 USD)">
-                <input type="text" id="fondoSala" placeholder="Nombre del fondo (Ej: fondo2.jpg)">
-                <button onclick="crearSalaMaster()">PUBLICAR SORTEO</button>
+                <input type="text" id="fondoSala" placeholder="Nombre archivo fondo (Ej: fondo_oro.jpg)">
+                <button onclick="crearSalaMaster()"><i class="fas fa-plus"></i> PUBLICAR SALA EN RED</button>
             </div>
 
             <div class="card">
                 <h2>2. Registrar Socio</h2>
-                <input type="text" id="nombreSocio" placeholder="Nombre Completo del Socio">
-                <select id="selectSalasDisponibles">
-                    <option value="">Cargando salas...</option>
+                <input type="text" id="nombreSocio" placeholder="Nombre y Apellido">
+                <select id="selectSalasDisponibles"><option value="">Cargando salas...</option></select>
+                <label style="font-size: 0.8rem; display: block; margin: 5px 0 5px 5px;">Cartones comprados:</label>
+                <select id="cantCartones">
+                    <option value="1">1 Cartón</option>
+                    <option value="2">2 Cartones</option>
+                    <option value="3">3 Cartones</option>
+                    <option value="4">4 Cartones</option>
+                    <option value="5">5 Cartones</option>
+                    <option value="6">6 Cartones</option>
                 </select>
-                <button onclick="vincularSocioASala()" style="background:#1976d2;">VINCULAR Y GENERAR CÓDIGO</button>
+                <button onclick="vincularSocioASala()" style="background:#1976d2;"><i class="fas fa-user-plus"></i> VINCULAR Y GENERAR</button>
             </div>
         </div>
 
         <div class="column">
-            <div class="card" style="min-height: 400px;">
-                <h2>3. Socios y Códigos por Sala</h2>
-                <div id="contenedorTablas"></div>
+            <div class="card" style="min-height: 500px;">
+                <h2>3. Gestión de Salas Activas</h2>
+                <div id="contenedorTablas">
+                    </div>
             </div>
         </div>
     </div>
 
-    <div id="toast">✅ ¡Código copiado!</div>
+    <div id="toast">✅ ¡Código copiado al portapapeles!</div>
 
     <script type="module" src="app.js"></script>
 </body>
