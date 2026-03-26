@@ -2,139 +2,74 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bingo Club - Sala de Juego</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>En Juego - Bingo Club</title>
     <style>
-        :root { --primario: #004d61; --secundario: #25D366; --alerta: #d32f2f; }
-        body, html { margin: 0; padding: 0; min-height: 100%; font-family: 'Arial Black', sans-serif; background: url('fondo.jpg') no-repeat center center fixed; background-size: cover; color: white; overflow-x: hidden; }
-        .overlay { background: rgba(0, 0, 0, 0.8); min-height: 100vh; width: 100%; padding-bottom: 40px; }
-
-        /* HEADER CON VISOR DE ÚLTIMAS 5 BOLAS */
-        .top-bar { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); position: sticky; top: 0; z-index: 1000; padding: 12px; border-bottom: 3px solid var(--secundario); }
-        .bolas-fila { display: flex; justify-content: center; gap: 10px; align-items: center; min-height: 70px; }
-        .bola { width: 40px; height: 40px; border-radius: 50%; background: white; color: var(--primario); display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 900; border: 2px solid #ddd; }
-        .bola.actual { width: 65px; height: 65px; background: var(--secundario); color: white; font-size: 1.8rem; border: 4px solid white; box-shadow: 0 0 15px var(--secundario); }
-
-        /* PANTALLA DE ESPERA */
-        #pantallaEspera { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .pulse { animation: pulseAnim 1.5s infinite; color: var(--secundario); font-size: 1.1rem; margin-top: 20px; }
-        @keyframes pulseAnim { 0%, 100% {opacity: 1;} 50% {opacity: 0.4;} }
-
-        /* CARTONES */
-        .carton-container { padding: 15px; display: flex; flex-direction: column; gap: 25px; align-items: center; }
-        .carton-card { background: rgba(255,255,255,0.98); border-radius: 25px; padding: 12px; width: 100%; max-width: 380px; color: #111; }
-        .bingo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
-        .cell { aspect-ratio: 1/1; background: #eee; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 900; position: relative; }
-        .cell.free { background: url('logo.png') no-repeat center !important; background-size: 80% !important; background-color: #fff !important; }
-        .cell.marked::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('logo.png') no-repeat center; background-size: 70%; background-color: rgba(37, 211, 102, 0.5); border-radius: 50%; }
-        .btn-bingo { width: 100%; background: var(--alerta); color: white; border: none; padding: 20px; border-radius: 15px; margin-top: 15px; font-size: 1.5rem; font-weight: 900; }
+        body { background: #000; color: white; text-align: center; font-family: sans-serif; }
+        #historial { display: flex; justify-content: center; gap: 10px; margin: 20px; min-height: 80px; }
+        .bola-actual { 
+            width: 70px; height: 70px; background: #fff; color: #000; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; font-weight: bold; border: 4px solid #25D366;
+            box-shadow: 0 0 15px #25D366;
+        }
+        .bola-vieja { 
+            width: 40px; height: 40px; background: rgba(255,255,255,0.2); 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; opacity: 0.6; align-self: center;
+        }
+        #espera { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100; display: flex; align-items: center; justify-content: center; text-align: center; }
     </style>
 </head>
 <body>
-
-<div id="pantallaEspera">
-    <img src="logo.png" style="width: 140px; margin-bottom: 20px;">
-    <h1 style="color: white; font-size: 1.5rem;">SALA DE ESPERA</h1>
-    <p class="pulse">ESPERANDO QUE EL ADMINISTRADOR INICIE...</p>
-    <div style="margin-top: 20px;">PREMIO: <span id="txtPremioEspera" style="color:var(--secundario); font-weight:900;">$0.00</span></div>
-</div>
-
-<div class="overlay">
-    <div class="top-bar">
-        <div class="bolas-fila" id="visorBolas"></div>
-        <div style="text-align: center; margin-top: 5px; font-size: 0.9rem;">
-            MODO: <span id="txtModo" style="color: #ffc107;">SALA NORMAL</span> | 
-            PREMIO: <span id="txtPremio" style="color: var(--secundario); font-weight: bold;">$0.00</span>
+    <div id="espera">
+        <div>
+            <img src="logo.png" width="100">
+            <h2>ESPERANDO AL ADMINISTRADOR...</h2>
         </div>
     </div>
-    <div class="carton-container" id="contCartones"></div>
-</div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    <div id="panel-juego">
+        <div id="historial"></div>
+        <div id="contador" style="font-size: 0.8rem; opacity: 0.7;">BOLAS: 0</div>
+        <div id="mis-cartones"></div>
+    </div>
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
-        authDomain: "bingo-club-6f019.firebaseapp.com",
-        projectId: "bingo-club-6f019",
-        storageBucket: "bingo-club-6f019.firebasestorage.app",
-        messagingSenderId: "1059179173812",
-        appId: "1:1059179173812:web:78b43eaac565d213bec4e1"
-    };
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const sesion = JSON.parse(sessionStorage.getItem('socioActual'));
+        const firebaseConfig = { /* Misma config anterior */ };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    if(!sesion) window.location.href = 'index.html';
+        const socio = JSON.parse(sessionStorage.getItem('socioActual'));
+        if(!socio) window.location.href = "index.html";
 
-    let bolasCantadas = [];
-    let tipoJuego = "salaNormal";
+        onSnapshot(doc(db, "salas", socio.idSala), (snap) => {
+            const sala = snap.data();
+            if(!sala) return;
 
-    onSnapshot(doc(db, "salas", sesion.idSala), (snapshot) => {
-        const sala = snapshot.data();
-        if(!sala) return;
+            // 1. Control de pantalla
+            document.getElementById('espera').style.display = sala.estado === "jugando" ? "none" : "flex";
 
-        // 1. Control de Pantalla de Espera (Estado)
-        document.getElementById('pantallaEspera').style.display = (sala.estado === "jugando") ? 'none' : 'flex';
+            // 2. Fondo dinámico
+            if(sala.fondo) document.body.style.backgroundImage = `url('${sala.fondo}')`;
 
-        // 2. Actualizar Premio y Modo
-        bolasCantadas = sala.bolas || [];
-        tipoJuego = sala.tipo;
-        const p = `$${sala.premioActual.toFixed(2)}`;
-        document.getElementById('txtPremio').innerText = p;
-        document.getElementById('txtPremioEspera').innerText = p;
-        document.getElementById('txtModo').innerText = (tipoJuego === "cartonLleno") ? "CARTÓN LLENO" : "SALA NORMAL";
-
-        // 3. VISOR HISTORIAL ÚLTIMAS 5 BOLAS
-        const visor = document.getElementById('visorBolas');
-        visor.innerHTML = "";
-        const ultimas = bolasCantadas.slice(-5).reverse();
-        ultimas.forEach((b, i) => {
-            visor.innerHTML += `<div class="bola ${i === 0 ? 'actual' : ''}">${b}</div>`;
-        });
-
-        // 4. Ganadores
-        if(sala.ganadores?.length > 0) alert("¡GANADORES: " + sala.ganadores.join(", ") + "!");
-    });
-
-    window.cantarBingo = async (idx) => {
-        const c = sesion.cartones[idx];
-        const bolas = bolasCantadas;
-        let esGanador = false;
-        const check = (arr) => arr.every(n => n === undefined || bolas.includes(n));
-
-        if(tipoJuego === "cartonLleno") {
-            esGanador = Object.values(c).flat().every(n => n === undefined || bolas.includes(n));
-        } else {
-            // Validaciones Sala Normal
-            for(let i=0; i<5; i++) if(check([c.B[i], c.I[i], c.N[i], c.G[i], c.O[i]])) esGanador = true;
-            if(!esGanador && (check(c.B) || check(c.I) || check(c.N) || check(c.G) || check(c.O))) esGanador = true;
-            if(!esGanador && (check([c.B[0], c.I[1], c.N[2], c.G[3], c.O[4]]) || check([c.B[4], i[3], c.N[2], c.G[1], c.O[0]]))) esGanador = true;
-            if(!esGanador && (check(c.N) && check([c.B[2], c.I[2], c.N[2], c.G[2], c.O[2]]))) esGanador = true;
-            if(!esGanador && check([c.I[2], c.G[2], c.N[1], c.N[3]])) esGanador = true;
-        }
-
-        if(esGanador) await updateDoc(doc(db, "salas", sesion.idSala), { ganadores: arrayUnion(sesion.nombre) });
-        else alert("❌ Aún no tienes una figura válida.");
-    };
-
-    // Renderizado de cartones
-    const cont = document.getElementById('contCartones');
-    sesion.cartones.forEach((c, idx) => {
-        let h = `<div class="carton-card"><div class="bingo-grid">`;
-        ['B','I','N','G','O'].forEach(l => h += `<div style="text-align:center; font-weight:900;">${l}</div>`);
-        for(let i=0; i<5; i++) {
-            ['B','I','N','G','O'].forEach(l => {
-                if(l==='N' && i===2) h += `<div class="cell free"></div>`;
-                else h += `<div class="cell" onclick="this.classList.toggle('marked')">${c[l][i]}</div>`;
+            // 3. Historial últimas 5 bolas
+            const contHist = document.getElementById('historial');
+            contHist.innerHTML = '';
+            const ultimas5 = (sala.bolas || []).slice(-5).reverse();
+            
+            ultimas5.forEach((b, i) => {
+                const div = document.createElement('div');
+                div.className = i === 0 ? "bola-actual" : "bola-vieja";
+                div.innerText = b;
+                contHist.appendChild(div);
             });
-        }
-        h += `</div><button class="btn-bingo" onclick="cantarBingo(${idx})">¡BINGO!</button></div>`;
-        cont.innerHTML += h;
-    });
-</script>
+
+            document.getElementById('contador').innerText = `BOLAS CANTADAS: ${(sala.bolas || []).length}`;
+        });
+    </script>
 </body>
 </html>
