@@ -7,15 +7,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primario: #004d61; --secundario: #25D366; }
-        body { font-family: 'Segoe UI', sans-serif; background: #000; color: white; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #000; 
+            color: white; 
+            margin: 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh;
+        }
         
         .login-card {
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
-            padding: 40px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.2);
-            width: 100%; max-width: 320px; text-align: center;
+            background: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(10px);
+            padding: 40px; 
+            border-radius: 25px; 
+            border: 1px solid rgba(255,255,255,0.2);
+            width: 100%; 
+            max-width: 320px; 
+            text-align: center;
         }
 
-        img { width: 80px; margin-bottom: 20px; }
+        img#logoApp { width: 100px; margin-bottom: 20px; }
         h1 { font-size: 1.3rem; margin-bottom: 25px; letter-spacing: 1px; color: var(--secundario); }
 
         input {
@@ -32,25 +46,27 @@
         }
 
         #error-msg { color: #ff5252; font-size: 0.8rem; margin-top: 15px; display: none; }
+        #loading { display: none; color: var(--secundario); margin-top: 10px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
     <div class="login-card">
-        <img src="logo.png">
+        <img src="logo.png" id="logoApp">
         <h1>BINGO CLUB</h1>
 
-        <div style="text-align: left; font-size: 0.7rem; opacity: 0.7; margin-bottom: 8px; margin-left: 5px;">CÓDIGO DE ACCESO:</div>
+        <div style="text-align: left; font-size: 0.7rem; opacity: 0.7; margin-bottom: 8px; margin-left: 5px;">INGRESA TU CÓDIGO:</div>
         <input type="text" id="codigoAcceso" placeholder="ABC123" maxlength="10">
 
-        <button onclick="entrar()">ENTRAR <i class="fas fa-arrow-right"></i></button>
+        <button id="btnEntrar" onclick="entrar()">ENTRAR AL SORTEO</button>
 
+        <div id="loading">Verificando credenciales...</div>
         <div id="error-msg">❌ CÓDIGO NO VÁLIDO</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
@@ -67,32 +83,69 @@
         window.entrar = async () => {
             const input = document.getElementById('codigoAcceso').value.trim().toUpperCase();
             const error = document.getElementById('error-msg');
+            const loader = document.getElementById('loading');
+            const btn = document.getElementById('btnEntrar');
 
-            if(!input) return alert("Ingresa tu código");
+            if(!input) return alert("Por favor, ingresa el código asignado.");
+
+            btn.disabled = true;
+            loader.style.display = 'block';
+            error.style.display = 'none';
 
             try {
-                const snap = await getDocs(collection(db, "socios"));
-                let socio = null;
+                // 1. Buscamos al socio entre todos los registros
+                const snapSocios = await getDocs(collection(db, "socios"));
+                let socioData = null;
 
-                snap.forEach((docS) => {
+                snapSocios.forEach((docS) => {
                     const data = docS.data();
-                    if (data.codigoAcceso.trim().toUpperCase() === input) {
-                        socio = { id: docS.id, ...data };
+                    if (data.codigoAcceso && data.codigoAcceso.trim().toUpperCase() === input) {
+                        socioData = { id: docS.id, ...data };
                     }
                 });
 
-                if (socio) {
-                    sessionStorage.setItem('socioActual', JSON.stringify(socio));
-                    window.location.href = "juego.html";
+                if (socioData) {
+                    // 2. Si el socio existe, buscamos los datos de su SALA (Fondo, Logo, Estado)
+                    const docSala = await getDoc(doc(db, "salas", socioData.idSala));
+                    
+                    if (docSala.exists()) {
+                        const salaData = docSala.data();
+                        
+                        // 3. Guardamos TODO en la sesión (Socio + Info de la Sala)
+                        const sesionCompleta = {
+                            ...socioData,
+                            infoSala: {
+                                nombre: salaData.nombre,
+                                fondo: salaData.fondo, // Aquí está tu fondo guardado
+                                premio: salaData.premioActual,
+                                estado: salaData.estado
+                            }
+                        };
+
+                        sessionStorage.setItem('socioActual', JSON.stringify(sesionCompleta));
+                        
+                        // Redirigir al juego
+                        window.location.href = "juego.html";
+                    } else {
+                        throw new Error("La sala vinculada ya no existe.");
+                    }
                 } else {
-                    error.style.display = 'block';
-                    setTimeout(() => error.style.display = 'none', 3000);
+                    mostrarError();
                 }
             } catch (e) {
-                console.error(e);
-                alert("Error de conexión");
+                console.error("Error de acceso:", e);
+                mostrarError();
+            } finally {
+                btn.disabled = false;
+                loader.style.display = 'none';
             }
         };
+
+        function mostrarError() {
+            const error = document.getElementById('error-msg');
+            error.style.display = 'block';
+            setTimeout(() => error.style.display = 'none', 4000);
+        }
     </script>
 </body>
 </html>
