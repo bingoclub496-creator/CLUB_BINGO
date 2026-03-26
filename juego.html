@@ -3,55 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Club - En Vivo</title>
+    <title>En Juego - Bingo Club</title>
     <style>
-        body { background: #000; color: white; font-family: sans-serif; text-align: center; }
-        .bola-principal { width: 80px; height: 80px; background: white; color: black; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; border: 5px solid #25D366; margin-top: 20px; }
-        .historial { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
-        .bola-h { width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
-        #espera { position: fixed; top:0; left:0; width:100%; height:100%; background:black; display:flex; align-items:center; justify-content:center; z-index:99; }
+        body { 
+            background-color: #000; color: white; font-family: 'Segoe UI', sans-serif; 
+            margin: 0; padding: 0; text-align: center;
+            background-size: cover; background-position: center; background-attachment: fixed;
+        }
+        
+        /* PANTALLA DE ESPERA */
+        #pantallaEspera { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(10px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; 
+        }
+        
+        /* PANEL SUPERIOR DE BOLAS */
+        .panel-bolas {
+            background: rgba(0, 77, 97, 0.9); padding: 20px; border-bottom: 3px solid #25D366;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5); margin-bottom: 20px;
+        }
+        .historial-bolas { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 15px; }
+        
+        .bola-principal { 
+            width: 80px; height: 80px; background: white; color: #004d61; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; font-weight: 900; border: 5px solid #25D366;
+            box-shadow: 0 0 20px rgba(37, 211, 102, 0.8);
+        }
+        
+        .bola-secundaria { 
+            width: 45px; height: 45px; background: rgba(255,255,255,0.2); color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; font-weight: bold; border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .conteo { font-size: 0.9rem; font-weight: bold; margin-top: 10px; opacity: 0.8; letter-spacing: 1px; }
     </style>
 </head>
 <body>
-    <div id="espera"><h1>ESPERANDO INICIO...</h1></div>
-    
-    <div id="juego">
-        <div id="bola-hoy" class="bola-principal">--</div>
-        <div class="historial" id="hist"></div>
-        <p id="total">Bolas: 0</p>
+
+    <div id="pantallaEspera">
+        <img src="logo.png" width="120" style="margin-bottom: 20px;">
+        <h2 style="color: #25D366;">SALA EN ESPERA</h2>
+        <p>El administrador iniciará el sorteo en breve...</p>
     </div>
+
+    <div id="areaJuego">
+        <div class="panel-bolas">
+            <h3 style="margin: 0; font-size: 1rem; text-transform: uppercase;" id="nombreSocioDisplay">Socio</h3>
+            <div class="historial-bolas" id="contenedorHistorial">
+                <div class="bola-principal">--</div>
+            </div>
+            <div class="conteo" id="conteoTotal">BOLAS CANTADAS: 0</div>
+        </div>
+        
+        </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { /* ... tu config ... */ };
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
+            authDomain: "bingo-club-6f019.firebaseapp.com",
+            projectId: "bingo-club-6f019",
+            storageBucket: "bingo-club-6f019.firebasestorage.app",
+            messagingSenderId: "1059179173812",
+            appId: "1:1059179173812:web:78b43eaac565d213bec4e1"
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const socio = JSON.parse(sessionStorage.getItem('socio'));
-        if(!socio) window.location.href = "index.html";
+        // 1. Recuperar los datos del Socio desde index.html
+        const socio = JSON.parse(sessionStorage.getItem('socioActual'));
+        if(!socio) {
+            window.location.href = "index.html"; // Si no hay sesión, regresarlo
+        } else {
+            document.getElementById('nombreSocioDisplay').innerText = `CARTONES DE: ${socio.nombre}`;
+        }
 
-        onSnapshot(doc(db, "salas", socio.idSala), (snap) => {
-            const sala = snap.data();
+        // 2. Conectar en tiempo real a la Sala
+        onSnapshot(doc(db, "salas", socio.idSala), (snapshot) => {
+            const sala = snapshot.data();
             if(!sala) return;
 
-            // 1. Mostrar u ocultar espera
-            document.getElementById('espera').style.display = sala.estado === "jugando" ? "none" : "flex";
-
-            // 2. Actualizar Bolas
-            const lista = sala.bolas || [];
-            if(lista.length > 0) {
-                document.getElementById('bola-hoy').innerText = lista[lista.length - 1];
-                
-                const histDiv = document.getElementById('hist');
-                histDiv.innerHTML = '';
-                // Mostrar las 4 anteriores a la actual
-                lista.slice(-5, -1).reverse().forEach(b => {
-                    histDiv.innerHTML += `<div class="bola-h">${b}</div>`;
-                });
+            // APLICAR GRÁFICA DE LA BASE DE DATOS
+            if(sala.fondo) {
+                document.body.style.backgroundImage = `url('${sala.fondo}')`;
             }
-            document.getElementById('total').innerText = "Bolas cantadas: " + lista.length;
+
+            // CONTROL DE ESPERA
+            if (sala.estado === "espera") {
+                document.getElementById('pantallaEspera').style.display = 'flex';
+            } else {
+                document.getElementById('pantallaEspera').style.display = 'none';
+            }
+
+            // ACTUALIZAR BOLAS
+            const listaBolas = sala.bolas || [];
+            document.getElementById('conteoTotal').innerText = `BOLAS CANTADAS: ${listaBolas.length}`;
+
+            const contenedor = document.getElementById('contenedorHistorial');
+            contenedor.innerHTML = ''; // Limpiar
+
+            if (listaBolas.length > 0) {
+                // Tomar las últimas 5 y poner la más nueva primero
+                const ultimas = listaBolas.slice(-5).reverse();
+                
+                ultimas.forEach((bolaStr, index) => {
+                    const div = document.createElement('div');
+                    // La primera (index 0) es la bola principal, el resto son secundarias
+                    div.className = index === 0 ? "bola-principal" : "bola-secundaria";
+                    div.innerText = bolaStr;
+                    contenedor.appendChild(div);
+                });
+            } else {
+                contenedor.innerHTML = '<div class="bola-principal">--</div>';
+            }
         });
     </script>
 </body>
