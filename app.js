@@ -1,65 +1,57 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, updateDoc, onSnapshot, collection, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = { /* Misma config anterior */ };
+const firebaseConfig = { /* ... tu config ... */ };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let intervaloBolas = {}; // Objeto para manejar intervalos por sala
+let timer = null;
 
-// --- INICIO AUTOMÁTICO ---
-window.toggleSorteo = async (idSala, estadoActual) => {
-    const salaRef = doc(db, "salas", idSala);
+window.controlSorteo = async (id, estado) => {
+    const ref = doc(db, "salas", id);
     
-    if (estadoActual === "espera") {
-        await updateDoc(salaRef, { estado: "jugando", bolas: [] });
+    if (estado === "espera") {
+        // INICIAR
+        await updateDoc(ref, { estado: "jugando", bolas: [] });
         
-        // El reloj de bolas automáticas
-        intervaloBolas[idSala] = setInterval(async () => {
-            const snap = await getDoc(salaRef);
-            const data = snap.data();
+        timer = setInterval(async () => {
+            const s = await getDoc(ref);
+            const data = s.data();
             
             if (data.estado !== "jugando" || data.bolas.length >= 75) {
-                clearInterval(intervaloBolas[idSala]);
+                clearInterval(timer);
                 return;
             }
 
-            let nuevaBola;
-            const letras = ["B", "I", "N", "G", "O"];
+            const letras = ["B","I","N","G","O"];
+            let b;
             do {
-                const l = letras[Math.floor(Math.random() * 5)];
-                const n = Math.floor(Math.random() * 15) + 1 + (letras.indexOf(l) * 15);
-                nuevaBola = `${l}-${n}`;
-            } while (data.bolas.includes(nuevaBola));
+                let l = letras[Math.floor(Math.random()*5)];
+                let n = Math.floor(Math.random()*15) + 1 + (letras.indexOf(l)*15);
+                b = `${l}-${n}`;
+            } while (data.bolas.includes(b));
 
-            let listaActualizada = [...data.bolas, nuevaBola];
-            await updateDoc(salaRef, { bolas: listaActualizada });
-        }, 5000); // Lanzar cada 5 segundos
-
+            await updateDoc(ref, { bolas: [...data.bolas, b] });
+        }, 5000);
     } else {
-        clearInterval(intervaloBolas[idSala]);
-        await updateDoc(salaRef, { estado: "espera" });
+        // PARAR
+        clearInterval(timer);
+        await updateDoc(ref, { estado: "espera" });
     }
 };
 
-// --- GESTIÓN DE SALAS ---
+// Renderizar salas en el panel
 onSnapshot(collection(db, "salas"), (snap) => {
-    const cont = document.getElementById('contenedorTablas');
-    cont.innerHTML = '';
+    const panel = document.getElementById('contenedorTablas');
+    panel.innerHTML = '';
     snap.forEach(d => {
         const s = d.data();
-        const id = d.id;
-        const btnColor = s.estado === "jugando" ? "#ff5252" : "#25D366";
-        const btnTxt = s.estado === "jugando" ? "⏸ PARAR" : "🚀 INICIAR AUTOMÁTICO";
-
-        cont.innerHTML += `
+        panel.innerHTML += `
             <div class="card">
                 <h3>${s.nombre}</h3>
-                <button onclick="toggleSorteo('${id}', '${s.estado}')" style="background:${btnColor}">${btnTxt}</button>
-                <div id="lista-socios-${id}"></div>
-            </div>
-        `;
+                <button onclick="controlSorteo('${d.id}', '${s.estado}')">
+                    ${s.estado === 'jugando' ? 'DETENER' : 'INICIAR AUTOMÁTICO'}
+                </button>
+            </div>`;
     });
 });
-
-// (Mantener aquí tus funciones de vincularSocio y eliminarSala)
