@@ -3,30 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Club - Panel Administrativo</title>
+    <title>Bingo Club - Admin Master</title>
     <style>
-        :root { --primario: #004d61; --secundario: #25D366; --alerta: #d32f2f; --gris: #f4f7f6; }
-        
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--gris); margin: 0; padding: 20px; color: #333; }
-        
-        .container { max-width: 1000px; margin: auto; }
+        :root { --primario: #004d61; --secundario: #25D366; --alerta: #d32f2f; }
+        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 20px; text-align: center; }
+        .panel { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .btn-master { width: 100%; padding: 20px; border: none; border-radius: 12px; font-size: 1.5rem; font-weight: 900; cursor: pointer; margin-bottom: 20px; transition: 0.3s; }
+        .grid-bolas { display: grid; grid-template-columns: repeat(15, 1fr); gap: 5px; margin-top: 20px; }
+        .bola-btn { aspect-ratio: 1/1; border-radius: 50%; border: 1px solid #ddd; background: #fff; font-weight: bold; cursor: pointer; }
+        .bola-btn.active { background: var(--primario); color: white; transform: scale(1.1); }
+        .controles-extra { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
 
-        .header-admin { 
-            background: var(--primario); color: white; padding: 20px; 
-            border-radius: 20px; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
-        }
-
-        /* CONTROLES PRINCIPALES */
-        .controles-grid { 
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            gap: 15px; margin-bottom: 25px; 
-        }
-
-        .card-control { 
-            background: white; padding: 20px; border-radius: 15px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center;
-        }
-
-        .btn { 
-            width: 100%; padding: 12px; border: none; border-radius: 10px; 
-            font-weight: bold; cursor: pointer; transition: 0.2
+<div class="panel">
+    <h1 style="color: var(--primario);">BINGO CLUB - ADMINISTRADOR</h1>
