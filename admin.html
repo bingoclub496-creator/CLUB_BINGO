@@ -1,85 +1,165 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Club - Admin Master Pro</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #004d61; color: white; margin: 0; padding: 20px; }
-        .admin-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; max-width: 1300px; margin: 0 auto; }
-        .card { background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); border-radius: 25px; padding: 20px; border: 1px solid rgba(255,255,255,0.2); position: relative; margin-bottom: 20px; }
-        h2 { font-size: 1.1rem; color: #25D366; text-transform: uppercase; margin-top: 0; border-bottom: 1px solid rgba(37, 211, 102, 0.2); padding-bottom: 10px; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 10px; border: none; box-sizing: border-box; font-size: 1rem; }
-        button { background: #25D366; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
-        button:hover { background: #1eb954; transform: translateY(-2px); }
-        
-        /* Estilos de Sala y Tablas */
-        .sala-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .btn-delete-sala { background: none; border: none; color: #ff5252; cursor: pointer; font-size: 1.3rem; padding: 5px; }
-        .btn-delete-sala:hover { color: #ff1744; transform: scale(1.1); }
-        
-        .tabla-socios { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(0,0,0,0.2); border-radius: 10px; overflow: hidden; }
-        th { text-align: left; padding: 12px; background: rgba(255,255,255,0.1); font-size: 0.8rem; text-transform: uppercase; }
-        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
-        
-        .btn-del-socio { background: #ff5252; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; margin-right: 5px; }
-        .btn-copy { background: #f8f9fa; color: #333; padding: 6px 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
-        .btn-reset-pote { background: #ffa000; font-size: 0.8rem; margin-top: 15px; padding: 10px; }
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, query, where, getDoc, onSnapshot, orderBy, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        #toast { display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#25D366; color:white; padding:12px 30px; border-radius:50px; z-index: 1000; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-    </style>
-</head>
-<body>
+// CONFIGURACIÓN DE TU FIREBASE (bingo-club-6f019)
+const firebaseConfig = {
+    apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
+    authDomain: "bingo-club-6f019.firebaseapp.com",
+    projectId: "bingo-club-6f019",
+    storageBucket: "bingo-club-6f019.firebasestorage.app",
+    messagingSenderId: "1059179173812",
+    appId: "1:1059179173812:web:78b43eaac565d213bec4e1"
+};
 
-    <div style="text-align:center; margin-bottom: 30px;">
-        <img src="logo.png" width="70">
-        <h1 style="margin:10px 0; font-size: 1.6rem; letter-spacing: 1px;">SISTEMA ADMINISTRATIVO BINGO CLUB</h1>
-    </div>
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    <div class="admin-grid">
-        <div class="column">
-            <div class="card">
-                <h2>1. Crear Nueva Sala</h2>
-                <input type="text" id="nombreSala" placeholder="Nombre de la Sala (Ej: Sorteo de San Juan)">
-                <select id="tipoSala">
-                    <option value="normal">Normal (Línea / Cruz Grande)</option>
-                    <option value="cartonLleno">Cartón Lleno (Todas las casillas)</option>
-                </select>
-                <input type="number" id="premioInicial" placeholder="Premio Base Inicial ($)">
-                <input type="datetime-local" id="fechaSorteo">
-                <input type="text" id="fondoSala" placeholder="Nombre archivo fondo (Ej: fondo_oro.jpg)">
-                <button onclick="crearSalaMaster()"><i class="fas fa-plus"></i> PUBLICAR SALA EN RED</button>
-            </div>
+/* --- UTILIDADES --- */
+window.copiarCodigo = (codigo) => {
+    navigator.clipboard.writeText(codigo).then(() => {
+        const toast = document.getElementById('toast');
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 2000);
+    });
+};
 
-            <div class="card">
-                <h2>2. Registrar Socio</h2>
-                <input type="text" id="nombreSocio" placeholder="Nombre y Apellido">
-                <select id="selectSalasDisponibles"><option value="">Cargando salas...</option></select>
-                <label style="font-size: 0.8rem; display: block; margin: 5px 0 5px 5px;">Cartones comprados:</label>
-                <select id="cantCartones">
-                    <option value="1">1 Cartón</option>
-                    <option value="2">2 Cartones</option>
-                    <option value="3">3 Cartones</option>
-                    <option value="4">4 Cartones</option>
-                    <option value="5">5 Cartones</option>
-                    <option value="6">6 Cartones</option>
-                </select>
-                <button onclick="vincularSocioASala()" style="background:#1976d2;"><i class="fas fa-user-plus"></i> VINCULAR Y GENERAR</button>
-            </div>
-        </div>
+/* --- 1. CREACIÓN DE SALA --- */
+window.crearSalaMaster = async () => {
+    const nombre = document.getElementById('nombreSala').value;
+    const inicial = parseFloat(document.getElementById('premioInicial').value) || 0;
+    const fondo = document.getElementById('fondoSala').value || "fondo.jpg";
+    const fecha = document.getElementById('fechaSorteo').value;
 
-        <div class="column">
-            <div class="card" style="min-height: 500px;">
-                <h2>3. Gestión de Salas Activas</h2>
-                <div id="contenedorTablas">
-                    </div>
-            </div>
-        </div>
-    </div>
+    if(!nombre || inicial <= 0 || !fecha) return alert("⚠️ Completa todos los campos correctamente.");
 
-    <div id="toast">✅ ¡Código copiado al portapapeles!</div>
+    await addDoc(collection(db, "salas"), {
+        nombre,
+        tipo: document.getElementById('tipoSala').value,
+        premioInicial: inicial,
+        premioActual: inicial,
+        fecha,
+        fondo,
+        creadoEn: new Date().getTime()
+    });
+    alert("✅ Sala publicada exitosamente.");
+    document.getElementById('nombreSala').value = "";
+    document.getElementById('premioInicial').value = "";
+};
 
-    <script type="module" src="app.js"></script>
-</body>
-</html>
+/* --- 2. REGISTRO DE SOCIO E INCREMENTO DEL 4% SIMPLE --- */
+window.vincularSocioASala = async () => {
+    const idSala = document.getElementById('selectSalasDisponibles').value;
+    const nombre = document.getElementById('nombreSocio').value;
+    const cant = parseInt(document.getElementById('cantCartones').value);
+
+    if(!idSala || !nombre) return alert("⚠️ Selecciona sala e ingresa nombre del socio.");
+
+    const salaRef = doc(db, "salas", idSala);
+    const salaSnap = await getDoc(salaRef);
+    const salaData = salaSnap.data();
+
+    // LÓGICA: 4% del premio inicial sumado por cada cartón nuevo
+    const incrementoUnitario = salaData.premioInicial * 0.04;
+    const incrementoTotal = incrementoUnitario * cant;
+    const nuevoPremio = salaData.premioActual + incrementoTotal;
+
+    // Generar código y cartones
+    const codigo = Math.random().toString(36).substring(2,8).toUpperCase();
+    let cartones = [];
+    for(let i=0; i<cant; i++) { cartones.push(generarCartonBingo()); }
+
+    try {
+        await addDoc(collection(db, "socios"), { nombre, idSala, codigo, cartones });
+        await updateDoc(salaRef, { premioActual: nuevoPremio });
+        alert(`✅ Socio Registrado.\nPremio subió: +${incrementoTotal.toFixed(2)}$`);
+        document.getElementById('nombreSocio').value = "";
+    } catch (e) { console.error(e); }
+};
+
+/* --- 3. FUNCIONES DE LIMPIEZA Y BORRADO --- */
+window.borrarSalaCompleta = async (id) => {
+    if(confirm("🚨 ¿BORRAR SALA COMPLETAMENTE?\nEsto eliminará la sala de Firebase de forma permanente.")) {
+        await deleteDoc(doc(db, "salas", id));
+    }
+};
+
+window.borrarSocio = async (idSocio) => {
+    if(confirm("¿Eliminar este socio de la lista?")) {
+        await deleteDoc(doc(db, "socios", idSocio));
+    }
+};
+
+window.resetPremioBase = async (idSala) => {
+    const salaRef = doc(db, "salas", idSala);
+    const salaSnap = await getDoc(salaRef);
+    if(confirm(`¿Resetear premio a ${salaSnap.data().premioInicial}$?`)) {
+        await updateDoc(salaRef, { premioActual: salaSnap.data().premioInicial });
+    }
+};
+
+/* --- 4. RENDERIZADO EN TIEMPO REAL --- */
+if (document.getElementById('contenedorTablas')) {
+    onSnapshot(query(collection(db, "salas"), orderBy("creadoEn", "desc")), (snapshot) => {
+        const select = document.getElementById('selectSalasDisponibles');
+        const cont = document.getElementById('contenedorTablas');
+        select.innerHTML = '<option value="">Selecciona sala...</option>';
+        cont.innerHTML = "";
+
+        snapshot.forEach((d) => {
+            const sala = d.data();
+            const id = d.id;
+            select.innerHTML += `<option value="${id}">${sala.nombre}</option>`;
+            
+            const div = document.createElement('div');
+            div.className = "card";
+            div.innerHTML = `
+                <div class="sala-header">
+                    <h3 style="margin:0; color:#25D366;">${sala.nombre.toUpperCase()}</h3>
+                    <button class="btn-delete-sala" onclick="borrarSalaCompleta('${id}')" title="Eliminar Sala">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                <p style="font-size:0.75rem; margin:5px 0;">💰 ACTUAL: <b style="font-size:1.1rem; color:#fff;">${sala.premioActual.toFixed(2)}$</b> | Base: ${sala.premioInicial}$</p>
+                <table class="tabla-socios">
+                    <thead><tr><th>Socio (Cartones)</th><th style="text-align:right;">Acción</th></tr></thead>
+                    <tbody id="body-${id}"></tbody>
+                </table>
+                <button class="btn-reset-pote" onclick="resetPremioBase('${id}')"><i class="fas fa-undo"></i> VOLVER AL PREMIO INICIAL</button>`;
+            cont.appendChild(div);
+            escucharSocios(id);
+        });
+    });
+}
+
+function escucharSocios(idSala) {
+    onSnapshot(query(collection(db, "socios"), where("idSala", "==", idSala)), (snap) => {
+        const tb = document.getElementById(`body-${idSala}`);
+        if(!tb) return;
+        tb.innerHTML = "";
+        snap.forEach(soc => {
+            const s = soc.data();
+            tb.innerHTML += `
+                <tr>
+                    <td>${s.nombre} <small>(${s.cartones.length})</small></td>
+                    <td style="text-align:right;">
+                        <button class="btn-del-socio" onclick="borrarSocio('${soc.id}')"><i class="fas fa-user-minus"></i></button>
+                        <button class="btn-copy" onclick="copiarCodigo('${s.codigo}')">${s.codigo}</button>
+                    </td>
+                </tr>`;
+        });
+    });
+}
+
+function generarCartonBingo() {
+    const r = { B:[1,15], I:[16,30], N:[31,45], G:[46,60], O:[61,75] };
+    let c = {};
+    ['B','I','N','G','O'].forEach(l => {
+        let nums = [];
+        while(nums.length < 5) {
+            let n = Math.floor(Math.random()*(r[l][1]-r[l][0]+1))+r[l][0];
+            if(!nums.includes(n)) nums.push(n);
+        }
+        c[l] = nums.sort((a,b)=>a-b);
+    });
+    return c;
+}
