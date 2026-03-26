@@ -8,65 +8,43 @@
     <style>
         :root { --primario: #004d61; --secundario: #25D366; }
         body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: #000; 
-            color: white; 
-            margin: 0; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh;
+            margin: 0; padding: 0; height: 100vh; font-family: 'Segoe UI', sans-serif;
+            background: #000; color: white; display: flex; align-items: center; justify-content: center;
         }
-        
         .login-card {
-            background: rgba(255, 255, 255, 0.1); 
-            backdrop-filter: blur(10px);
-            padding: 40px; 
-            border-radius: 25px; 
-            border: 1px solid rgba(255,255,255,0.2);
-            width: 100%; 
-            max-width: 320px; 
-            text-align: center;
+            background: rgba(0, 77, 97, 0.9); backdrop-filter: blur(15px);
+            padding: 40px; border-radius: 30px; border: 2px solid var(--secundario);
+            width: 85%; max-width: 320px; text-align: center;
+            box-shadow: 0 0 30px rgba(37, 211, 102, 0.3);
         }
-
-        img#logoApp { width: 100px; margin-bottom: 20px; }
-        h1 { font-size: 1.3rem; margin-bottom: 25px; letter-spacing: 1px; color: var(--secundario); }
-
+        img#logoApp { width: 100px; margin-bottom: 20px; filter: drop-shadow(0 0 10px var(--secundario)); }
         input {
-            width: 100%; padding: 15px; border-radius: 12px; border: none;
-            background: white; color: #333; font-size: 1.2rem;
-            box-sizing: border-box; font-weight: bold; text-align: center;
-            text-transform: uppercase; margin-bottom: 20px;
+            width: 100%; padding: 18px; border-radius: 15px; border: none;
+            background: white; color: #333; font-size: 1.5rem; font-weight: 900;
+            text-align: center; text-transform: uppercase; margin-bottom: 25px; outline: none;
         }
-
         button {
-            width: 100%; padding: 15px; border-radius: 12px; border: none;
-            background: var(--secundario); color: white; font-size: 1.1rem;
-            font-weight: 900; cursor: pointer; transition: 0.3s;
+            width: 100%; padding: 18px; border-radius: 15px; border: none;
+            background: var(--secundario); color: white; font-size: 1.2rem;
+            font-weight: 900; cursor: pointer; text-transform: uppercase; transition: 0.3s;
         }
-
-        #error-msg { color: #ff5252; font-size: 0.8rem; margin-top: 15px; display: none; }
-        #loading { display: none; color: var(--secundario); margin-top: 10px; font-size: 0.8rem; }
+        button:active { transform: scale(0.95); }
+        #error-msg { color: #ff5252; font-size: 0.8rem; margin-top: 15px; display: none; font-weight: bold; }
     </style>
 </head>
 <body>
-
     <div class="login-card">
         <img src="logo.png" id="logoApp">
-        <h1>BINGO CLUB</h1>
-
-        <div style="text-align: left; font-size: 0.7rem; opacity: 0.7; margin-bottom: 8px; margin-left: 5px;">INGRESA TU CÓDIGO:</div>
+        <h1 style="font-size: 1.4rem; margin-bottom: 25px; letter-spacing: 2px;">BINGO CLUB</h1>
+        <div style="text-align: left; font-size: 0.7rem; opacity: 0.7; margin-bottom: 8px;">CÓDIGO DE ACCESO:</div>
         <input type="text" id="codigoAcceso" placeholder="ABC123" maxlength="10">
-
-        <button id="btnEntrar" onclick="entrar()">ENTRAR AL SORTEO</button>
-
-        <div id="loading">Verificando credenciales...</div>
+        <button onclick="validarEntrada()">ENTRAR AL JUEGO</button>
         <div id="error-msg">❌ CÓDIGO NO VÁLIDO</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
@@ -80,72 +58,27 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        window.entrar = async () => {
-            const input = document.getElementById('codigoAcceso').value.trim().toUpperCase();
-            const error = document.getElementById('error-msg');
-            const loader = document.getElementById('loading');
-            const btn = document.getElementById('btnEntrar');
-
-            if(!input) return alert("Por favor, ingresa el código asignado.");
-
-            btn.disabled = true;
-            loader.style.display = 'block';
-            error.style.display = 'none';
+        window.validarEntrada = async () => {
+            const codeIn = document.getElementById('codigoAcceso').value.trim().toUpperCase();
+            if(!codeIn) return;
 
             try {
-                // 1. Buscamos al socio entre todos los registros
-                const snapSocios = await getDocs(collection(db, "socios"));
+                const snap = await getDocs(collection(db, "socios"));
                 let socioData = null;
-
-                snapSocios.forEach((docS) => {
-                    const data = docS.data();
-                    if (data.codigoAcceso && data.codigoAcceso.trim().toUpperCase() === input) {
-                        socioData = { id: docS.id, ...data };
+                snap.forEach(d => {
+                    if(d.data().codigoAcceso.trim().toUpperCase() === codeIn) {
+                        socioData = { id: d.id, ...d.data() };
                     }
                 });
 
-                if (socioData) {
-                    // 2. Si el socio existe, buscamos los datos de su SALA (Fondo, Logo, Estado)
-                    const docSala = await getDoc(doc(db, "salas", socioData.idSala));
-                    
-                    if (docSala.exists()) {
-                        const salaData = docSala.data();
-                        
-                        // 3. Guardamos TODO en la sesión (Socio + Info de la Sala)
-                        const sesionCompleta = {
-                            ...socioData,
-                            infoSala: {
-                                nombre: salaData.nombre,
-                                fondo: salaData.fondo, // Aquí está tu fondo guardado
-                                premio: salaData.premioActual,
-                                estado: salaData.estado
-                            }
-                        };
-
-                        sessionStorage.setItem('socioActual', JSON.stringify(sesionCompleta));
-                        
-                        // Redirigir al juego
-                        window.location.href = "juego.html";
-                    } else {
-                        throw new Error("La sala vinculada ya no existe.");
-                    }
+                if(socioData) {
+                    sessionStorage.setItem('socioActual', JSON.stringify(socioData));
+                    window.location.href = "juego.html";
                 } else {
-                    mostrarError();
+                    document.getElementById('error-msg').style.display = 'block';
                 }
-            } catch (e) {
-                console.error("Error de acceso:", e);
-                mostrarError();
-            } finally {
-                btn.disabled = false;
-                loader.style.display = 'none';
-            }
+            } catch(e) { console.error(e); }
         };
-
-        function mostrarError() {
-            const error = document.getElementById('error-msg');
-            error.style.display = 'block';
-            setTimeout(() => error.style.display = 'none', 4000);
-        }
     </script>
 </body>
 </html>
