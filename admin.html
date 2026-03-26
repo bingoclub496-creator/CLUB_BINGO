@@ -2,84 +2,67 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Club - Admin Master Pro</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Bingo Club - Admin</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #004d61; color: white; margin: 0; padding: 20px; }
-        .admin-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; max-width: 1300px; margin: 0 auto; }
-        .card { background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); border-radius: 25px; padding: 20px; border: 1px solid rgba(255,255,255,0.2); position: relative; margin-bottom: 20px; }
-        h2 { font-size: 1.1rem; color: #25D366; text-transform: uppercase; margin-top: 0; border-bottom: 1px solid rgba(37, 211, 102, 0.2); padding-bottom: 10px; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 10px; border: none; box-sizing: border-box; font-size: 1rem; }
-        button { background: #25D366; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
-        button:hover { background: #1eb954; transform: translateY(-2px); }
-        
-        /* Estilos de Sala y Tablas */
-        .sala-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .btn-delete-sala { background: none; border: none; color: #ff5252; cursor: pointer; font-size: 1.3rem; padding: 5px; }
-        .btn-delete-sala:hover { color: #ff1744; transform: scale(1.1); }
-        
-        .tabla-socios { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(0,0,0,0.2); border-radius: 10px; overflow: hidden; }
-        th { text-align: left; padding: 12px; background: rgba(255,255,255,0.1); font-size: 0.8rem; text-transform: uppercase; }
-        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
-        
-        .btn-del-socio { background: #ff5252; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; margin-right: 5px; }
-        .btn-copy { background: #f8f9fa; color: #333; padding: 6px 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
-        .btn-reset-pote { background: #ffa000; font-size: 0.8rem; margin-top: 15px; padding: 10px; }
-
-        #toast { display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#25D366; color:white; padding:12px 30px; border-radius:50px; z-index: 1000; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        body { font-family: sans-serif; background: #004d61; color: white; text-align: center; padding: 20px; }
+        .grid-bolas { display: grid; grid-template-columns: repeat(15, 1fr); gap: 5px; margin: 20px auto; max-width: 900px; }
+        .bola-btn { padding: 10px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; }
+        .bola-btn.active { background: #25D366; color: white; }
+        .panel-controles { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 20px; }
+        .btn-start { background: #ffc107; color: #111; padding: 15px 30px; border: none; border-radius: 10px; font-weight: 900; cursor: pointer; font-size: 1.2rem; }
     </style>
 </head>
 <body>
+    <h1>ADMINISTRACIÓN BINGO CLUB</h1>
 
-    <div style="text-align:center; margin-bottom: 30px;">
-        <img src="logo.png" width="70">
-        <h1 style="margin:10px 0; font-size: 1.6rem; letter-spacing: 1px;">SISTEMA ADMINISTRATIVO BINGO CLUB</h1>
+    <div class="panel-controles">
+        <button class="btn-start" onclick="activarSala()">🚀 INICIAR SORTEO (Quitar Espera)</button>
+        <button style="background:red; color:white;" onclick="resetearSorteo()">REINICIAR TODO</button>
+        <p>Premio: <input type="number" id="inpPremio" onchange="cambiarPremio(this.value)"> $</p>
     </div>
 
-    <div class="admin-grid">
-        <div class="column">
-            <div class="card">
-                <h2>1. Crear Nueva Sala</h2>
-                <input type="text" id="nombreSala" placeholder="Nombre de la Sala (Ej: Sorteo de San Juan)">
-                <select id="tipoSala">
-                    <option value="normal">Normal (Línea / Cruz Grande)</option>
-                    <option value="cartonLleno">Cartón Lleno (Todas las casillas)</option>
-                </select>
-                <input type="number" id="premioInicial" placeholder="Premio Base Inicial ($)">
-                <input type="datetime-local" id="fechaSorteo">
-                <input type="text" id="fondoSala" placeholder="Nombre archivo fondo (Ej: fondo_oro.jpg)">
-                <button onclick="crearSalaMaster()"><i class="fas fa-plus"></i> PUBLICAR SALA EN RED</button>
-            </div>
+    <div class="grid-bolas" id="tablero"></div>
 
-            <div class="card">
-                <h2>2. Registrar Socio</h2>
-                <input type="text" id="nombreSocio" placeholder="Nombre y Apellido">
-                <select id="selectSalasDisponibles"><option value="">Cargando salas...</option></select>
-                <label style="font-size: 0.8rem; display: block; margin: 5px 0 5px 5px;">Cartones comprados:</label>
-                <select id="cantCartones">
-                    <option value="1">1 Cartón</option>
-                    <option value="2">2 Cartones</option>
-                    <option value="3">3 Cartones</option>
-                    <option value="4">4 Cartones</option>
-                    <option value="5">5 Cartones</option>
-                    <option value="6">6 Cartones</option>
-                </select>
-                <button onclick="vincularSocioASala()" style="background:#1976d2;"><i class="fas fa-user-plus"></i> VINCULAR Y GENERAR</button>
-            </div>
-        </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        <div class="column">
-            <div class="card" style="min-height: 500px;">
-                <h2>3. Gestión de Salas Activas</h2>
-                <div id="contenedorTablas">
-                    </div>
-            </div>
-        </div>
-    </div>
+        const firebaseConfig = { /* MISMA CONFIG QUE EL ANTERIOR */ };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const idSala = "SALA_GUARA_01"; // Asegúrate que sea el mismo ID de Firebase
 
-    <div id="toast">✅ ¡Código copiado al portapapeles!</div>
+        // Generar botones de bolas
+        const letras = ['B','I','N','G','O'];
+        const tablero = document.getElementById('tablero');
+        for(let i=1; i<=75; i++) {
+            let letra = letras[Math.floor((i-1)/15)];
+            let val = `${letra}${i}`;
+            let b = document.createElement('button');
+            b.className = 'bola-btn';
+            b.innerText = val;
+            b.onclick = async () => {
+                b.classList.add('active');
+                await updateDoc(doc(db, "salas", idSala), { bolas: arrayUnion(val) });
+            };
+            tablero.appendChild(b);
+        }
 
-    <script type="module" src="app.js"></script>
+        window.activarSala = async () => {
+            await updateDoc(doc(db, "salas", idSala), { estado: "jugando", bolas: [], ganadores: [] });
+            alert("Sorteo en vivo. La pantalla de espera ha desaparecido para los socios.");
+        };
+
+        window.resetearSorteo = async () => {
+            if(confirm("¿Borrar todo?")) {
+                await updateDoc(doc(db, "salas", idSala), { estado: "espera", bolas: [], ganadores: [] });
+                location.reload();
+            }
+        };
+
+        window.cambiarPremio = async (v) => {
+            await updateDoc(doc(db, "salas", idSala), { premioActual: parseFloat(v) });
+        };
+    </script>
 </body>
 </html>
