@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, query, where, getDoc, onSnapshot, orderBy, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// CONFIGURACIÓN DE TU FIREBASE (bingo-club-6f019)
 const firebaseConfig = {
     apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
     authDomain: "bingo-club-6f019.firebaseapp.com",
@@ -14,152 +13,115 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* --- UTILIDADES --- */
-window.copiarCodigo = (codigo) => {
-    navigator.clipboard.writeText(codigo).then(() => {
-        const toast = document.getElementById('toast');
-        toast.style.display = 'block';
-        setTimeout(() => toast.style.display = 'none', 2000);
-    });
+// --- FUNCIONES DE APOYO ---
+const generarCarton = () => {
+    const r = (min, max) => {
+        let n = [];
+        while(n.length < 5) {
+            let num = Math.floor(Math.random() * (max - min + 1)) + min;
+            if(!n.includes(num)) n.push(num);
+        }
+        return n.sort((a,b) => a-b);
+    };
+    return { B: r(1,15), I: r(16,30), N: r(31,45), G: r(46,60), O: r(61,75) };
 };
 
-/* --- 1. CREACIÓN DE SALA --- */
-window.crearSalaMaster = async () => {
-    const nombre = document.getElementById('nombreSala').value;
-    const inicial = parseFloat(document.getElementById('premioInicial').value) || 0;
-    const fondo = document.getElementById('fondoSala').value || "fondo.jpg";
-    const fecha = document.getElementById('fechaSorteo').value;
+// --- ACCIONES DEL ADMINISTRADOR ---
 
-    if(!nombre || inicial <= 0 || !fecha) return alert("⚠️ Completa todos los campos correctamente.");
+window.crearSalaMaster = async () => {
+    const n = document.getElementById('nombreSala').value;
+    const t = document.getElementById('tipoSala').value;
+    const p = parseFloat(document.getElementById('premioInicial').value) || 0;
+    const f = document.getElementById('fechaSorteo').value;
+
+    if(!n || !f) return alert("Faltan datos de la sala");
 
     await addDoc(collection(db, "salas"), {
-        nombre,
-        tipo: document.getElementById('tipoSala').value,
-        premioInicial: inicial,
-        premioActual: inicial,
-        fecha,
-        fondo,
-        creadoEn: new Date().getTime()
+        nombre: n, tipo: t, premioActual: p, horaInicio: f,
+        estado: "espera", bolas: [], ganadores: []
     });
-    alert("✅ Sala publicada exitosamente.");
-    document.getElementById('nombreSala').value = "";
-    document.getElementById('premioInicial').value = "";
+    alert("Sala Creada");
 };
 
-/* --- 2. REGISTRO DE SOCIO E INCREMENTO DEL 4% SIMPLE --- */
-window.vincularSocioASala = async () => {
-    const idSala = document.getElementById('selectSalasDisponibles').value;
-    const nombre = document.getElementById('nombreSocio').value;
+window.vincularSocio = async () => {
+    const nom = document.getElementById('nombreSocio').value;
+    const idS = document.getElementById('selectSalasDisponibles').value;
     const cant = parseInt(document.getElementById('cantCartones').value);
 
-    if(!idSala || !nombre) return alert("⚠️ Selecciona sala e ingresa nombre del socio.");
+    if(!nom || !idS) return alert("Faltan datos del socio");
 
-    const salaRef = doc(db, "salas", idSala);
-    const salaSnap = await getDoc(salaRef);
-    const salaData = salaSnap.data();
+    let carts = [];
+    for(let i=0; i<cant; i++) carts.push(generarCarton());
 
-    // LÓGICA: 4% del premio inicial sumado por cada cartón nuevo
-    const incrementoUnitario = salaData.premioInicial * 0.04;
-    const incrementoTotal = incrementoUnitario * cant;
-    const nuevoPremio = salaData.premioActual + incrementoTotal;
-
-    // Generar código y cartones
-    const codigo = Math.random().toString(36).substring(2,8).toUpperCase();
-    let cartones = [];
-    for(let i=0; i<cant; i++) { cartones.push(generarCartonBingo()); }
-
-    try {
-        await addDoc(collection(db, "socios"), { nombre, idSala, codigo, cartones });
-        await updateDoc(salaRef, { premioActual: nuevoPremio });
-        alert(`✅ Socio Registrado.\nPremio subió: +${incrementoTotal.toFixed(2)}$`);
-        document.getElementById('nombreSocio').value = "";
-    } catch (e) { console.error(e); }
-};
-
-/* --- 3. FUNCIONES DE LIMPIEZA Y BORRADO --- */
-window.borrarSalaCompleta = async (id) => {
-    if(confirm("🚨 ¿BORRAR SALA COMPLETAMENTE?\nEsto eliminará la sala de Firebase de forma permanente.")) {
-        await deleteDoc(doc(db, "salas", id));
-    }
-};
-
-window.borrarSocio = async (idSocio) => {
-    if(confirm("¿Eliminar este socio de la lista?")) {
-        await deleteDoc(doc(db, "socios", idSocio));
-    }
-};
-
-window.resetPremioBase = async (idSala) => {
-    const salaRef = doc(db, "salas", idSala);
-    const salaSnap = await getDoc(salaRef);
-    if(confirm(`¿Resetear premio a ${salaSnap.data().premioInicial}$?`)) {
-        await updateDoc(salaRef, { premioActual: salaSnap.data().premioInicial });
-    }
-};
-
-/* --- 4. RENDERIZADO EN TIEMPO REAL --- */
-if (document.getElementById('contenedorTablas')) {
-    onSnapshot(query(collection(db, "salas"), orderBy("creadoEn", "desc")), (snapshot) => {
-        const select = document.getElementById('selectSalasDisponibles');
-        const cont = document.getElementById('contenedorTablas');
-        select.innerHTML = '<option value="">Selecciona sala...</option>';
-        cont.innerHTML = "";
-
-        snapshot.forEach((d) => {
-            const sala = d.data();
-            const id = d.id;
-            select.innerHTML += `<option value="${id}">${sala.nombre}</option>`;
-            
-            const div = document.createElement('div');
-            div.className = "card";
-            div.innerHTML = `
-                <div class="sala-header">
-                    <h3 style="margin:0; color:#25D366;">${sala.nombre.toUpperCase()}</h3>
-                    <button class="btn-delete-sala" onclick="borrarSalaCompleta('${id}')" title="Eliminar Sala">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-                <p style="font-size:0.75rem; margin:5px 0;">💰 ACTUAL: <b style="font-size:1.1rem; color:#fff;">${sala.premioActual.toFixed(2)}$</b> | Base: ${sala.premioInicial}$</p>
-                <table class="tabla-socios">
-                    <thead><tr><th>Socio (Cartones)</th><th style="text-align:right;">Acción</th></tr></thead>
-                    <tbody id="body-${id}"></tbody>
-                </table>
-                <button class="btn-reset-pote" onclick="resetPremioBase('${id}')"><i class="fas fa-undo"></i> VOLVER AL PREMIO INICIAL</button>`;
-            cont.appendChild(div);
-            escucharSocios(id);
-        });
+    await addDoc(collection(db, "socios"), {
+        nombre: nom, idSala: idS, cartones: carts,
+        codigoAcceso: Math.random().toString(36).substr(2, 6).toUpperCase()
     });
-}
+    alert("Socio Vinculado");
+};
 
-function escucharSocios(idSala) {
-    onSnapshot(query(collection(db, "socios"), where("idSala", "==", idSala)), (snap) => {
+// --- INICIO DEL SORTEO (LA CLAVE) ---
+window.toggleSorteo = async (id, estadoActual) => {
+    const nuevo = estadoActual === "espera" ? "jugando" : "espera";
+    await updateDoc(doc(db, "salas", id), { estado: nuevo });
+};
+
+// --- RENDERIZADO DINÁMICO ---
+onSnapshot(collection(db, "salas"), (snap) => {
+    const cont = document.getElementById('contenedorTablas');
+    const sel = document.getElementById('selectSalasDisponibles');
+    cont.innerHTML = ''; 
+    sel.innerHTML = '<option value="">Seleccionar Sala...</option>';
+
+    snap.forEach(d => {
+        const sala = d.data();
+        const id = d.id;
+
+        sel.innerHTML += `<option value="${id}">${sala.nombre}</option>`;
+
+        const colorBtn = sala.estado === "jugando" ? "#f44336" : "#25D366";
+        const textoBtn = sala.estado === "jugando" ? "⏸ PAUSAR" : "🚀 INICIAR SORTEO";
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between">
+                <h3>${sala.nombre}</h3>
+                <button onclick="eliminarSala('${id}')" style="width:auto; background:none; color:red"><i class="fas fa-trash"></i></button>
+            </div>
+            <button class="btn-status" onclick="toggleSorteo('${id}', '${sala.estado}')" style="background:${colorBtn}">
+                ${textoBtn}
+            </button>
+            <table class="tabla-socios">
+                <thead><tr><th>Socio</th><th>Código</th><th>Acción</th></tr></thead>
+                <tbody id="body-${id}"></tbody>
+            </table>
+        `;
+        cont.appendChild(card);
+        cargarSocios(id);
+    });
+});
+
+function cargarSocios(idSala) {
+    const q = query(collection(db, "socios"), where("idSala", "==", idSala));
+    onSnapshot(q, (snap) => {
         const tb = document.getElementById(`body-${idSala}`);
         if(!tb) return;
-        tb.innerHTML = "";
-        snap.forEach(soc => {
-            const s = soc.data();
-            tb.innerHTML += `
-                <tr>
-                    <td>${s.nombre} <small>(${s.cartones.length})</small></td>
-                    <td style="text-align:right;">
-                        <button class="btn-del-socio" onclick="borrarSocio('${soc.id}')"><i class="fas fa-user-minus"></i></button>
-                        <button class="btn-copy" onclick="copiarCodigo('${s.codigo}')">${s.codigo}</button>
-                    </td>
-                </tr>`;
+        tb.innerHTML = '';
+        snap.forEach(s => {
+            const socio = s.data();
+            tb.innerHTML += `<tr>
+                <td>${socio.nombre}</td>
+                <td><b>${socio.codigoAcceso}</b></td>
+                <td><button onclick="copiar('${socio.codigoAcceso}')" style="padding:5px; width:auto"><i class="fas fa-copy"></i></button></td>
+            </tr>`;
         });
     });
 }
 
-function generarCartonBingo() {
-    const r = { B:[1,15], I:[16,30], N:[31,45], G:[46,60], O:[61,75] };
-    let c = {};
-    ['B','I','N','G','O'].forEach(l => {
-        let nums = [];
-        while(nums.length < 5) {
-            let n = Math.floor(Math.random()*(r[l][1]-r[l][0]+1))+r[l][0];
-            if(!nums.includes(n)) nums.push(n);
-        }
-        c[l] = nums.sort((a,b)=>a-b);
-    });
-    return c;
-}
+window.eliminarSala = async (id) => confirm("¿Eliminar sala?") && await deleteDoc(doc(db, "salas", id));
+window.copiar = (c) => {
+    navigator.clipboard.writeText(c);
+    document.getElementById('toast').style.display='block';
+    setTimeout(()=> document.getElementById('toast').style.display='none', 2000);
+};
