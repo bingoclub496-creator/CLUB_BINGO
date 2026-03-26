@@ -3,39 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bingo Club - Bienvenido</title>
+    <title>Bingo Club - Acceso Clientes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Arial Black', sans-serif; background: url('fondo.jpg') no-repeat center center fixed; background-size: cover; display: flex; justify-content: center; align-items: center; }
-        .glass-panel { background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 50px; border: 1.5px solid rgba(255, 255, 255, 0.4); width: 90%; max-width: 420px; padding: 50px 25px; text-align: center; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; align-items: center; }
-        .img-logo { width: 280px; margin-bottom: 20px; display: block; height: auto; }
-        .img-bienvenido { width: 280px; margin-bottom: 30px; display: block; height: auto; }
-        .label-codigo { color: #263238; font-size: 1.8rem; margin-bottom: 15px; letter-spacing: 4px; font-weight: 900; }
-        input { width: 100%; padding: 22px; margin-bottom: 25px; border: none; border-radius: 20px; text-align: center; font-size: 2rem; font-weight: 900; color: #004d61; box-sizing: border-box; background: #ffffff; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); text-transform: uppercase; }
-        .btn-ingresar { width: 100%; padding: 24px; background: #004d61; color: white; border: none; border-radius: 20px; font-weight: 900; font-size: 1.4rem; text-transform: uppercase; cursor: pointer; box-shadow: 0 8px 15px rgba(0,77,97,0.3); transition: 0.3s; }
-        .btn-ingresar:active { transform: scale(0.98); }
-        .btn-ingresar:disabled { background: #555; opacity: 0.7; cursor: not-allowed; }
-        .footer-links { margin-top: 40px; }
-        .info-text { color: #004d61; font-weight: bold; margin-bottom: 12px; font-size: 1.1rem; }
-        .solicita-link { display: flex; align-items: center; justify-content: center; gap: 12px; color: #ffffff; text-decoration: none; font-weight: 900; background: #25D366; padding: 15px 30px; border-radius: 35px; font-size: 1.1rem; box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4); transition: 0.3s; }
-        .solicita-link:active { transform: scale(0.95); }
+        :root { --primario: #004d61; --secundario: #25D366; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: #000; color: white; overflow: hidden; }
+        
+        /* FONDO DINÁMICO */
+        .bg-video { position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%; z-index: -1; opacity: 0.4; filter: blur(3px); }
+        
+        .login-container { 
+            height: 100vh; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; padding: 20px;
+            background: radial-gradient(circle, rgba(0,77,97,0.4) 0%, rgba(0,0,0,1) 100%);
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px);
+            padding: 30px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2);
+            width: 100%; max-width: 350px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        img.logo { width: 100px; margin-bottom: 20px; filter: drop-shadow(0 0 10px var(--secundario)); }
+
+        h1 { font-size: 1.5rem; margin-bottom: 25px; letter-spacing: 2px; color: var(--secundario); text-transform: uppercase; }
+
+        .input-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; font-size: 0.8rem; margin-bottom: 8px; opacity: 0.8; margin-left: 10px; }
+        
+        input {
+            width: 100%; padding: 15px; border-radius: 15px; border: none;
+            background: rgba(255,255,255,0.9); color: #333; font-size: 1.1rem;
+            box-sizing: border-box; font-weight: bold; text-align: center;
+            outline: none; transition: 0.3s;
+        }
+
+        input:focus { box-shadow: 0 0 15px var(--secundario); transform: scale(1.02); }
+
+        .btn-ingresar {
+            width: 100%; padding: 18px; border-radius: 15px; border: none;
+            background: var(--secundario); color: white; font-size: 1.2rem;
+            font-weight: 900; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
+            margin-top: 10px;
+        }
+
+        .btn-ingresar:active { transform: scale(0.95); }
+
+        #msg-error { color: #ff5252; font-size: 0.85rem; margin-top: 15px; display: none; font-weight: bold; }
+        
+        .footer { margin-top: 30px; font-size: 0.7rem; opacity: 0.5; }
     </style>
 </head>
 <body>
-    <div class="glass-panel">
-        <img src="logo.png" alt="Bingo Club" class="img-logo">
-        <img src="bienvenido.png" alt="Bienvenidos" class="img-bienvenido">
-        <div class="label-codigo">CÓDIGO</div>
-        <input type="text" id="accessCode" maxlength="6" autocomplete="off">
-        <button class="btn-ingresar" id="btnIngresar">INGRESAR AL CLUB</button>
-        
-        <div class="footer-links">
-            <p class="info-text">¿No tienes código?</p>
-            <a href="https://wa.me/584265709830?text=Hola%20Bingo%20Club,%20deseo%20solicitar%20mi%20código%20de%20acceso%20para%20el%20sorteo.%20Mi%20nombre%20es:%20" class="solicita-link" target="_blank">
-                <i class="fab fa-whatsapp" style="font-size: 1.6rem;"></i>
-                Solicita tu código aquí
-            </a>
+
+    <div class="login-container">
+        <div class="login-card">
+            <img src="logo.png" class="logo" alt="Bingo Club">
+            <h1>SALA DE JUEGO</h1>
+
+            <div class="input-group">
+                <label><i class="fas fa-user"></i> NOMBRE REGISTRADO</label>
+                <input type="text" id="usuario" placeholder="Ej: JUAN PEREZ" autocomplete="off">
+            </div>
+
+            <div class="input-group">
+                <label><i class="fas fa-key"></i> CÓDIGO DE ACCESO</label>
+                <input type="text" id="codigo" placeholder="ABC123" maxlength="10" style="text-transform: uppercase;">
+            </div>
+
+            <button class="btn-ingresar" onclick="validarIngreso()">
+                ENTRAR AHORA <i class="fas fa-chevron-right"></i>
+            </button>
+
+            <div id="msg-error">❌ DATOS INCORRECTOS</div>
         </div>
+
+        <div class="footer">Bingo Club &copy; 2026 - San Juan, Caracas</div>
     </div>
 
     <script type="module">
@@ -54,57 +99,56 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Lógica de validación interna
-        async function validarEntrada() {
-            const input = document.getElementById('accessCode');
-            const btn = document.getElementById('btnIngresar');
-            const codigo = input.value.trim().toUpperCase();
+        window.validarIngreso = async () => {
+            const userIn = document.getElementById('usuario').value.trim();
+            const codeIn = document.getElementById('codigo').value.trim().toUpperCase();
+            const errorBox = document.getElementById('msg-error');
 
-            if(!codigo) {
-                alert("⚠️ Por favor, ingresa tu código de socio.");
+            if(!userIn || !codeIn) {
+                mostrarError("Completa todos los campos");
                 return;
             }
 
-            btn.disabled = true;
-            btn.innerText = "VERIFICANDO...";
-
             try {
-                // Buscamos al socio en la colección "socios" por su código
-                const q = query(collection(db, "socios"), where("codigo", "==", codigo));
-                const querySnapshot = await getDocs(q);
+                // Buscamos en la colección de SOCIOS por el código de acceso
+                const q = query(collection(db, "socios"), where("codigoAcceso", "==", codeIn));
+                const snap = await getDocs(q);
 
-                if (!querySnapshot.empty) {
-                    const socioDoc = querySnapshot.docs[0];
-                    const datosSocio = socioDoc.data();
-
-                    // Guardamos la sesión para que juego.html sepa quién es
-                    sessionStorage.setItem('socioActual', JSON.stringify({
-                        id: socioDoc.id,
-                        nombre: datosSocio.nombre,
-                        idSala: datosSocio.idSala,
-                        cartones: datosSocio.cartones
-                    }));
-
-                    // Redirigimos a la sala de juego
-                    window.location.href = 'juego.html';
-                } else {
-                    alert("❌ Código no encontrado. Por favor, solicita uno nuevo.");
-                    btn.disabled = false;
-                    btn.innerText = "INGRESAR AL CLUB";
+                if(snap.empty) {
+                    mostrarError("CÓDIGO NO ENCONTRADO");
+                    return;
                 }
-            } catch (error) {
-                console.error("Error de Firebase:", error);
-                alert("Hubo un problema de conexión. Inténtalo de nuevo.");
-                btn.disabled = false;
-                btn.innerText = "INGRESAR AL CLUB";
-            }
-        }
 
-        // Conectamos la función al botón y al evento de la tecla Enter
-        document.getElementById('btnIngresar').addEventListener('click', validarEntrada);
-        document.getElementById('accessCode').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') validarEntrada();
-        });
+                let socioData = null;
+                snap.forEach(docS => {
+                    const data = docS.data();
+                    // Comprobación de seguridad: El nombre debe coincidir (sin importar mayúsculas)
+                    if(data.nombre.toLowerCase() === userIn.toLowerCase()) {
+                        socioData = { id: docS.id, ...data };
+                    }
+                });
+
+                if(socioData) {
+                    // Guardar en la memoria del navegador para la sala de juego
+                    sessionStorage.setItem('socioActual', JSON.stringify(socioData));
+                    // Redirigir al juego
+                    window.location.href = "juego.html";
+                } else {
+                    mostrarError("NOMBRE NO COINCIDE CON CÓDIGO");
+                }
+
+            } catch (e) {
+                console.error(e);
+                mostrarError("ERROR DE CONEXIÓN");
+            }
+        };
+
+        function mostrarError(texto) {
+            const errorBox = document.getElementById('msg-error');
+            errorBox.innerText = `❌ ${texto}`;
+            errorBox.style.display = 'block';
+            setTimeout(() => errorBox.style.display = 'none', 3000);
+        }
     </script>
 </body>
 </html>
