@@ -3,156 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Club - Panel de Control</title>
+    <title>Bingo Club - Panel Administrativo</title>
     <style>
-        :root { --primario: #004d61; --secundario: #25D366; --alerta: #d32f2f; }
-        body { font-family: 'Arial', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; text-align: center; color: #333; }
+        :root { --primario: #004d61; --secundario: #25D366; --alerta: #d32f2f; --gris: #f4f7f6; }
         
-        .header { background: var(--primario); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--gris); margin: 0; padding: 20px; color: #333; }
         
-        .panel-controles { background: white; padding: 20px; border-radius: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        
-        .btn { padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.3s; }
-        .btn-start { background: var(--secundario); color: white; }
-        .btn-reset { background: var(--alerta); color: white; }
-        
-        /* TABLERO DE BOLAS */
-        .tablero { display: grid; grid-template-columns: repeat(15, 1fr); gap: 5px; background: white; padding: 15px; border-radius: 15px; overflow-x: auto; }
-        .bola-btn { 
-            width: 45px; height: 45px; border-radius: 50%; border: 2px solid #ddd; 
-            background: white; font-weight: bold; cursor: pointer; font-size: 0.9rem;
-        }
-        .bola-btn.active { background: var(--secundario); color: white; border-color: white; transform: scale(1.1); box-shadow: 0 0 10px var(--secundario); }
-        
-        input[type="number"], select { padding: 10px; border-radius: 8px; border: 1px solid #ccc; width: 100%; }
-        
-        @media (max-width: 800px) { .tablero { grid-template-columns: repeat(5, 1fr); } }
-    </style>
-</head>
-<body>
+        .container { max-width: 1000px; margin: auto; }
 
-<div class="header">
-    <h1>BINGO CLUB - ADMIN</h1>
-    <p>ID SALA: <b id="displayId">SALA_GUARA_01</b></p>
-</div>
-
-<div class="panel-controles">
-    <div>
-        <label>Estado de la Sala:</label>
-        <button class="btn btn-start" id="btnEstado" onclick="toggleEstado()">🚀 INICIAR JUEGO</button>
-    </div>
-    <div>
-        <label>Monto del Premio ($):</label>
-        <input type="number" id="inpPremio" value="0" onchange="actualizarPremio(this.value)">
-    </div>
-    <div>
-        <label>Tipo de Juego:</label>
-        <select id="selTipo" onchange="actualizarTipo(this.value)">
-            <option value="salaNormal">Sala Normal (Líneas/Cruz)</option>
-            <option value="cartonLleno">Cartón Lleno (24 nrs)</option>
-        </select>
-    </div>
-    <div>
-        <label>Peligro:</label>
-        <button class="btn btn-reset" onclick="resetearTodo()">🧹 LIMPIAR SORTEO</button>
-    </div>
-</div>
-
-<div class="tablero" id="gridBolas"></div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, updateDoc, arrayUnion, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
-        authDomain: "bingo-club-6f019.firebaseapp.com",
-        projectId: "bingo-club-6f019",
-        storageBucket: "bingo-club-6f019.firebasestorage.app",
-        messagingSenderId: "1059179173812",
-        appId: "1:1059179173812:web:78b43eaac565d213bec4e1"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    
-    // IMPORTANTE: Este ID debe ser el mismo que usa el socio
-    const ID_SALA = "SALA_GUARA_01"; 
-    const salaRef = doc(db, "salas", ID_SALA);
-
-    // Renderizar Tablero 1-75
-    const grid = document.getElementById('gridBolas');
-    const letras = ['B','I','N','G','O'];
-    
-    for(let i=1; i<=75; i++) {
-        let letra = letras[Math.floor((i-1)/15)];
-        let valor = `${letra}${i}`;
-        let btn = document.createElement('button');
-        btn.className = 'bola-btn';
-        btn.id = `bola-${valor}`;
-        btn.innerText = valor;
-        btn.onclick = () => cantarBola(valor);
-        grid.appendChild(btn);
-    }
-
-    // Escuchar cambios en la sala para marcar el tablero
-    onSnapshot(salaRef, (doc) => {
-        const data = doc.data();
-        if(!data) return;
-
-        // Actualizar UI del admin con lo que hay en la base de datos
-        document.getElementById('displayId').innerText = ID_SALA;
-        document.getElementById('inpPremio').value = data.premioActual;
-        document.getElementById('selTipo').value = data.tipo;
-        
-        const btnEstado = document.getElementById('btnEstado');
-        if(data.estado === "jugando") {
-            btnEstado.innerText = "⏸ PAUSAR / ESPERA";
-            btnEstado.style.background = "#ffc107";
-        } else {
-            btnEstado.innerText = "🚀 INICIAR JUEGO";
-            btnEstado.style.background = "#25D366";
+        .header-admin { 
+            background: var(--primario); color: white; padding: 20px; 
+            border-radius: 20px; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
         }
 
-        // Marcar bolas que ya salieron
-        const bolas = data.bolas || [];
-        bolas.forEach(b => {
-            const el = document.getElementById(`bola-${b}`);
-            if(el) el.classList.add('active');
-        });
-    });
-
-    // FUNCIONES DE CONTROL
-    window.cantarBola = async (valor) => {
-        await updateDoc(salaRef, {
-            bolas: arrayUnion(valor)
-        });
-    };
-
-    window.toggleEstado = async () => {
-        const btn = document.getElementById('btnEstado');
-        const nuevoEstado = btn.innerText.includes("INICIAR") ? "jugando" : "espera";
-        await updateDoc(salaRef, { estado: nuevoEstado });
-    };
-
-    window.actualizarPremio = async (val) => {
-        await updateDoc(salaRef, { premioActual: parseFloat(val) || 0 });
-    };
-
-    window.actualizarTipo = async (val) => {
-        await updateDoc(salaRef, { tipo: val });
-    };
-
-    window.resetearTodo = async () => {
-        if(confirm("¿Estás seguro de resetear? Se borrarán las bolas y ganadores de esta sala.")){
-            await updateDoc(salaRef, {
-                bolas: [],
-                ganadores: [],
-                estado: "espera"
-            });
-            location.reload();
+        /* CONTROLES PRINCIPALES */
+        .controles-grid { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 15px; margin-bottom: 25px; 
         }
-    };
-</script>
-</body>
-</html>
+
+        .card-control { 
+            background: white; padding: 20px; border-radius: 15px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center;
+        }
+
+        .btn { 
+            width: 100%; padding: 12px; border: none; border-radius: 10px; 
+            font-weight: bold; cursor: pointer; transition: 0.2
