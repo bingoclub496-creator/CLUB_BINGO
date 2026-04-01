@@ -3,56 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bingo Club - En Vivo</title>
+    <title>Bingo Club - Vegas Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primario: #004d61; --secundario: #25D366; }
-        body, html { margin: 0; padding: 0; min-height: 100vh; font-family: 'Arial Black', sans-serif; background: url('fondo.jpg') no-repeat center center fixed; background-size: cover; color: white; }
+        :root { 
+            --gold: #d4af37; 
+            --vegas-green: #003d2b; 
+            --win-red: #b22222;
+        }
         
-        .header-juego { background: rgba(0, 77, 97, 0.8); backdrop-filter: blur(10px); padding: 15px; text-align: center; border-bottom: 2px solid var(--secundario); position: sticky; top: 0; z-index: 100; }
+        body, html { 
+            margin: 0; padding: 0; min-height: 100vh; 
+            font-family: 'Georgia', serif; 
+            /* FONTO ESTILO CASINO LAS VEGAS */
+            background: radial-gradient(circle, #1a472a 0%, #002211 100%), url('https://www.transparenttextures.com/patterns/poker-table.png');
+            background-blend-mode: multiply;
+            color: white; 
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* HEADER ESTILO MARQUESINA */
+        .header-vegas {
+            width: 100%; background: rgba(0,0,0,0.8);
+            border-bottom: 3px solid var(--gold);
+            padding: 15px 0; text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+
+        .info-panel {
+            display: grid; grid-template-columns: 1fr 1.5fr 1fr;
+            gap: 10px; width: 95%; max-width: 800px; margin: 20px auto;
+        }
+
+        /* CUADROS DE TEXTO PROFESIONALES (Corrección 3 y 4) */
+        .data-box {
+            background: linear-gradient(145deg, #222, #000);
+            border: 2px solid var(--gold); border-radius: 10px;
+            padding: 10px; text-align: center;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+        .data-box label { font-size: 0.7rem; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 5px; }
+        .data-box span { font-size: 1.1rem; font-weight: bold; color: #fff; }
+        .pote-destacado { color: #25D366 !important; font-size: 1.4rem !important; }
+
+        /* PANEL DE ÚLTIMA BOLA */
+        .ball-display {
+            width: 120px; height: 120px; background: white; 
+            border-radius: 50%; border: 5px solid var(--gold);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3.5rem; color: #111; font-weight: 900;
+            box-shadow: 0 0 30px rgba(255,255,255,0.2), inset 0 0 20px rgba(0,0,0,0.2);
+            margin: 0 auto;
+        }
+
+        /* CONTENEDOR DE CARTONES (Corrección 1) */
+        #misCartones { 
+            display: flex; flex-direction: column; gap: 30px; 
+            width: 100%; align-items: center; padding-bottom: 100px;
+        }
         
-        .contenedor-principal { padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .carton-vegas {
+            background: #fdfdfd; border-radius: 15px; padding: 10px;
+            width: 90%; max-width: 380px;
+            border: 8px solid #333; box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+        }
+        .grid-bingo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: #333; border: 2px solid #333; }
+        .celda { 
+            aspect-ratio: 1; background: white; color: #222;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        /* MARCADO PROFESIONAL */
+        .celda.marcada { 
+            background: var(--win-red) !important; 
+            color: white !important; 
+            position: relative;
+        }
+        .celda.marcada::after {
+            content: ""; position: absolute; width: 80%; height: 80%;
+            border: 2px solid rgba(255,255,255,0.5); border-radius: 50%;
+        }
+        .celda-header { background: var(--gold); color: black; font-weight: 900; height: 40px; }
 
-        /* Panel de Bolas que van saliendo */
-        .panel-bolas { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(15px); border-radius: 25px; padding: 15px; width: 90%; max-width: 500px; border: 1px solid rgba(255,255,255,0.3); text-align: center; }
-        .ultima-bola { font-size: 4rem; color: var(--secundario); text-shadow: 0 0 15px rgba(37, 211, 102, 0.6); margin: 10px 0; }
-        .lista-bolas { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; max-height: 100px; overflow-y: auto; }
-        .bola-pequena { width: 35px; height: 35px; background: white; color: var(--primario); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; }
-
-        /* Estilo de los Cartones */
-        .carton-contenedor { background: white; border-radius: 20px; padding: 10px; width: 100%; max-width: 350px; color: #333; box-shadow: 0 10px 25px rgba(0,0,0,0.3); margin-bottom: 20px; }
-        .grid-bingo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
-        .celda { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 1px solid #ddd; font-size: 1.2rem; font-weight: bold; border-radius: 5px; cursor: pointer; position: relative; }
-        .celda.marcada { background: var(--secundario); color: white; border-color: var(--secundario); }
-        .celda.centro { background: #eee; font-size: 0.8rem; color: var(--primario); }
-
-        .info-sala { font-size: 0.9rem; margin-top: 5px; color: #25D366; }
-        .btn-cantar { width: 90%; max-width: 400px; padding: 20px; background: #ffc107; color: #000; border: none; border-radius: 50px; font-weight: 900; font-size: 1.5rem; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin: 20px 0; }
+        .btn-bingo {
+            position: fixed; bottom: 20px; width: 80%; max-width: 300px;
+            padding: 20px; background: var(--win-red); color: white;
+            border: 3px solid var(--gold); border-radius: 50px;
+            font-size: 1.8rem; font-weight: 900; cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000;
+        }
     </style>
 </head>
 <body>
 
-    <div class="header-juego">
-        <img src="logo.png" height="40" alt="Logo">
-        <div id="nombreSocio" style="font-size: 0.8rem; opacity: 0.8;">Cargando...</div>
+    <div class="header-vegas">
+        <img src="logo.png" height="50" onerror="this.style.display='none'">
+        <div style="color: var(--gold); font-size: 0.8rem; margin-top: 5px;">Socio: <span id="nombreJugador">...</span></div>
     </div>
 
-    <div class="contenedor-principal">
-        <div class="panel-bolas">
-            <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px;">Última Bola</div>
-            <div id="bolaActual" class="ultima-bola">--</div>
-            <div class="info-sala" id="infoTipoSala">Modalidad: Cargando...</div>
-            <div class="lista-bolas" id="historialBolas"></div>
+    <div class="info-panel">
+        <div class="data-box">
+            <label>Sorteo</label>
+            <span id="nombreSalaTxt">---</span><br>
+            <small id="tipoSalaTxt" style="color:var(--gold); font-size:0.6rem">MODO: --</small>
         </div>
+        
+        <div class="ball-display" id="bolaActual">--</div>
 
-        <button class="btn-cantar" onclick="verificarGanador()">¡BINGO!</button>
-
-        <div id="misCartones"></div>
+        <div class="data-box">
+            <label>Gran Pote</label>
+            <span class="pote-destacado" id="poteTxt">Bs. 0</span>
+        </div>
     </div>
+
+    <div id="misCartones">
+        <h2 style="color: var(--gold)">GENERANDO CARTONES...</h2>
+    </div>
+
+    <button class="btn-bingo" onclick="cantarBingo()">¡BINGO!</button>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
@@ -66,133 +138,90 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 1. RECUPERAR SESIÓN
         const sesion = JSON.parse(sessionStorage.getItem('socioActual'));
         if(!sesion) window.location.href = 'index.html';
 
-        document.getElementById('nombreSocio').innerText = `Socio: ${sesion.nombre} | Cartones: ${sesion.cantCartones}`;
+        document.getElementById('nombreJugador').innerText = sesion.nombre;
+        let misCartones = [];
+        let salaData = null;
 
-        let salaActual = null;
-        let misCartonesGenerados = [];
-
-        // 2. ESCUCHAR LA SALA EN TIEMPO REAL
+        // ESCUCHAR SALA Y ACTUALIZAR DATOS (Correcciones 3 y 4)
         onSnapshot(doc(db, "salas", sesion.idSala), (snap) => {
             if(!snap.exists()) return;
-            salaActual = snap.data();
+            salaData = snap.data();
             
-            // Actualizar interfaz
-            document.getElementById('infoTipoSala').innerText = `Modalidad: ${salaActual.tipo === 'cartonLleno' ? 'CARTÓN LLENO' : 'NORMAL (LÍNEA/CRUZ)'}`;
+            document.getElementById('nombreSalaTxt').innerText = salaData.nombre;
+            document.getElementById('tipoSalaTxt').innerText = salaData.tipo === 'cartonLleno' ? 'CARTÓN LLENO' : 'MODO NORMAL';
+            document.getElementById('poteTxt').innerText = `Bs. ${salaData.premioBs}`;
             
-            const bolas = salaActual.bolas || [];
+            const bolas = salaData.bolas || [];
             if(bolas.length > 0) {
                 document.getElementById('bolaActual').innerText = bolas[bolas.length - 1];
-                renderHistorial(bolas);
             }
 
-            if(misCartonesGenerados.length === 0) generarCartones(sesion.cantCartones);
+            if(misCartones.length === 0) iniciarJuego();
         });
 
-        function renderHistorial(bolas) {
-            const h = document.getElementById('historialBolas');
-            h.innerHTML = "";
-            bolas.reverse().forEach(b => {
-                h.innerHTML += `<div class="bola-pequena">${b}</div>`;
-            });
-        }
-
-        // 3. GENERADOR DE CARTONES (Lógica de Bingo real)
-        function generarCartones(cantidad) {
-            const contenedor = document.getElementById('misCartones');
-            contenedor.innerHTML = "";
-            
-            for(let i=0; i<cantidad; i++) {
-                const carton = crearEstructuraBingo();
-                misCartonesGenerados.push(carton);
-                renderCarton(carton, i);
+        function iniciarJuego() {
+            const container = document.getElementById('misCartones');
+            container.innerHTML = "";
+            for(let i=0; i < sesion.cantCartones; i++) {
+                renderizarCarton(i);
             }
         }
 
-        function crearEstructuraBingo() {
-            let columnas = {
-                'B': generarRango(1, 15, 5),
-                'I': generarRango(16, 30, 5),
-                'N': generarRango(31, 45, 5),
-                'G': generarRango(46, 60, 5),
-                'O': generarRango(61, 75, 5)
-            };
-            columnas['N'][2] = "FREE"; // Espacio central
-            return columnas;
-        }
-
-        function generarRango(min, max, cant) {
-            let nums = [];
-            while(nums.length < cant) {
-                let r = Math.floor(Math.random() * (max - min + 1)) + min;
-                if(!nums.includes(r)) nums.push(r);
-            }
-            return nums.sort((a,b) => a-b);
-        }
-
-        function renderCarton(columnas, index) {
+        // GENERACIÓN DE CARTÓN PROFESIONAL
+        function renderizarCarton(index) {
             const div = document.createElement('div');
-            div.className = 'carton-contenedor';
+            div.className = 'carton-vegas';
             div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-weight:bold; color:var(--primario)">
-                    <span>CARTÓN #${index + 1}</span>
-                    <span style="color:#999">B I N G O</span>
+                <div class="grid-bingo">
+                    <div class="celda celda-header">B</div>
+                    <div class="celda celda-header">I</div>
+                    <div class="celda celda-header">N</div>
+                    <div class="celda celda-header">G</div>
+                    <div class="celda celda-header">O</div>
                 </div>
-                <div class="grid-bingo" id="grid-${index}"></div>
+                <div class="grid-bingo" id="c-${index}"></div>
             `;
             document.getElementById('misCartones').appendChild(div);
             
-            const grid = document.getElementById(`grid-${index}`);
-            // El bingo se llena por filas, pero tenemos columnas
-            for(let fila=0; fila<5; fila++) {
+            const grid = document.getElementById(`c-${index}`);
+            const rangos = { B:[1,15], I:[16,30], N:[31,45], G:[46,60], O:[61,75] };
+            const numerosCarton = {};
+
+            ['B','I','N','G','O'].forEach(letra => {
+                numerosCarton[letra] = [];
+                while(numerosCarton[letra].length < 5) {
+                    let num = Math.floor(Math.random() * (rangos[letra][1] - rangos[letra][0] + 1)) + rangos[letra][0];
+                    if(!numerosCarton[letra].includes(num)) numerosCarton[letra].push(num);
+                }
+                numerosCarton[letra].sort((a,b) => a-b);
+            });
+
+            // Llenar el grid por filas para que sea visualmente correcto
+            for(let f=0; f<5; f++) {
                 ['B','I','N','G','O'].forEach(letra => {
-                    const valor = columnas[letra][fila];
                     const celda = document.createElement('div');
-                    celda.className = valor === "FREE" ? "celda centro marcada" : "celda";
-                    celda.innerText = valor === "FREE" ? "CLUB" : valor;
+                    celda.className = 'celda';
+                    let valor = numerosCarton[letra][f];
                     
-                    // Al tocar una celda, el socio la marca
-                    celda.onclick = () => celda.classList.toggle('marcada');
+                    if(letra === 'N' && f === 2) {
+                        celda.innerText = "CLUB";
+                        celda.classList.add('marcada');
+                        celda.style.fontSize = '0.6rem';
+                    } else {
+                        celda.innerText = valor;
+                        celda.onclick = () => celda.classList.toggle('marcada');
+                    }
                     grid.appendChild(celda);
                 });
             }
         }
 
-        // 4. VALIDACIÓN DE GANADOR SEGÚN VARIACIÓN
-        window.verificarGanador = () => {
-            if(!salaActual) return;
-            
-            const bolasCantadas = salaActual.bolas;
-            const cartonesDOM = document.querySelectorAll('.carton-contenedor');
-            let ganador = false;
-
-            cartonesDOM.forEach((carton, idx) => {
-                const celdas = carton.querySelectorAll('.celda');
-                const marcadasYValidas = Array.from(celdas).filter(c => {
-                    const num = c.innerText;
-                    // El centro es válido siempre, lo demás debe estar en la lista de bolas de Firebase
-                    return c.classList.contains('marcada') && (num === "CLUB" || bolasCantadas.some(b => b.includes(num)));
-                });
-
-                if(salaActual.tipo === 'cartonLleno') {
-                    // Modalidad: Cartón Lleno (25 celdas marcadas y válidas)
-                    if(marcadasYValidas.length === 25) ganador = true;
-                } else {
-                    // Modalidad: Normal (Línea o Cruz - Simplificado a Línea por ahora)
-                    // Aquí podrías añadir lógica de líneas, pero para el MVP verificamos si tiene al menos 5 correctas
-                    if(marcadasYValidas.length >= 5) ganador = true; 
-                }
-            });
-
-            if(ganador) {
-                alert("¡FELICIDADES! Has cantado BINGO. Espera la validación del administrador.");
-                // Aquí podrías enviar una notificación a Firebase para avisar al admin
-            } else {
-                alert("Aún te faltan números o tienes números marcados que no han salido.");
-            }
+        window.cantarBingo = () => {
+            alert("¡REVISANDO CARTONES! Espera que el administrador valide tu jugada.");
+            // Aquí iría la lógica de verificación contra salaData.bolas
         };
     </script>
 </body>
