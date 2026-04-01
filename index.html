@@ -38,73 +38,62 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
-            authDomain: "bingo-club-6f019.firebaseapp.com",
-            projectId: "bingo-club-6f019",
-            storageBucket: "bingo-club-6f019.firebasestorage.app",
-            messagingSenderId: "1059179173812",
-            appId: "1:1059179173812:web:78b43eaac565d213bec4e1"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
+        authDomain: "bingo-club-6f019.firebaseapp.com",
+        projectId: "bingo-club-6f019",
+        storageBucket: "bingo-club-6f019.firebasestorage.app",
+        messagingSenderId: "1059179173812",
+        appId: "1:1059179173812:web:78b43eaac565d213bec4e1"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        // Lógica de validación interna
-        async function validarEntrada() {
-            const input = document.getElementById('accessCode');
-            const btn = document.getElementById('btnIngresar');
-            const codigo = input.value.trim().toUpperCase();
+    window.intentarEntrar = async () => {
+        const input = document.getElementById('codigoAcceso');
+        const mensajeError = document.getElementById('error-msg');
+        const codigoIngresado = input.value.trim().toUpperCase();
 
-            if(!codigo) {
-                alert("⚠️ Por favor, ingresa tu código de socio.");
-                return;
+        if (!codigoIngresado) return;
+
+        try {
+            // Buscamos en la colección 'socios' el campo 'codigoAcceso'
+            const sociosRef = collection(db, "socios");
+            const q = query(sociosRef, where("codigoAcceso", "==", codigoIngresado));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                // Si lo encuentra, guardamos los datos del socio y la sala vinculada
+                const datosSocio = querySnapshot.docs[0].data();
+                const idSocio = querySnapshot.docs[0].id;
+                
+                // Guardamos en sesión para usarlo en juego.html
+                sessionStorage.setItem('socioActual', JSON.stringify({
+                    id: idSocio,
+                    ...datosSocio
+                }));
+
+                // Redirigir al área de juego
+                window.location.href = "juego.html";
+            } else {
+                // Si no hay resultados
+                mensajeError.style.display = 'block';
+                input.style.border = "2px solid #ff5252";
+                setTimeout(() => {
+                    mensajeError.style.display = 'none';
+                    input.style.border = "none";
+                }, 3000);
             }
-
-            btn.disabled = true;
-            btn.innerText = "VERIFICANDO...";
-
-            try {
-                // Buscamos al socio en la colección "socios" por su código
-                const q = query(collection(db, "socios"), where("codigo", "==", codigo));
-                const querySnapshot = await getDocs(q);
-
-                if (!querySnapshot.empty) {
-                    const socioDoc = querySnapshot.docs[0];
-                    const datosSocio = socioDoc.data();
-
-                    // Guardamos la sesión para que juego.html sepa quién es
-                    sessionStorage.setItem('socioActual', JSON.stringify({
-                        id: socioDoc.id,
-                        nombre: datosSocio.nombre,
-                        idSala: datosSocio.idSala,
-                        cartones: datosSocio.cartones
-                    }));
-
-                    // Redirigimos a la sala de juego
-                    window.location.href = 'juego.html';
-                } else {
-                    alert("❌ Código no encontrado. Por favor, solicita uno nuevo.");
-                    btn.disabled = false;
-                    btn.innerText = "INGRESAR AL CLUB";
-                }
-            } catch (error) {
-                console.error("Error de Firebase:", error);
-                alert("Hubo un problema de conexión. Inténtalo de nuevo.");
-                btn.disabled = false;
-                btn.innerText = "INGRESAR AL CLUB";
-            }
+        } catch (e) {
+            console.error("Error al validar código:", e);
+            alert("Error de conexión. Verifica tu internet.");
         }
-
-        // Conectamos la función al botón y al evento de la tecla Enter
-        document.getElementById('btnIngresar').addEventListener('click', validarEntrada);
-        document.getElementById('accessCode').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') validarEntrada();
-        });
-    </script>
+    };
+</script>
 </body>
 </html>
