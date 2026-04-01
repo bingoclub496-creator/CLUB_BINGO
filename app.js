@@ -1,6 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-// SEÑALADO: Faltaba addDoc en la importación. Corregido.
-import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, query, where, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
@@ -14,148 +13,139 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Manejador de intervalos globales para el sorteo automático (una entrada por sala)
-window.intervalosSalas = {}; 
+window.relojesSalas = {};
 
-// --- PUNTO FIJO 2: SOLUCIÓN CREACIÓN DE SALAS ---
-// Esta función ahora está blindada contra errores de importación
+// --- 1. FUNCIÓN: PUBLICAR SALA ---
 window.crearSalaMaster = async () => {
-    console.log("Intentando crear sala...");
-    
-    const inputNombre = document.getElementById('nombreSala');
-    const inputTipo = document.getElementById('tipoSala');
-    const inputPremio = document.getElementById('premioInicial');
-    const btn = document.getElementById('crearBtn');
+    const nombre = document.getElementById('nombreSala').value.trim();
+    const tipo = document.getElementById('tipoSala').value;
+    const premio = document.getElementById('premioInicial').value || 0;
+    const fecha = document.getElementById('fechaSorteo').value;
 
-    const nombre = inputNombre.value.trim();
-    const tipo = inputTipo.value;
-    const premio = parseFloat(inputPremio.value) || 0;
-
-    // Validación básica en el cliente
-    if (!nombre) {
-        inputNombre.style.border = "2px solid red";
-        alert("❌ Por favor, ingresa el Nombre de la Sala.");
-        return;
-    }
-
-    inputNombre.style.border = "none";
-    btn.disabled = true;
-    btn.innerText = "PUBLICANDO...";
+    if (!nombre || !fecha) return alert("❌ Debes indicar Nombre y Fecha/Hora.");
 
     try {
-        // IMPORTANTE: Se usa la carpeta "salas" en Firestore
         await addDoc(collection(db, "salas"), {
-            nombre,
-            tipo,
-            premioActual: premio,
-            estado: "espera", // Inicia bloqueado para socios
-            bolas: [],
-            ganadores: [],
-            fondo: 'fondo_por_defecto.jpg' // Puedes configurar esto luego
+            nombre, tipo, premioBs: premio, fechaSorteo: fecha,
+            estado: "espera", bolas: [], creadoEn: new Date().getTime()
         });
-        
-        console.log("Sala publicada en Firebase.");
-        alert("✅ ¡Sala '" + nombre + "' publicada exitosamente!");
-        
-        // Limpiar formulario
-        inputNombre.value = '';
-        inputPremio.value = '';
-        
+        alert("✅ Sala publicada en la red.");
+        document.getElementById('nombreSala').value = "";
+        document.getElementById('premioInicial').value = "";
     } catch (e) {
-        console.error("Error crítico al crear sala en Firebase:", e);
-        // MENSAJE CLAVE: Indica error de conexión o de reglas de seguridad
-        alert("❌ Fallo crítico de Firebase al crear la sala.\nRevisa la Consola (F12) y tus Reglas de Firestore.");
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "PUBLICAR SALA";
+        alert("❌ Error de conexión con Firebase.");
     }
 };
 
-// --- GESTIÓN DE SORTEO AUTOMÁTICO (Del requerimiento anterior) ---
-window.toggleSorteo = async (idSala, estadoActual) => {
-    const salaRef = doc(db, "salas", idSala);
-    
-    if (estadoActual === "espera") {
-        // INICIAR AUTOMÁTICO
-        await updateDoc(salaRef, { estado: "jugando", bolas: [] }); // Limpiar bolas previas
-        
-        // Reloj automático cada 5 segundos
-        window.intervalosSalas[idSala] = setInterval(async () => {
+// --- 2. RELOJ DE INICIO AUTOMÁTICO ---
+function monitorearTiempo(idSala, fechaProg) {
+    if (window.relojesSalas[idSala]) clearInterval(window.relojesSalas[idSala]);
+
+    window.relojesSalas[idSala] = setInterval(async () => {
+        const ahora = new Date().getTime();
+        const tiempoMeta = new Date(fechaProg).getTime();
+
+        if (ahora >= tiempoMeta) {
+            clearInterval(window.relojesSalas[idSala]);
+            const salaRef = doc(db, "salas", idSala);
             const snap = await getDoc(salaRef);
-            if (!snap.exists()) return;
-            const data = snap.data();
-            
-            // Condiciones de parada
-            if (data.estado !== "jugando" || data.bolas.length >= 75) {
-                clearInterval(window.intervalosSalas[idSala]);
-                return;
+            if (snap.exists() && snap.data().estado === "espera") {
+                await updateDoc(salaRef, { estado: "jugando" });
+                cantarBolasAutomatico(idSala);
             }
+        }
+    }, 5000); 
+}
 
-            // Generar bola única
-            let nuevaBola;
-            const letras = ["B", "I", "N", "G", "O"];
-            do {
-                const letra = letras[Math.floor(Math.random() * 5)];
-                const numero = Math.floor(Math.random() * 15) + 1 + (letras.indexOf(letra) * 15);
-                nuevaBola = `${letra}-${numero}`;
-            } while (data.bolas.includes(nuevaBola));
+// --- 3. CANTAR BOLAS AUTOMÁTICAMENTE ---
+async function cantarBolasAutomatico(idSala) {
+    const salaRef = doc(db, "salas", idSala);
+    const loop = setInterval(async () => {
+        const snap = await getDoc(salaRef);
+        const data = snap.data();
+        if (!data || data.estado !== "jugando" || data.bolas.length >= 75) {
+            clearInterval(loop);
+            return;
+        }
+        let nB;
+        const L = ["B","I","N","G","O"];
+        do {
+            const letVal = L[Math.floor(Math.random()*5)];
+            const numVal = Math.floor(Math.random()*15) + 1 + (L.indexOf(letVal)*15);
+            nB = `${letVal}-${numVal}`;
+        } while (data.bolas.includes(nB));
+        await updateDoc(salaRef, { bolas: [...data.bolas, nB] });
+    }, 6000); // 1 bola cada 6 segundos
+}
 
-            // Actualizar en tiempo real para todos los socios
-            const nuevasBolas = [...data.bolas, nuevaBola];
-            await updateDoc(salaRef, { bolas: nuevasBolas });
-
-        }, 5000); 
-
-    } else {
-        // PAUSAR
-        if(window.intervalosSalas[idSala]) clearInterval(window.intervalosSalas[idSala]);
-        await updateDoc(salaRef, { estado: "espera" });
-    }
-};
-
-// --- RENDERIZADO EN TIEMPO REAL ---
-// Escucha salas y actualiza select y tablas
-onSnapshot(collection(db, "salas"), (snapshot) => {
+// --- 4. RENDERIZADO EN TIEMPO REAL ---
+onSnapshot(collection(db, "salas"), (snap) => {
     const cont = document.getElementById('contenedorTablas');
-    const select = document.getElementById('selectSalas');
-    if(!cont || !select) return;
-    
-    cont.innerHTML = '';
-    select.innerHTML = '<option value="">Selecciona Sala...</option>';
-    
-    snapshot.forEach(docSnap => {
-        const s = docSnap.data();
-        const id = docSnap.id;
-        
-        // Llenar select para registro de socios
-        select.innerHTML += `<option value="${id}">${s.nombre}</option>`;
+    const sel = document.getElementById('selectSalasDisponibles');
+    cont.innerHTML = "";
+    sel.innerHTML = '<option value="">Selecciona sala...</option>';
 
-        // Crear tarjeta de sala para control automático
-        const color = s.estado === "jugando" ? "#ff5252" : "#25D366";
-        const textoBtn = s.estado === "jugando" ? "⏸ PAUSAR AUTOMÁTICO" : "🚀 INICIAR AUTOMÁTICO";
+    snap.forEach(d => {
+        const sala = d.data();
+        const id = d.id;
 
-        cont.innerHTML += `
-            <div class="card" style="margin-bottom: 20px; padding: 15px; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px;">
-                <div style="display:flex; justify-content:space-between">
-                    <h3>${s.nombre}</h3>
-                    <button onclick="eliminarSala('${id}')" style="width:auto; background:none; color:red; padding:5px"><i class="fas fa-trash"></i></button>
-                </div>
-                <p>Modo: ${s.tipo} | Bolas Cantadas: ${s.bolas ? s.bolas.length : 0}</p>
-                <button onclick="toggleSorteo('${id}', '${s.estado}')" style="background: ${color}; padding: 10px;">
-                    ${textoBtn}
-                </button>
+        // Select
+        const o = document.createElement('option');
+        o.value = id; o.innerText = sala.nombre;
+        sel.appendChild(o);
+
+        // Reloj
+        if (sala.estado === "espera") monitorearTiempo(id, sala.fechaSorteo);
+
+        // Card
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.background = "rgba(0,0,0,0.3)";
+        card.innerHTML = `
+            <div class="sala-header">
+                <h3>${sala.nombre} <span style="color:#25D366; font-size:0.7rem;">[${sala.estado.toUpperCase()}]</span></h3>
+                <button class="btn-delete-sala" onclick="eliminarSala('${id}')"><i class="fas fa-trash"></i></button>
             </div>
+            <p style="font-size:0.8rem; color:#25D366; margin:0;">
+                <i class="far fa-calendar-alt"></i> ${sala.fechaSorteo.replace('T', ' ')} | 
+                <i class="fas fa-money-bill-wave"></i> Pote: <b>Bs. ${sala.premioBs}</b>
+            </p>
+            <table class="tabla-socios">
+                <thead><tr><th>Socio</th><th>Código</th><th>Acción</th></tr></thead>
+                <tbody id="list-${id}"></tbody>
+            </table>
         `;
+        cont.appendChild(card);
+        cargarSocios(id);
     });
 });
 
-// (Otras funciones auxiliares necesarias)
-window.eliminarSala = async (id) => {
-    if(confirm("¿Seguro que deseas eliminar esta sala?")) {
-        // Si estaba jugando, detener intervalo
-        if(window.intervalosSalas[id]) clearInterval(window.intervalosSalas[id]);
-        await deleteDoc(doc(db, "salas", id));
-    }
+// --- FUNCIONES EXTRA ---
+window.vincularSocioASala = async () => {
+    const n = document.getElementById('nombreSocio').value.trim();
+    const idS = document.getElementById('selectSalasDisponibles').value;
+    const c = document.getElementById('cantCartones').value;
+    if (!n || !idS) return alert("❌ Datos incompletos");
+    const cod = Math.random().toString(36).substring(2, 8).toUpperCase();
+    await addDoc(collection(db, "socios"), { nombre: n, idSala: idS, cantCartones: c, codigoAcceso: cod });
+    document.getElementById('nombreSocio').value = "";
+    alert("Socio registrado.");
 };
 
-// (Mantén tus funciones de vincularSocio que usabas anteriormente aquí abajo si lo necesitas)
+async function cargarSocios(idSala) {
+    const q = query(collection(db, "socios"), where("idSala", "==", idSala));
+    onSnapshot(q, (s) => {
+        const tb = document.getElementById(`list-${idSala}`);
+        if(tb) {
+            tb.innerHTML = "";
+            s.forEach(sd => {
+                const sc = sd.data();
+                tb.innerHTML += `<tr><td>${sc.nombre}</td><td><b>${sc.codigoAcceso}</b></td>
+                <td><button onclick="eliminarSocio('${sd.id}')" style="background:red; padding:2px 8px; border-radius:5px; width:auto">X</button></td></tr>`;
+            });
+        }
+    });
+}
+
+window.eliminarSala = async (id) => { if(confirm("¿Eliminar sala?")) await deleteDoc(doc(db, "salas", id)); };
+window.eliminarSocio = async (id) => { if(confirm("¿Eliminar socio?")) await deleteDoc(doc(db, "socios", id)); };
