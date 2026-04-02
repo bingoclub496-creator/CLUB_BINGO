@@ -10,7 +10,7 @@
         .admin-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; max-width: 1300px; margin: 0 auto; }
         .card { background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); border-radius: 25px; padding: 20px; border: 1px solid rgba(255,255,255,0.2); position: relative; margin-bottom: 20px; }
         h2 { font-size: 1.1rem; color: #25D366; text-transform: uppercase; margin-top: 0; border-bottom: 1px solid rgba(37, 211, 102, 0.2); padding-bottom: 10px; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 10px; border: none; box-sizing: border-box; font-size: 1rem; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 10px; border: none; box-sizing: border-box; font-size: 1rem; color: #333; font-weight: bold; }
         button { background: #25D366; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
         button:hover { background: #1eb954; transform: translateY(-2px); }
         .sala-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -18,25 +18,26 @@
         .tabla-socios { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(0,0,0,0.2); border-radius: 10px; overflow: hidden; }
         th { text-align: left; padding: 12px; background: rgba(255,255,255,0.1); font-size: 0.8rem; text-transform: uppercase; }
         td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
-        #toast { display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#25D366; color:white; padding:12px 30px; border-radius:50px; z-index: 1000; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        #toast { display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#25D366; color:white; padding:12px 30px; border-radius:50px; z-index: 1000; box-shadow: 0 10px 20px rgba(0,0,0,0.3); font-weight: bold; }
 
-        /* NUEVO: Estilo para la Alerta de Ganador (No afecta el resto) */
+        /* Estilo de Alerta de Ganador */
         #alertaBingo { 
             display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
             background:rgba(0,0,0,0.95); z-index:9999; flex-direction:column; 
             align-items:center; justify-content:center; text-align:center;
             border: 15px solid #25D366; animation: parpadeo 0.5s infinite alternate;
         }
-        @keyframes parpadeo { from { opacity: 1; } to { opacity: 0.8; border-color: #ffc107; } }
+        @keyframes parpadeo { from { opacity: 1; border-color: #25D366; } to { opacity: 0.8; border-color: #ffc107; } }
     </style>
 </head>
 <body>
 
     <div id="alertaBingo">
-        <h1 style="font-size: 5rem; color: #25D366; margin: 0;">¡BINGO CANTADO!</h1>
-        <h2 id="winnerName" style="font-size: 3rem; color: white;">SOCIO</h2>
-        <p id="winnerCode" style="font-size: 1.5rem; color: #ffc107;"></p>
-        <button onclick="document.getElementById('alertaBingo').style.display='none'" style="width: auto; padding: 20px 50px; margin-top: 20px; background: #ff5252;">CERRAR ALERTA</button>
+        <i class="fas fa-bullhorn" style="font-size: 4rem; color: #ffc107; margin-bottom: 20px;"></i>
+        <h1 style="font-size: 4rem; color: #25D366; margin: 0;">¡BINGO CANTADO!</h1>
+        <h2 id="winnerName" style="font-size: 2.5rem; color: white; margin: 10px 0;">SOCIO</h2>
+        <p id="winnerCode" style="font-size: 1.5rem; color: #ffc107; letter-spacing: 3px; font-weight: bold;"></p>
+        <button onclick="document.getElementById('alertaBingo').style.display='none'" style="width: auto; padding: 15px 40px; margin-top: 20px; background: #ff5252; border-radius: 50px;">CERRAR Y VALIDAR</button>
     </div>
 
     <div style="text-align:center; margin-bottom: 30px;">
@@ -48,7 +49,7 @@
         <div class="column">
             <div class="card">
                 <h2>1. Crear Nueva Sala</h2>
-                <input type="text" id="nombreSala" placeholder="Nombre de la Sala (Ej: Sorteo de San Juan)">
+                <input type="text" id="nombreSala" placeholder="Nombre de la Sala (Ej: Sorteo Vegas)">
                 <select id="tipoSala">
                     <option value="normal">Normal (Línea / Cruz Grande)</option>
                     <option value="cartonLleno">Cartón Lleno (Todas las casillas)</option>
@@ -62,9 +63,9 @@
                 <h2>2. Registrar Socio</h2>
                 <input type="text" id="nombreSocio" placeholder="Nombre y Apellido">
                 <select id="selectSalasDisponibles"><option value="">Cargando salas...</option></select>
-                <label style="font-size: 0.8rem; display: block; margin: 5px 0 5px 5px;">Cartones comprados:</label>
+                <label style="font-size: 0.8rem; display: block; margin: 5px 0 5px 5px;">Cartones comprados (+4% pote c/u):</label>
                 <select id="cantCartones">
-                    <option value="1">1 Cartón (+4% Pote)</option>
+                    <option value="1">1 Cartón</option>
                     <option value="2">2 Cartones</option>
                     <option value="3">3 Cartones</option>
                     <option value="4">4 Cartones</option>
@@ -89,6 +90,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // Configuración de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
             authDomain: "bingo-club-6f019.firebaseapp.com",
@@ -101,42 +103,74 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- REGISTRO CON AUMENTO DEL 4% ---
+        // --- 1. FUNCIÓN PARA CREAR SALA ---
+        window.crearSalaMaster = async () => {
+            const nombre = document.getElementById('nombreSala').value;
+            const tipo = document.getElementById('tipoSala').value;
+            const premio = parseFloat(document.getElementById('premioInicial').value);
+            const fecha = document.getElementById('fechaSorteo').value;
+
+            if (!nombre || isNaN(premio) || !fecha) return alert("Completa los datos de la sala");
+
+            try {
+                await addDoc(collection(db, "salas"), {
+                    nombre, tipo, premioBs: premio.toFixed(2), fecha, 
+                    bolas: [], estado: "activa", fechaCreacion: new Date()
+                });
+                showToast("Sala publicada correctamente");
+                document.getElementById('nombreSala').value = "";
+                document.getElementById('premioInicial').value = "";
+            } catch (e) { console.error(e); }
+        };
+
+        // --- 2. REGISTRO DE SOCIO CON AUMENTO DEL 4% ---
         window.vincularSocioASala = async () => {
             const nombre = document.getElementById('nombreSocio').value;
             const idSala = document.getElementById('selectSalasDisponibles').value;
             const cant = parseInt(document.getElementById('cantCartones').value);
 
-            if(!nombre || !idSala) return alert("Faltan datos");
+            if(!nombre || !idSala) return alert("Selecciona una sala y escribe el nombre del socio");
 
-            const salaRef = doc(db, "salas", idSala);
-            const salaSnap = await getDoc(salaRef);
-            let poteActual = parseFloat(salaSnap.data().premioBs || salaSnap.data().premioInicial || 0);
+            try {
+                const salaRef = doc(db, "salas", idSala);
+                const salaSnap = await getDoc(salaRef);
+                const poteActual = parseFloat(salaSnap.data().premioBs || 0);
 
-            // Fórmula Interés Compuesto 4%
-            let nuevoPote = poteActual * Math.pow(1.04, cant);
-            const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+                // Cálculo 4% compuesto: Pote * (1.04 ^ cantidad de cartones)
+                const nuevoPote = poteActual * Math.pow(1.04, cant);
+                const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-            await addDoc(collection(db, "socios"), {
-                nombre, idSala, cantCartones: cant, codigoAcceso: codigo, cantoBingo: false
-            });
+                await addDoc(collection(db, "socios"), {
+                    nombre, idSala, cantCartones: cant, codigoAcceso: codigo, cantoBingo: false, fecha: new Date()
+                });
 
-            await updateDoc(salaRef, { premioBs: nuevoPote.toFixed(2) });
-            
-            showToast(`Socio registrado. Código: ${codigo}`);
-            document.getElementById('nombreSocio').value = "";
+                await updateDoc(salaRef, { premioBs: nuevoPote.toFixed(2) });
+
+                alert(`✅ Socio: ${nombre}\nCódigo: ${codigo}\nNuevo Pote: Bs. ${nuevoPote.toFixed(2)}`);
+                document.getElementById('nombreSocio').value = "";
+            } catch (e) { console.error(e); }
         };
 
-        // --- MONITOR DE ALERTAS ---
+        // --- 3. MONITOR DE ALERTAS DE BINGO ---
         onSnapshot(collection(db, "socios"), (snap) => {
             snap.docChanges().forEach(change => {
                 const data = change.doc.data();
                 if (change.type === "modified" && data.cantoBingo === true) {
                     document.getElementById('winnerName').innerText = data.nombre;
-                    document.getElementById('winnerCode').innerText = "CÓDIGO: " + data.codigoAcceso;
+                    document.getElementById('winnerCode').innerText = "CÓDIGO DE VALIDACIÓN: " + data.codigoAcceso;
                     document.getElementById('alertaBingo').style.display = 'flex';
+                    // Sonido de alerta
                     new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3').play().catch(()=>{});
                 }
+            });
+        });
+
+        // --- 4. CARGAR SALAS EN EL SELECT ---
+        onSnapshot(collection(db, "salas"), (snap) => {
+            const select = document.getElementById('selectSalasDisponibles');
+            select.innerHTML = '<option value="">Seleccione una Sala...</option>';
+            snap.forEach(d => {
+                select.innerHTML += `<option value="${d.id}">${d.data().nombre} (Bs. ${d.data().premioBs})</option>`;
             });
         });
 
@@ -146,15 +180,6 @@
             t.style.display = 'block';
             setTimeout(() => t.style.display = 'none', 3000);
         }
-
-        // Cargar Salas en Select
-        onSnapshot(collection(db, "salas"), (snap) => {
-            const select = document.getElementById('selectSalasDisponibles');
-            select.innerHTML = '<option value="">Seleccione Sala...</option>';
-            snap.forEach(d => {
-                select.innerHTML += `<option value="${d.id}">${d.data().nombre}</option>`;
-            });
-        });
     </script>
 </body>
 </html>
