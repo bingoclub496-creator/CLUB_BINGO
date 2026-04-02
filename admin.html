@@ -6,68 +6,82 @@
     <title>Bingo Club - Admin Master Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #004d61; color: white; margin: 0; padding: 20px; }
-        .admin-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; max-width: 1300px; margin: 0 auto; }
-        .card { background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); border-radius: 25px; padding: 20px; border: 1px solid rgba(255,255,255,0.2); position: relative; margin-bottom: 20px; }
-        h2 { font-size: 1.1rem; color: #25D366; text-transform: uppercase; margin-top: 0; border-bottom: 1px solid rgba(37, 211, 102, 0.2); padding-bottom: 10px; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 10px; border: none; box-sizing: border-box; font-size: 1rem; }
-        button { background: #25D366; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
-        button:hover { background: #1eb954; transform: translateY(-2px); }
-        .sala-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .btn-delete-sala { background: none; border: none; color: #ff5252; cursor: pointer; font-size: 1.3rem; padding: 5px; }
-        .tabla-socios { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(0,0,0,0.2); border-radius: 10px; overflow: hidden; }
-        th { text-align: left; padding: 12px; background: rgba(255,255,255,0.1); font-size: 0.8rem; text-transform: uppercase; }
-        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
-        #toast { display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#25D366; color:white; padding:12px 30px; border-radius:50px; z-index: 1000; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        :root { --accent: #25D366; --bg: #004d61; --card-bg: rgba(255,255,255,0.1); }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 20px; }
+        
+        .admin-grid { display: grid; grid-template-columns: 350px 1fr; gap: 25px; max-width: 1400px; margin: 0 auto; }
+        .card { background: var(--card-bg); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        
+        h2 { font-size: 1rem; color: var(--accent); text-transform: uppercase; margin-top: 0; border-bottom: 1px solid rgba(37, 211, 102, 0.2); padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: none; background: white; color: #333; font-weight: bold; }
+        
+        button { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 900; cursor: pointer; width: 100%; transition: 0.3s; text-transform: uppercase; }
+        button:hover { filter: brightness(1.1); transform: translateY(-2px); }
+        
+        /* Estilo de la Sala Activa */
+        .sala-activa { background: rgba(0,0,0,0.3); border-radius: 15px; padding: 15px; margin-bottom: 20px; border-left: 5px solid var(--accent); }
+        .controles-sala { display: flex; gap: 10px; margin: 15px 0; }
+        .btn-bola { background: #ffc107; color: black; flex: 2; }
+        .btn-stop { background: #ff5252; flex: 1; }
+        
+        .bolas-historial { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; min-height: 40px; }
+        .bola-item { width: 25px; height: 25px; background: white; color: var(--bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; }
+
+        .tabla-socios { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 15px; }
+        .tabla-socios th { text-align: left; padding: 10px; border-bottom: 2px solid var(--accent); color: var(--accent); }
+        .tabla-socios td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        .badge-codigo { background: var(--accent); color: black; padding: 2px 8px; border-radius: 5px; font-family: monospace; font-weight: bold; }
+
+        #toast { display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:var(--accent); color:white; padding:12px 30px; border-radius:50px; z-index: 1000; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div style="text-align:center; margin-bottom: 30px;">
-        <img src="logo.png" width="70" onerror="this.style.display='none'">
-        <h1 style="margin:10px 0; font-size: 1.6rem; letter-spacing: 1px;">SISTEMA ADMINISTRATIVO BINGO CLUB</h1>
+        <h1 style="margin:0; font-size: 1.8rem; color: white;">BINGO CLUB <span style="color:var(--accent)">MASTER PRO</span></h1>
+        <p style="opacity: 0.6; margin: 5px 0;">Panel de Control Administrativo v3.0</p>
     </div>
 
     <div class="admin-grid">
         <div class="column">
             <div class="card">
-                <h2>1. Crear Nueva Sala</h2>
-                <input type="text" id="nombreSala" placeholder="Nombre de la Sala (Ej: Sorteo de San Juan)">
+                <h2><i class="fas fa-plus-circle"></i> Nueva Sala</h2>
+                <input type="text" id="nombreSala" placeholder="Nombre: Ej. Gran Bingo Vegas">
                 <select id="tipoSala">
-                    <option value="normal">Normal (Línea / Cruz Grande)</option>
-                    <option value="cartonLleno">Cartón Lleno (Todas las casillas)</option>
+                    <option value="normal">Normal (Línea / Cruz)</option>
+                    <option value="cartonLleno">Cartón Lleno</option>
                 </select>
-                <input type="number" id="premioInicial" placeholder="Premio Base Inicial (Bs)">
+                <input type="number" id="premioInicial" placeholder="Pote Inicial (Bs)">
                 <input type="datetime-local" id="fechaSorteo">
-                <button onclick="crearSalaMaster()"><i class="fas fa-plus"></i> PUBLICAR SALA EN RED</button>
+                <button onclick="crearSalaMaster()">Publicar Sala</button>
             </div>
 
             <div class="card">
-                <h2>2. Registrar Socio</h2>
-                <input type="text" id="nombreSocio" placeholder="Nombre y Apellido">
-                <select id="selectSalasDisponibles"><option value="">Cargando salas...</option></select>
-                <label style="font-size: 0.8rem; display: block; margin: 5px 0 5px 5px;">Cartones comprados:</label>
+                <h2><i class="fas fa-user-plus"></i> Registrar Socio</h2>
+                <input type="text" id="nombreSocio" placeholder="Nombre completo del cliente">
+                <select id="selectSalasDisponibles"><option>Cargando salas...</option></select>
                 <select id="cantCartones">
                     <option value="1">1 Cartón</option>
                     <option value="2">2 Cartones</option>
                     <option value="3">3 Cartones</option>
                     <option value="4">4 Cartones</option>
-                    <option value="5">5 Cartones</option>
-                    <option value="6">6 Cartones</option>
                 </select>
-                <button onclick="vincularSocioASala()" style="background:#1976d2;"><i class="fas fa-user-plus"></i> VINCULAR Y GENERAR</button>
+                <button onclick="vincularSocioASala()" style="background:#1976d2;">Registrar y Generar Código</button>
             </div>
         </div>
 
         <div class="column">
-            <div class="card" style="min-height: 500px;">
-                <h2>3. Gestión de Salas Activas</h2>
-                <div id="contenedorTablas"></div>
+            <div class="card">
+                <h2><i class="fas fa-broadcast-tower"></i> Salas Activas y Monitoreo</h2>
+                <div id="contenedorTablas">
+                    </div>
             </div>
         </div>
     </div>
 
-    <div id="toast">✅ ¡Acción realizada con éxito!</div>
+    <div id="toast">Acción exitosa</div>
 
     <script type="module" src="app.js"></script>
 </body>
