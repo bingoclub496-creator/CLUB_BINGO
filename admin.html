@@ -3,86 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Club - Admin Master Pro</title>
+    <title>Bingo Club - Panel Administrativo Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --accent: #25D366; --bg: #004d61; --card-bg: rgba(255,255,255,0.1); }
+        :root { --accent: #25D366; --bg: #004d61; --gold: #d4af37; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 20px; }
         
-        .admin-grid { display: grid; grid-template-columns: 350px 1fr; gap: 25px; max-width: 1400px; margin: 0 auto; }
-        .card { background: var(--card-bg); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        .admin-grid { display: grid; grid-template-columns: 380px 1fr; gap: 25px; max-width: 1400px; margin: 0 auto; }
+        .card { background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
-        h2 { font-size: 1rem; color: var(--accent); text-transform: uppercase; margin-top: 0; border-bottom: 1px solid rgba(37, 211, 102, 0.2); padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        h2 { font-size: 1rem; color: var(--accent); text-transform: uppercase; border-bottom: 1px solid rgba(37,211,102,0.2); padding-bottom: 10px; margin-top: 0; }
         
-        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: none; background: white; color: #333; font-weight: bold; }
+        input, select { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 12px; border: none; font-weight: bold; box-sizing: border-box; font-size: 1rem; }
         
-        button { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 900; cursor: pointer; width: 100%; transition: 0.3s; text-transform: uppercase; }
-        button:hover { filter: brightness(1.1); transform: translateY(-2px); }
-        
-        /* Estilo de la Sala Activa */
-        .sala-activa { background: rgba(0,0,0,0.3); border-radius: 15px; padding: 15px; margin-bottom: 20px; border-left: 5px solid var(--accent); }
-        .controles-sala { display: flex; gap: 10px; margin: 15px 0; }
-        .btn-bola { background: #ffc107; color: black; flex: 2; }
-        .btn-stop { background: #ff5252; flex: 1; }
-        
-        .bolas-historial { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; min-height: 40px; }
-        .bola-item { width: 25px; height: 25px; background: white; color: var(--bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; }
+        .btn-action { background: var(--accent); color: white; border: none; padding: 18px; border-radius: 15px; font-weight: 900; cursor: pointer; width: 100%; text-transform: uppercase; transition: 0.3s; }
+        .btn-action:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4); }
 
-        .tabla-socios { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 15px; }
-        .tabla-socios th { text-align: left; padding: 10px; border-bottom: 2px solid var(--accent); color: var(--accent); }
-        .tabla-socios td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        /* ALERTA DE BINGO (Corrección 1) */
+        #alertaBingoOverlay { 
+            display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+            background: rgba(0,0,0,0.95); z-index:9999; flex-direction:column; 
+            align-items:center; justify-content:center; border: 20px solid var(--accent);
+            animation: pulse-border 0.5s infinite alternate;
+        }
+        @keyframes pulse-border { from { border-color: var(--accent); } to { border-color: var(--gold); } }
+        
+        .ganador-card { text-align: center; animation: scaleIn 0.4s ease-out; }
+        @keyframes scaleIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        .badge-codigo { background: var(--accent); color: black; padding: 2px 8px; border-radius: 5px; font-family: monospace; font-weight: bold; }
-
-        #toast { display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:var(--accent); color:white; padding:12px 30px; border-radius:50px; z-index: 1000; font-weight: bold; }
+        .pote-badge { background: #000; color: var(--accent); padding: 5px 10px; border-radius: 8px; font-family: monospace; }
     </style>
 </head>
 <body>
 
+    <div id="alertaBingoOverlay">
+        <div class="ganador-card">
+            <i class="fas fa-trophy" style="font-size: 5rem; color: var(--gold); margin-bottom: 20px;"></i>
+            <h1 style="font-size: 5rem; margin: 0; color: var(--accent);">¡BINGO!</h1>
+            <h2 id="txtGanador" style="font-size: 3.5rem; margin: 10px 0;">NOMBRE DEL SOCIO</h2>
+            <p id="txtCodigo" style="font-size: 2rem; color: var(--gold); letter-spacing: 5px;">CÓDIGO: ------</p>
+            <button class="btn-action" style="width: auto; padding: 20px 80px; margin-top: 40px; background: #ff5252;" onclick="cerrarAlerta()">DETENER ALERTA Y VALIDAR</button>
+        </div>
+    </div>
+
     <div style="text-align:center; margin-bottom: 30px;">
-        <h1 style="margin:0; font-size: 1.8rem; color: white;">BINGO CLUB <span style="color:var(--accent)">MASTER PRO</span></h1>
-        <p style="opacity: 0.6; margin: 5px 0;">Panel de Control Administrativo v3.0</p>
+        <h1 style="margin:0; letter-spacing: 2px;">BINGO CLUB <span style="color:var(--accent)">ADMIN MASTER</span></h1>
     </div>
 
     <div class="admin-grid">
         <div class="column">
             <div class="card">
-                <h2><i class="fas fa-plus-circle"></i> Nueva Sala</h2>
-                <input type="text" id="nombreSala" placeholder="Nombre: Ej. Gran Bingo Vegas">
-                <select id="tipoSala">
-                    <option value="normal">Normal (Línea / Cruz)</option>
-                    <option value="cartonLleno">Cartón Lleno</option>
-                </select>
-                <input type="number" id="premioInicial" placeholder="Pote Inicial (Bs)">
-                <input type="datetime-local" id="fechaSorteo">
-                <button onclick="crearSalaMaster()">Publicar Sala</button>
+                <h2>1. Configurar Sala</h2>
+                <input type="text" id="nombreSala" placeholder="Nombre del Sorteo">
+                <input type="number" id="poteInicial" placeholder="Pote Inicial (Bs)">
+                <button class="btn-action" onclick="crearSalaMaster()">Publicar Sala</button>
             </div>
 
             <div class="card">
-                <h2><i class="fas fa-user-plus"></i> Registrar Socio</h2>
-                <input type="text" id="nombreSocio" placeholder="Nombre completo del cliente">
-                <select id="selectSalasDisponibles"><option>Cargando salas...</option></select>
+                <h2>2. Vincular Socio (+4% Pote)</h2>
+                <input type="text" id="nombreSocio" placeholder="Nombre del Cliente">
+                <select id="selectSalas"><option value="">Cargando salas activas...</option></select>
+                <label style="font-size: 0.7rem; color: var(--accent);">CANTIDAD DE CARTONES:</label>
                 <select id="cantCartones">
-                    <option value="1">1 Cartón</option>
-                    <option value="2">2 Cartones</option>
-                    <option value="3">3 Cartones</option>
-                    <option value="4">4 Cartones</option>
+                    <option value="1">1 Cartón (+4%)</option>
+                    <option value="2">2 Cartones (+8.16%)</option>
+                    <option value="3">3 Cartones (+12.48%)</option>
+                    <option value="4">4 Cartones (+16.98%)</option>
                 </select>
-                <button onclick="vincularSocioASala()" style="background:#1976d2;">Registrar y Generar Código</button>
+                <button class="btn-action" style="background:#1976d2;" onclick="registrarYSumarPote()">Registrar y Actualizar Pote</button>
             </div>
         </div>
 
         <div class="column">
-            <div class="card">
-                <h2><i class="fas fa-broadcast-tower"></i> Salas Activas y Monitoreo</h2>
-                <div id="contenedorTablas">
-                    </div>
+            <div class="card" style="min-height: 600px;">
+                <h2>3. Monitoreo de Salas y Socios</h2>
+                <div id="listaSalas"></div>
             </div>
         </div>
     </div>
 
-    <div id="toast">Acción exitosa</div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <script type="module" src="app.js"></script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
+            authDomain: "bingo-club-6f019.firebaseapp.com",
+            projectId: "bingo-club-6f019",
+            storageBucket: "bingo-club-6f019.firebasestorage.app",
+            messagingSenderId: "1059179173812",
+            appId: "1:1059179173812:web:78b43eaac565d213bec4e1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- LÓGICA DE POTE (4% COMPUESTO) ---
+        window.registrarYSumarPote = async () => {
+            const nombre = document.getElementById('nombreSocio').value;
+            const idSala = document.getElementById('selectSalas').value;
+            const cant = parseInt(document.getElementById('cantCartones').value);
+
+            if(!nombre || !idSala) return alert("Faltan datos");
+
+            try {
+                const salaRef = doc(db, "salas", idSala);
+                const salaSnap = await getDoc(salaRef);
+                const poteActual = parseFloat(salaSnap.data().premioBs || 0);
+
+                // Cálculo del 4% acumulativo: Pote * (1.04 ^ cantidad)
+                const nuevoPote = poteActual * Math.pow(1.04, cant);
+                const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+                // 1. Guardar socio
+                await addDoc(collection(db, "socios"), {
+                    nombre, idSala, cantCartones: cant, codigoAcceso: codigo, cantoBingo: false, fecha: new Date()
+                });
+
+                // 2. Actualizar premio en la sala
+                await updateDoc(salaRef, { premioBs: nuevoPote.toFixed(2) });
+
+                alert(`✅ Socio registrado: ${codigo}\nNuevo Pote: Bs. ${nuevoPote.toFixed(2)}`);
+                document.getElementById('nombreSocio').value = "";
+            } catch (e) { console.error(e); }
+        };
+
+        // --- MONITOR DE BINGO EN TIEMPO REAL ---
+        onSnapshot(collection(db, "socios"), (snapshot) => {
+            snapshot.docChanges().forEach(change => {
+                const data = change.doc.data();
+                // Si un socio cambia su estado a 'cantoBingo: true'
+                if (change.type === "modified" && data.cantoBingo === true) {
+                    lanzarAlertaBingo(data.nombre, data.codigoAcceso);
+                }
+            });
+        });
+
+        function lanzarAlertaBingo(nombre, codigo) {
+            document.getElementById('txtGanador').innerText = nombre;
+            document.getElementById('txtCodigo').innerText = "CÓDIGO: " + codigo;
+            document.getElementById('alertaBingoOverlay').style.display = 'flex';
+            
+            // Sonido de campana de casino
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
+            audio.play().catch(() => console.log("Esperando interacción para audio"));
+        }
+
+        window.cerrarAlerta = () => {
+            document.getElementById('alertaBingoOverlay').style.display = 'none';
+        };
+
+        // Llenar select de salas automáticamente
+        onSnapshot(collection(db, "salas"), (snap) => {
+            const select = document.getElementById('selectSalas');
+            select.innerHTML = '<option value="">Selecciona la Sala</option>';
+            snap.forEach(d => {
+                select.innerHTML += `<option value="${d.id}">${d.data().nombre} (Pote: ${d.data().premioBs})</option>`;
+            });
+        });
+    </script>
 </body>
 </html>
