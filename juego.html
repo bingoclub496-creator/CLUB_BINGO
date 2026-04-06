@@ -2,129 +2,73 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bingo Club - Vegas Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Club - Sala de Juego</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { 
-            --gold: #d4af37; 
-            --vegas-green: #003d2b; 
-            --win-red: #b22222;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: #004d61; color: white; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        body, html { 
-            margin: 0; padding: 0; min-height: 100vh; 
-            font-family: 'Georgia', serif; 
-            /* FONTO ESTILO CASINO LAS VEGAS */
-            background: radial-gradient(circle, #1a472a 0%, #002211 100%), url('https://www.transparenttextures.com/patterns/poker-table.png');
-            background-blend-mode: multiply;
-            color: white; 
-            display: flex; flex-direction: column; align-items: center;
-        }
-
-        /* HEADER ESTILO MARQUESINA */
-        .header-vegas {
-            width: 100%; background: rgba(0,0,0,0.8);
-            border-bottom: 3px solid var(--gold);
-            padding: 15px 0; text-align: center;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-        }
-
-        .info-panel {
-            display: grid; grid-template-columns: 1fr 1.5fr 1fr;
-            gap: 10px; width: 95%; max-width: 800px; margin: 20px auto;
-        }
-
-        /* CUADROS DE TEXTO PROFESIONALES (Corrección 3 y 4) */
-        .data-box {
-            background: linear-gradient(145deg, #222, #000);
-            border: 2px solid var(--gold); border-radius: 10px;
-            padding: 10px; text-align: center;
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
-        }
-        .data-box label { font-size: 0.7rem; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 5px; }
-        .data-box span { font-size: 1.1rem; font-weight: bold; color: #fff; }
-        .pote-destacado { color: #25D366 !important; font-size: 1.4rem !important; }
-
-        /* PANEL DE ÚLTIMA BOLA */
-        .ball-display {
-            width: 120px; height: 120px; background: white; 
-            border-radius: 50%; border: 5px solid var(--gold);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 3.5rem; color: #111; font-weight: 900;
-            box-shadow: 0 0 30px rgba(255,255,255,0.2), inset 0 0 20px rgba(0,0,0,0.2);
-            margin: 0 auto;
-        }
-
-        /* CONTENEDOR DE CARTONES (Corrección 1) */
-        #misCartones { 
-            display: flex; flex-direction: column; gap: 30px; 
-            width: 100%; align-items: center; padding-bottom: 100px;
-        }
+        /* Cabecera con Pote Vivo */
+        .header-juego { background: rgba(0,0,0,0.3); padding: 15px; text-align: center; border-bottom: 2px solid #25D366; }
+        .pote-vivo { font-size: 2rem; font-weight: 900; color: #25D366; text-shadow: 0 0 10px rgba(37, 211, 102, 0.5); }
         
-        .carton-vegas {
-            background: #fdfdfd; border-radius: 15px; padding: 10px;
-            width: 90%; max-width: 380px;
-            border: 8px solid #333; box-shadow: 0 15px 40px rgba(0,0,0,0.6);
-        }
-        .grid-bingo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: #333; border: 2px solid #333; }
-        .celda { 
-            aspect-ratio: 1; background: white; color: #222;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem; font-weight: bold; cursor: pointer; transition: 0.2s;
-        }
-        /* MARCADO PROFESIONAL */
-        .celda.marcada { 
-            background: var(--win-red) !important; 
-            color: white !important; 
-            position: relative;
-        }
-        .celda.marcada::after {
-            content: ""; position: absolute; width: 80%; height: 80%;
-            border: 2px solid rgba(255,255,255,0.5); border-radius: 50%;
-        }
-        .celda-header { background: var(--gold); color: black; font-weight: 900; height: 40px; }
+        /* Panel de Bolas Cantadas */
+        .panel-bolas { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .ultima-bola { width: 120px; height: 120px; background: white; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; border: 8px solid #25D366; box-shadow: 0 0 20px rgba(0,0,0,0.5); margin-bottom: 20px; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+        
+        .historial-bolas { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 400px; }
+        .bola-peque { width: 35px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.2); }
 
-        .btn-bingo {
-            position: fixed; bottom: 20px; width: 80%; max-width: 300px;
-            padding: 20px; background: var(--win-red); color: white;
-            border: 3px solid var(--gold); border-radius: 50px;
-            font-size: 1.8rem; font-weight: 900; cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000;
-        }
+        /* Chat y Mensajes Predeterminados */
+        .seccion-chat { background: rgba(0,0,0,0.5); border-radius: 20px 20px 0 0; padding: 15px; max-height: 40%; }
+        .contenedor-mensajes { height: 100px; overflow-y: auto; margin-bottom: 10px; font-size: 0.9rem; }
+        .msg { margin-bottom: 5px; padding: 5px 10px; background: rgba(255,255,255,0.05); border-radius: 8px; }
+        .msg b { color: #25D366; }
+
+        .botones-predeterminados { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+        .btn-chat { background: #1976d2; color: white; border: none; padding: 8px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; transition: 0.2s; }
+        .btn-chat:active { transform: scale(0.95); }
+
+        /* Botón de BINGO */
+        .btn-bingo { background: #ff5252; color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 1.5rem; font-weight: 900; letter-spacing: 2px; cursor: pointer; box-shadow: 0 5px 0 #b71c1c; margin-top: 5px; }
+        .btn-bingo:active { box-shadow: none; transform: translateY(4px); }
     </style>
 </head>
 <body>
 
-    <div class="header-vegas">
-        <img src="logo.png" height="50" onerror="this.style.display='none'">
-        <div style="color: var(--gold); font-size: 0.8rem; margin-top: 5px;">Socio: <span id="nombreJugador">...</span></div>
+    <div class="header-juego">
+        <div id="nombreSalaJuego">Cargando Sala...</div>
+        <div class="pote-vivo">Bs. <span id="montoPote">0.00</span></div>
     </div>
 
-    <div class="info-panel">
-        <div class="data-box">
-            <label>Sorteo</label>
-            <span id="nombreSalaTxt">---</span><br>
-            <small id="tipoSalaTxt" style="color:var(--gold); font-size:0.6rem">MODO: --</small>
+    <div class="panel-bolas">
+        <div class="ultima-bola" id="bolaActual">--</div>
+        <div style="margin-bottom: 10px; font-size: 0.8rem; color: #ffc107;">HISTORIAL DE BOLAS</div>
+        <div class="historial-bolas" id="historialBolas">
+            </div>
+    </div>
+
+    <div class="seccion-chat">
+        <div class="contenedor-mensajes" id="chatBox">
+            <div class="msg"><b>Sistema:</b> ¡Bienvenidos al Bingo!</div>
         </div>
-        
-        <div class="ball-display" id="bolaActual">--</div>
 
-        <div class="data-box">
-            <label>Gran Pote</label>
-            <span class="pote-destacado" id="poteTxt">Bs. 0</span>
+        <div class="botones-predeterminados">
+            <button class="btn-chat" onclick="enviarMensaje('¡Hola a todos! 👋')">¡Hola! 👋</button>
+            <button class="btn-chat" onclick="enviarMensaje('¡Suerte para mí! 🍀')">Suerte 🍀</button>
+            <button class="btn-chat" onclick="enviarMensaje('¡Falta pocooo! 😱')">Falta poco 😱</button>
+            <button class="btn-chat" onclick="enviarMensaje('¡Casi casi! ✨')">Casi ✨</button>
+            <button class="btn-chat" onclick="enviarMensaje('¡Esa era la mía! 🔥')">Esa era 🔥</button>
+            <button class="btn-chat" onclick="enviarMensaje('¡Ronda emocionante! 🎯')">Emoción 🎯</button>
         </div>
-    </div>
 
-    <div id="misCartones">
-        <h2 style="color: var(--gold)">GENERANDO CARTONES...</h2>
+        <button class="btn-bingo" onclick="cantarBingo()">¡CANTAR BINGO!</button>
     </div>
-
-    <button class="btn-bingo" onclick="cantarBingo()">¡BINGO!</button>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, collection, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
@@ -138,90 +82,59 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const sesion = JSON.parse(sessionStorage.getItem('socioActual'));
-        if(!sesion) window.location.href = 'index.html';
+        // Simulamos que el socio entró con un ID de sala y un ID de socio por URL (ej: juego.html?sala=ID&socio=ID)
+        const params = new URLSearchParams(window.location.search);
+        const idSala = params.get('sala');
+        const idSocio = params.get('socio');
 
-        document.getElementById('nombreJugador').innerText = sesion.nombre;
-        let misCartones = [];
-        let salaData = null;
+        if(!idSala || !idSocio) {
+            alert("Error: Acceso no válido a la sala.");
+        }
 
-        // ESCUCHAR SALA Y ACTUALIZAR DATOS (Correcciones 3 y 4)
-        onSnapshot(doc(db, "salas", sesion.idSala), (snap) => {
-            if(!snap.exists()) return;
-            salaData = snap.data();
-            
-            document.getElementById('nombreSalaTxt').innerText = salaData.nombre;
-            document.getElementById('tipoSalaTxt').innerText = salaData.tipo === 'cartonLleno' ? 'CARTÓN LLENO' : 'MODO NORMAL';
-            document.getElementById('poteTxt').innerText = `Bs. ${salaData.premioBs}`;
-            
-            const bolas = salaData.bolas || [];
-            if(bolas.length > 0) {
-                document.getElementById('bolaActual').innerText = bolas[bolas.length - 1];
+        // 1. ESCUCHAR DATOS DE LA SALA (Pote y Bolas)
+        onSnapshot(doc(db, "salas", idSala), (d) => {
+            if(d.exists()){
+                const sala = d.data();
+                document.getElementById('nombreSalaJuego').innerText = sala.nombre;
+                document.getElementById('montoPote').innerText = sala.premioBs;
+                
+                const bolas = sala.bolas || [];
+                if(bolas.length > 0) {
+                    document.getElementById('bolaActual').innerText = bolas[bolas.length - 1];
+                    const historial = document.getElementById('historialBolas');
+                    historial.innerHTML = bolas.slice(0, -1).reverse().map(b => `<div class="bola-peque">${b}</div>`).join('');
+                }
             }
-
-            if(misCartones.length === 0) iniciarJuego();
         });
 
-        function iniciarJuego() {
-            const container = document.getElementById('misCartones');
-            container.innerHTML = "";
-            for(let i=0; i < sesion.cantCartones; i++) {
-                renderizarCarton(i);
-            }
-        }
-
-        // GENERACIÓN DE CARTÓN PROFESIONAL
-        function renderizarCarton(index) {
-            const div = document.createElement('div');
-            div.className = 'carton-vegas';
-            div.innerHTML = `
-                <div class="grid-bingo">
-                    <div class="celda celda-header">B</div>
-                    <div class="celda celda-header">I</div>
-                    <div class="celda celda-header">N</div>
-                    <div class="celda celda-header">G</div>
-                    <div class="celda celda-header">O</div>
-                </div>
-                <div class="grid-bingo" id="c-${index}"></div>
-            `;
-            document.getElementById('misCartones').appendChild(div);
-            
-            const grid = document.getElementById(`c-${index}`);
-            const rangos = { B:[1,15], I:[16,30], N:[31,45], G:[46,60], O:[61,75] };
-            const numerosCarton = {};
-
-            ['B','I','N','G','O'].forEach(letra => {
-                numerosCarton[letra] = [];
-                while(numerosCarton[letra].length < 5) {
-                    let num = Math.floor(Math.random() * (rangos[letra][1] - rangos[letra][0] + 1)) + rangos[letra][0];
-                    if(!numerosCarton[letra].includes(num)) numerosCarton[letra].push(num);
-                }
-                numerosCarton[letra].sort((a,b) => a-b);
+        // 2. CHAT EN TIEMPO REAL
+        window.enviarMensaje = async (texto) => {
+            const socioSnap = await getDoc(doc(db, "socios", idSocio));
+            const nombre = socioSnap.data().nombre;
+            await addDoc(collection(db, "chat"), {
+                idSala,
+                nombre,
+                texto,
+                fecha: new Date()
             });
+        };
 
-            // Llenar el grid por filas para que sea visualmente correcto
-            for(let f=0; f<5; f++) {
-                ['B','I','N','G','O'].forEach(letra => {
-                    const celda = document.createElement('div');
-                    celda.className = 'celda';
-                    let valor = numerosCarton[letra][f];
-                    
-                    if(letra === 'N' && f === 2) {
-                        celda.innerText = "CLUB";
-                        celda.classList.add('marcada');
-                        celda.style.fontSize = '0.6rem';
-                    } else {
-                        celda.innerText = valor;
-                        celda.onclick = () => celda.classList.toggle('marcada');
-                    }
-                    grid.appendChild(celda);
-                });
+        const qChat = query(collection(db, "chat"), where("idSala", "==", idSala), orderBy("fecha", "desc"), limit(20));
+        onSnapshot(qChat, (snap) => {
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML = "";
+            snap.forEach(m => {
+                const data = m.data();
+                chatBox.innerHTML += `<div class="msg"><b>${data.nombre}:</b> ${data.texto}</div>`;
+            });
+        });
+
+        // 3. FUNCIÓN CANTAR BINGO
+        window.cantarBingo = async () => {
+            if(confirm("¿Estás seguro de que tienes BINGO? ¡Se notificará al administrador!")) {
+                await updateDoc(doc(db, "socios", idSocio), { cantoBingo: true });
+                alert("¡BINGO NOTIFICADO! Espera la validación del administrador.");
             }
-        }
-
-        window.cantarBingo = () => {
-            alert("¡REVISANDO CARTONES! Espera que el administrador valide tu jugada.");
-            // Aquí iría la lógica de verificación contra salaData.bolas
         };
     </script>
 </body>
