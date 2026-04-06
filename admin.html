@@ -14,20 +14,19 @@
         button { background: #25D366; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
         button:hover { background: #1eb954; transform: translateY(-2px); }
         
-        /* SECCIÓN 3: DISEÑO DE GESTIÓN */
-        .sala-item { background: rgba(0,0,0,0.4); border-radius: 15px; padding: 20px; margin-bottom: 25px; border-left: 6px solid #25D366; position: relative; }
+        /* SECCIÓN 3: GESTIÓN */
+        .sala-item { background: rgba(0,0,0,0.4); border-radius: 15px; padding: 20px; margin-bottom: 25px; border-left: 6px solid #25D366; }
         .sala-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-        .sala-info-text { flex-grow: 1; }
         .pote-tag { background: #25D366; color: #000; padding: 6px 15px; border-radius: 10px; font-weight: 900; font-size: 1.1rem; display: inline-block; margin-top: 5px; }
-        
-        .badge-tipo { background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 5px; font-size: 0.75rem; text-transform: uppercase; margin-right: 10px; color: #ffc107; border: 1px solid #ffc107; }
-        .badge-fecha { font-size: 0.85rem; color: #ddd; display: block; margin-top: 5px; }
+        .badge-tipo { background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 5px; font-size: 0.75rem; text-transform: uppercase; color: #ffc107; border: 1px solid #ffc107; }
 
         .tabla-socios { width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.2); border-radius: 12px; overflow: hidden; margin-top: 15px; }
         .tabla-socios th { padding: 12px; text-align: left; background: rgba(255,255,255,0.05); color: #25D366; font-size: 0.8rem; }
         .tabla-socios td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
         
-        .btn-del-socio { background: #ff5252; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; width: auto; }
+        .btn-action { padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; width: auto; border: none; cursor: pointer; color: white; margin-right: 5px; }
+        .btn-edit { background: #1976d2; }
+        .btn-del { background: #ff5252; }
         .btn-del-sala { background: #ff5252; color: white; width: 35px; height: 35px; border-radius: 8px; border:none; cursor:pointer; }
 
         #alertaBingo { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; flex-direction:column; align-items:center; justify-content:center; border: 15px solid #25D366; animation: flash 0.5s infinite alternate; }
@@ -53,7 +52,7 @@
                 <h2>1. Crear Nueva Sala</h2>
                 <input type="text" id="nombreSala" placeholder="Nombre de la Sala">
                 <select id="tipoSala">
-                    <option value="Normal (Línea / Cruz)">Línea / Cruz Grande</option>
+                    <option value="Normal">Línea / Cruz Grande</option>
                     <option value="Cartón Lleno">Cartón Lleno</option>
                 </select>
                 <input type="number" id="premioInicial" placeholder="Premio Base (Bs)">
@@ -65,9 +64,9 @@
                 <h2>2. Registrar Socio</h2>
                 <input type="text" id="nombreSocio" placeholder="Nombre y Apellido">
                 <select id="selectSalasDisponibles"><option value="">Cargando salas...</option></select>
-                <label style="font-size: 0.8rem; margin: 5px 0 5px 5px; display: block;">Cartones comprados:</label>
+                <label style="font-size: 0.8rem; display: block; margin: 5px;">Cartones iniciales:</label>
                 <select id="cantCartones">
-                    <option value="1">1 Cartón (+4%)</option>
+                    <option value="1">1 Cartón</option>
                     <option value="2">2 Cartones</option>
                     <option value="3">3 Cartones</option>
                     <option value="4">4 Cartones</option>
@@ -78,7 +77,7 @@
 
         <div class="column">
             <div class="card" style="min-height: 600px;">
-                <h2>3. Gestión de Salas Activas</h2>
+                <h2>3. Gestión de Salas y Socios</h2>
                 <div id="contenedorGestion"></div>
             </div>
         </div>
@@ -105,21 +104,18 @@
             const nombre = document.getElementById('nombreSala').value;
             const premio = document.getElementById('premioInicial').value;
             const fecha = document.getElementById('fechaSorteo').value;
-            const tipo = document.getElementById('tipoSala').value;
-
             if(!nombre || !premio || !fecha) return alert("Faltan datos");
 
             await addDoc(collection(db, "salas"), {
-                nombre, tipo, fecha, 
+                nombre, tipo: document.getElementById('tipoSala').value, fecha, 
                 premioInicial: parseFloat(premio).toFixed(2),
-                premioBs: parseFloat(premio).toFixed(2),
-                estado: "activa"
+                premioBs: parseFloat(premio).toFixed(2)
             });
-            alert("✅ Sala Publicada");
+            alert("Sala Publicada");
             document.getElementById('nombreSala').value = "";
         };
 
-        // --- REGISTRAR SOCIO (4% Fijo del Inicial) ---
+        // --- REGISTRAR SOCIO ---
         document.getElementById('btnVincular').onclick = async () => {
             const nombre = document.getElementById('nombreSocio').value;
             const idSala = document.getElementById('selectSalasDisponibles').value;
@@ -135,10 +131,32 @@
             const nuevoPote = parseFloat(data.premioBs) + incremento;
 
             const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
-            await addDoc(collection(db, "socios"), { nombre, idSala, codigoAcceso: codigo, cantoBingo: false });
+            await addDoc(collection(db, "socios"), { nombre, idSala, cantCartones: cant, codigoAcceso: codigo, cantoBingo: false });
             await updateDoc(salaRef, { premioBs: nuevoPote.toFixed(2) });
-            alert("Socio registrado con éxito.");
+            alert("Socio registrado.");
             document.getElementById('nombreSocio').value = "";
+        };
+
+        // --- ACTUALIZAR CARTONES (NUEVA FUNCIÓN) ---
+        window.actualizarCartones = async (idSocio, idSala) => {
+            const extra = prompt("¿Cuántos cartones adicionales desea comprar el socio?");
+            const cantExtra = parseInt(extra);
+
+            if (isNaN(cantExtra) || cantExtra <= 0) return alert("Cantidad no válida");
+
+            const socioRef = doc(db, "socios", idSocio);
+            const salaRef = doc(db, "salas", idSala);
+            
+            const [socioSnap, salaSnap] = await Promise.all([getDoc(socioRef), getDoc(salaRef)]);
+            
+            const nuevaCantSocio = socioSnap.data().cantCartones + cantExtra;
+            const incrementoPote = (parseFloat(salaSnap.data().premioInicial) * 0.04) * cantExtra;
+            const nuevoPoteTotal = parseFloat(salaSnap.data().premioBs) + incrementoPote;
+
+            await updateDoc(socioRef, { cantCartones: nuevaCantSocio });
+            await updateDoc(salaRef, { premioBs: nuevoPoteTotal.toFixed(2) });
+
+            alert(`Socio actualizado. Ahora tiene ${nuevaCantSocio} cartones. El pote subió Bs. ${incrementoPote.toFixed(2)}`);
         };
 
         // --- GESTIÓN SECCIÓN 3 ---
@@ -154,7 +172,6 @@
             snapSalas.forEach(docSala => {
                 const sala = docSala.data();
                 const idSala = docSala.id;
-                
                 select.innerHTML += `<option value="${idSala}">${sala.nombre}</option>`;
 
                 const salaDiv = document.createElement('div');
@@ -162,16 +179,16 @@
                 
                 let tablaHTML = `
                     <div class="sala-header">
-                        <div class="sala-info-text">
-                            <span class="badge-tipo">${sala.tipo}</span>
-                            <strong style="font-size:1.2rem;">${sala.nombre}</strong>
-                            <span class="badge-fecha"><i class="far fa-clock"></i> Inicia: ${sala.fecha.replace('T', ' ')}</span>
+                        <div>
+                            <span class="badge-tipo">${sala.tipo}</span><br>
+                            <strong>${sala.nombre}</strong><br>
+                            <small>${sala.fecha.replace('T', ' ')}</small><br>
                             <div class="pote-tag">Pote: Bs. ${sala.premioBs}</div>
                         </div>
                         <button class="btn-del-sala" onclick="borrarSalaCompleta('${idSala}')"><i class="fas fa-trash"></i></button>
                     </div>
                     <table class="tabla-socios">
-                        <thead><tr><th>Socio</th><th>Código</th><th>Acción</th></tr></thead>
+                        <thead><tr><th>Socio</th><th>Cant.</th><th>Código</th><th>Acciones</th></tr></thead>
                         <tbody>
                 `;
 
@@ -180,13 +197,15 @@
                     tablaHTML += `
                         <tr>
                             <td>${s.nombre}</td>
+                            <td>${s.cantCartones || 1}</td>
                             <td><code>${s.codigoAcceso}</code></td>
-                            <td><button class="btn-del-socio" onclick="borrarSocio('${s.id}')">Eliminar</button></td>
+                            <td>
+                                <button class="btn-action btn-edit" onclick="actualizarCartones('${s.id}', '${idSala}')" title="Agregar Cartones"><i class="fas fa-plus-circle"></i></button>
+                                <button class="btn-action btn-del" onclick="borrarSocio('${s.id}')"><i class="fas fa-user-minus"></i></button>
+                            </td>
                         </tr>
                     `;
                 });
-
-                if(sociosDeSala.length === 0) tablaHTML += `<tr><td colspan="3" style="text-align:center; color:#888;">No hay socios registrados</td></tr>`;
 
                 tablaHTML += `</tbody></table>`;
                 salaDiv.innerHTML = tablaHTML;
@@ -194,23 +213,16 @@
             });
         });
 
-        // BORRAR SOCIO
-        window.borrarSocio = async (id) => {
-            if(confirm("¿Eliminar socio?")) await deleteDoc(doc(db, "socios", id));
-        };
-
-        // BORRAR SALA COMPLETA
+        window.borrarSocio = async (id) => { if(confirm("¿Eliminar socio?")) await deleteDoc(doc(db, "socios", id)); };
         window.borrarSalaCompleta = async (idSala) => {
-            if(confirm("¡ALERTA! Esto eliminará la sala y TODOS sus socios registrados de forma permanente. ¿Continuar?")) {
+            if(confirm("¡ATENCIÓN! Se eliminará TODO. ¿Continuar?")) {
                 const q = query(collection(db, "socios"), where("idSala", "==", idSala));
                 const snap = await getDocs(q);
                 snap.forEach(async (d) => await deleteDoc(doc(db, "socios", d.id)));
                 await deleteDoc(doc(db, "salas", idSala));
-                alert("Eliminado con éxito.");
             }
         };
 
-        // ESCUCHA ALERTA BINGO
         onSnapshot(collection(db, "socios"), (snap) => {
             snap.docChanges().forEach(change => {
                 if (change.type === "modified" && change.doc.data().cantoBingo === true) {
