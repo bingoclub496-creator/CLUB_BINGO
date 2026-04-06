@@ -2,148 +2,125 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bingo Club - Admin Master</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #004d61; color: white; margin: 0; padding: 20px; }
-        .admin-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; max-width: 1300px; margin: auto; }
-        .card { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
-        h2 { color: #25D366; font-size: 1rem; text-transform: uppercase; border-bottom: 1px solid rgba(37, 211, 102, 0.2); padding-bottom: 10px; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: none; font-weight: bold; }
-        button { background: #25D366; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
-        .sala-item { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; margin-bottom: 20px; border-left: 5px solid #25D366; }
-        .bola-big { font-size: 3rem; font-weight: 900; color: #ffc107; text-align: center; }
-        .tabla-socios { width: 100%; font-size: 0.8rem; border-collapse: collapse; margin-top: 10px; }
-        .tabla-socios th { text-align: left; color: #25D366; }
-        .tabla-socios td { padding: 5px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        #alertaBingo { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:99; flex-direction:column; align-items:center; justify-content:center; border: 15px solid #ff5252; text-align: center; }
+        .admin-grid { display: grid; grid-template-columns: 1fr 1.8fr; gap: 20px; max-width: 1400px; margin: auto; }
+        .card { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.2); }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: none; font-weight: bold; }
+        button { background: #25D366; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .sala-item { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 15px; margin-bottom: 20px; border-left: 5px solid #25D366; position: relative; }
+        .bola-display { font-size: 3.5rem; font-weight: 900; color: #ffc107; text-align: center; display: block; }
+        .historial { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; justify-content: center; }
+        .bola-sm { width: 30px; height: 30px; background: white; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; }
+        #alertaBingo { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999; flex-direction:column; align-items:center; justify-content:center; border: 15px solid #ff5252; }
     </style>
 </head>
 <body>
 
 <div id="alertaBingo">
-    <h1 style="font-size: 4rem; color: #ff5252;">¡BINGO VALIDADO!</h1>
+    <h1 style="font-size: 4rem; color: #ff5252;">¡BINGO!</h1>
     <h2 id="winnerName" style="font-size: 2.5rem;">---</h2>
     <p id="winnerCode" style="font-size: 1.5rem; color: #ffc107;"></p>
-    <button onclick="reanudarSorteo()" style="width:auto; padding: 15px 40px; background:#25D366;">REANUDAR / SIGUIENTE RONDA</button>
+    <button onclick="location.reload()" style="width:auto; padding: 15px 50px;">CERRAR Y REINICIAR</button>
 </div>
 
 <div class="admin-grid">
     <div class="col">
         <div class="card">
-            <h2>1. Programar Nueva Sala</h2>
-            <input type="text" id="nombreSala" placeholder="Nombre de la Sala">
-            <select id="tipoSala">
-                <option value="Normal">Normal (Línea)</option>
-                <option value="Cartón Lleno">Cartón Lleno</option>
+            <h2>Crear Sorteo</h2>
+            <input type="text" id="nSala" placeholder="Nombre de la Sala">
+            <select id="tSala">
+                <option value="Normal">Normal (Línea/Cruz)</option>
+                <option value="Cartón Lleno">Cartón Lleno (24 Fichas)</option>
             </select>
-            <input type="number" id="premioInicial" placeholder="Premio Base (Bs)">
-            <input type="datetime-local" id="fechaSorteo">
-            <button onclick="publicarSala()">PUBLICAR SALA</button>
+            <input type="number" id="pBase" placeholder="Premio Base (Bs)">
+            <input type="datetime-local" id="fSorteo">
+            <button onclick="crearSala()">ACTIVAR SISTEMA</button>
         </div>
-        <div class="card">
-            <h2>2. Registrar Socio</h2>
-            <input type="text" id="nombreSocio" placeholder="Nombre y Apellido">
-            <select id="selectSalas"></select>
-            <select id="cantCartones">
-                <option value="1">1 Cartón (+4%)</option>
-                <option value="2">2 Cartones</option>
-                <option value="3">3 Cartones</option>
-            </select>
-            <button onclick="vincularSocio()" style="background:#1976d2;">REGISTRAR SOCIO</button>
+        <div class="card" style="margin-top:20px">
+            <h2>Vincular Socio</h2>
+            <input type="text" id="nomSoc" placeholder="Nombre del Socio">
+            <select id="selSala"></select>
+            <input type="number" id="cCart" placeholder="Cantidad de Cartones" value="1">
+            <button onclick="vincularSocio()" style="background:#1976d2">REGISTRAR</button>
         </div>
     </div>
     <div class="col">
         <div class="card">
-            <h2>3. Monitoreo en Vivo</h2>
-            <div id="contenedorSalas"></div>
+            <h2>Panel de Control en Vivo</h2>
+            <div id="contSalas"></div>
         </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, deleteDoc, query, where, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, query, where, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", authDomain: "bingo-club-6f019.firebaseapp.com", projectId: "bingo-club-6f019", storageBucket: "bingo-club-6f019.firebasestorage.app", messagingSenderId: "1059179173812", appId: "1:1059179173812:web:78b43eaac565d213bec4e1" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let bingoPausado = false;
-
-    window.publicarSala = async () => {
-        const n = document.getElementById('nombreSala').value;
-        const p = document.getElementById('premioInicial').value;
-        const f = document.getElementById('fechaSorteo').value;
-        if(!n || !p || !f) return alert("Completa los campos");
+    window.crearSala = async () => {
+        const n = document.getElementById('nSala').value;
+        const p = document.getElementById('pBase').value;
+        const f = document.getElementById('fSorteo').value;
+        if(!n || !p || !f) return alert("Faltan datos");
         await addDoc(collection(db, "salas"), { 
-            nombre: n, tipo: document.getElementById('tipoSala').value, 
+            nombre: n, tipo: document.getElementById('tSala').value, 
             premioInicial: p, premioBs: p, fecha: f, 
             estado: "activa", bolas: [], ultimaBola: "--", lastUpdate: Timestamp.now() 
         });
-        alert("Sala Activa");
+        alert("Sala Programada");
     };
 
     window.vincularSocio = async () => {
-        const nom = document.getElementById('nombreSocio').value;
-        const idS = document.getElementById('selectSalas').value;
-        const cant = parseInt(document.getElementById('cantCartones').value);
-        if(!nom || !idS) return alert("Datos incompletos");
-
-        const sRef = doc(db, "salas", idS);
-        const sSnap = await getDoc(sRef);
-        const incremento = (parseFloat(sSnap.data().premioInicial) * 0.04) * cant;
-        const nuevoPote = parseFloat(sSnap.data().premioBs) + incremento;
-
+        const nom = document.getElementById('nomSoc').value;
+        const idS = document.getElementById('selSala').value;
+        const cant = parseInt(document.getElementById('cCart').value);
+        if(!nom || !idS) return alert("Faltan datos");
+        const sSnap = await getDoc(doc(db, "salas", idS));
+        const inc = (parseFloat(sSnap.data().premioInicial) * 0.04) * cant;
         const cod = Math.random().toString(36).substring(2,8).toUpperCase();
         await addDoc(collection(db, "socios"), { nombre: nom, idSala: idS, codigoAcceso: cod, cantoBingo: false, cantCartones: cant });
-        await updateDoc(sRef, { premioBs: nuevoPote.toFixed(2) });
-        alert("Socio Vinculado: " + cod);
+        await updateDoc(doc(db, "salas", idS), { premioBs: (parseFloat(sSnap.data().premioBs) + inc).toFixed(2) });
+        alert("Socio: " + cod);
     };
 
-    // MOTOR AUTOMÁTICO
+    // MOTOR DE TIEMPO REAL
     setInterval(async () => {
-        if(bingoPausado) return;
         const ahora = new Date();
         const snap = await getDocs(query(collection(db, "salas"), where("estado", "==", "activa")));
         snap.forEach(async (d) => {
             const s = d.data();
-            if(ahora >= new Date(s.fecha) && (s.bolas || []).length < 75) {
-                const diff = (ahora - (s.lastUpdate ? s.lastUpdate.toDate() : 0)) / 1000;
-                if(diff >= 5) {
-                    let lista = s.bolas || [];
-                    let n; do { n = Math.floor(Math.random()*75)+1; } while(lista.includes(n));
-                    lista.push(n);
-                    await updateDoc(doc(db, "salas", d.id), { bolas: lista, ultimaBola: n, lastUpdate: Timestamp.now() });
+            const fSorteo = new Date(s.fecha);
+            if(ahora >= fSorteo && (s.bolas || []).length < 75) {
+                const diff = (ahora - s.lastUpdate.toDate()) / 1000;
+                if(diff >= 5) { // Cada 5 segundos
+                    let b = s.bolas || [];
+                    let n; do { n = Math.floor(Math.random()*75)+1; } while(b.includes(n));
+                    b.push(n);
+                    await updateDoc(doc(db, "salas", d.id), { bolas: b, ultimaBola: n, lastUpdate: Timestamp.now() });
                 }
             }
         });
     }, 2000);
 
-    onSnapshot(collection(db, "salas"), async (snap) => {
-        const cont = document.getElementById('contenedorSalas');
-        const sel = document.getElementById('selectSalas');
+    onSnapshot(collection(db, "salas"), (snap) => {
+        const cont = document.getElementById('contSalas');
+        const sel = document.getElementById('selSala');
         cont.innerHTML = ""; sel.innerHTML = "";
-        const sociosSnap = await getDocs(collection(db, "socios"));
-        const listaSocios = sociosSnap.docs.map(ds => ({id: ds.id, ...ds.data()}));
-
         snap.forEach(ds => {
             const s = ds.data();
             sel.innerHTML += `<option value="${ds.id}">${s.nombre}</option>`;
             cont.innerHTML += `
                 <div class="sala-item">
-                    <div style="display:flex; justify-content:space-between">
-                        <b>${s.nombre} (${s.tipo})</b>
-                        <span style="color:#25D366">Bs. ${s.premioBs}</span>
-                    </div>
-                    <div class="bola-big">${s.ultimaBola}</div>
-                    <table class="tabla-socios">
-                        <tr><th>Socio</th><th>Cod</th><th>Cant</th></tr>
-                        ${listaSocios.filter(so => so.idSala === ds.id).map(so => `
-                            <tr><td>${so.nombre}</td><td>${so.codigoAcceso}</td><td>${so.cantCartones}</td></tr>
-                        `).join('')}
-                    </table>
+                    <b>${s.nombre}</b> <span style="float:right">Bs. ${s.premioBs}</span><br>
+                    <small>Modo: ${s.tipo} | Inicio: ${s.fecha.replace('T',' ')}</small>
+                    <span class="bola-display">${s.ultimaBola}</span>
+                    <div class="historial">${(s.bolas || []).map(b => `<div class="bola-sm">${b}</div>`).join('')}</div>
                 </div>
             `;
         });
@@ -152,18 +129,12 @@
     onSnapshot(collection(db, "socios"), (snap) => {
         snap.docChanges().forEach(change => {
             if(change.type === "modified" && change.doc.data().cantoBingo === true) {
-                bingoPausado = true;
                 document.getElementById('winnerName').innerText = change.doc.data().nombre;
                 document.getElementById('winnerCode').innerText = "CÓDIGO: " + change.doc.data().codigoAcceso;
                 document.getElementById('alertaBingo').style.display = "flex";
             }
         });
     });
-
-    window.reanudarSorteo = () => {
-        bingoPausado = false;
-        document.getElementById('alertaBingo').style.display = "none";
-    };
 </script>
 </body>
 </html>
