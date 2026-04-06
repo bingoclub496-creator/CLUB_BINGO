@@ -3,51 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Club - Juego en Vivo</title>
+    <title>Bingo Club - En Vivo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #004d61; color: white; text-align: center; margin: 0; padding: 10px; }
+        
+        /* CABECERA */
         .header-sala { background: rgba(0,0,0,0.4); padding: 10px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #25D366; }
         
-        /* BOLA GIGANTE */
-        .bola-viva { width: 90px; height: 90px; background: white; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; border: 6px solid #ffc107; margin: 10px auto; box-shadow: 0 8px 20px rgba(0,0,0,0.5); position: relative; }
+        /* BOLA ACTUAL GIGANTE */
+        .bola-viva { width: 100px; height: 100px; background: white; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; border: 6px solid #ffc107; margin: 10px auto; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
         
-        /* TABLERO GENERAL (Fichas cantadas) */
-        .tablero-general { display: grid; grid-template-columns: repeat(15, 1fr); gap: 2px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; margin-bottom: 15px; }
-        .ficha-guia { aspect-ratio: 1; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 3px; color: rgba(255,255,255,0.3); }
-        .ficha-guia.cantada { background: #ffc107; color: #000; font-weight: bold; box-shadow: 0 0 5px #ffc107; }
+        /* HISTORIAL DE ÚLTIMAS 5 */
+        .mini-historial { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; height: 45px; }
+        .bola-prev { width: 35px; height: 35px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); color: #ffc107; }
 
-        /* CARTÓN LAS VEGAS */
+        /* CARTÓN */
         .carton-area { background: #ccc; padding: 10px; border-radius: 15px; border: 4px solid #888; max-width: 350px; margin: auto; }
         .grid-numeros { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
         .celda { aspect-ratio: 1; background: white; color: #222; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; border-radius: 6px; cursor: pointer; border-bottom: 4px solid #999; }
         .celda.marcada { background: #25D366 !important; color: white !important; border: none; transform: scale(0.96); }
         .celda.free { background: #ffc107; font-size: 0.6rem; color: #000; font-weight: 900; }
 
-        .btn-bingo { width: 100%; max-width: 350px; padding: 18px; margin-top: 15px; background: #ff5252; color: white; border: none; border-radius: 40px; font-size: 1.8rem; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 #a31010; }
+        .btn-bingo { width: 100%; max-width: 350px; padding: 18px; margin-top: 20px; background: #ff5252; color: white; border: none; border-radius: 40px; font-size: 1.8rem; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 #a31010; }
     </style>
 </head>
 <body>
 
     <div class="header-sala">
         <h3 id="nomSala" style="margin:0; color:#ffc107;">CONECTANDO...</h3>
-        <div style="font-size: 1.8rem; font-weight: 900;">Bs. <span id="poteSala">0.00</span></div>
+        <div style="font-size: 1.5rem; font-weight: 900;">Pote: Bs. <span id="poteSala">0.00</span></div>
     </div>
 
     <div class="bola-viva" id="bolaActual">--</div>
 
-    <div style="font-size: 0.7rem; margin-bottom: 5px; color: #aaa;">TABLERO DE CONTROL</div>
-    <div class="tablero-general" id="tableroFichas"></div>
+    <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 5px;">Anteriores:</div>
+    <div class="mini-historial" id="historial5"></div>
 
     <div class="carton-area">
         <div class="grid-numeros" id="tableroCarton"></div>
     </div>
 
-    <button class="btn-bingo" id="btnCantarBingo">¡BINGO!</button>
+    <button class="btn-bingo" id="btnCantar">¡CANTAR BINGO!</button>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = { 
         apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", 
@@ -62,25 +63,13 @@
     const db = getFirestore(app);
 
     const urlP = new URLSearchParams(window.location.search);
-    const idS = urlP.get('sala'), idSoc = urlP.get('socio'), cod = urlP.get('cod') || "DEMO";
+    const idS = urlP.get('sala'), idSoc = urlP.get('socio'), cod = urlP.get('cod') || "FREE";
 
     let marcados = new Set(), bolasOficiales = [], tipoSala = "";
 
-    // 1. DIBUJAR TABLERO DE CONTROL (1-75)
-    function crearTableroControl() {
-        const t = document.getElementById('tableroFichas');
-        for(let i=1; i<=75; i++) {
-            const ficha = document.createElement('div');
-            ficha.className = 'ficha-guia';
-            ficha.id = `f-${i}`;
-            ficha.innerText = i;
-            t.appendChild(ficha);
-        }
-    }
-
-    // 2. GENERAR CARTÓN FIJO (SEMILLA)
+    // 1. GENERAR CARTÓN FIJO
     function seededRandom(s) { let x = Math.sin(s) * 10000; return x - Math.floor(x); }
-    function generarCarton(codigo) {
+    function dibujarCarton(codigo) {
         let seed = 0; for(let i=0; i<codigo.length; i++) seed += codigo.charCodeAt(i);
         const grid = document.getElementById('tableroCarton');
         const rangos = [[1,15],[16,30],[31,45],[46,60],[61,75]];
@@ -113,42 +102,43 @@
         }
     }
 
-    // 3. SINCRONIZACIÓN EN TIEMPO REAL
+    // 2. ESCUCHA ACTIVA DE LA SALA (Sincronización Total)
     if(idS) {
         onSnapshot(doc(db, "salas", idS), (snap) => {
             if(snap.exists()) {
-                const d = snap.data();
-                document.getElementById('nomSala').innerText = d.nombre;
-                document.getElementById('poteSala').innerText = d.premioBs;
-                document.getElementById('bolaActual').innerText = d.ultimaBola || "--";
-                bolasOficiales = d.bolas || [];
-                tipoSala = d.tipo;
+                const data = snap.data();
+                document.getElementById('nomSala').innerText = data.nombre;
+                document.getElementById('poteSala').innerText = data.premioBs;
+                document.getElementById('bolaActual').innerText = data.ultimaBola || "--";
+                bolasOficiales = data.bolas || [];
+                tipoSala = data.tipo;
 
-                // Actualizar Tablero de Control (Fichas cantadas)
-                document.querySelectorAll('.ficha-guia').forEach(f => f.classList.remove('cantada'));
-                bolasOficiales.forEach(num => {
-                    const f = document.getElementById(`f-${num}`);
-                    if(f) f.classList.add('cantada');
-                });
+                // Actualizar historial de las últimas 5 (excluyendo la actual)
+                const histDiv = document.getElementById('historial5');
+                const ultimas5 = bolasOficiales.slice(-6, -1).reverse(); // Toma las 5 anteriores a la última
+                histDiv.innerHTML = ultimas5.map(b => `<div class="bola-prev">${b}</div>`).join('');
+            } else {
+                document.getElementById('nomSala').innerText = "SALA NO ENCONTRADA";
             }
+        }, (error) => {
+            console.error("Error en tiempo real:", error);
         });
     }
 
-    // 4. BOTÓN BINGO
-    document.getElementById('btnCantarBingo').onclick = async () => {
+    // 3. BOTÓN CANTAR
+    document.getElementById('btnCantar').onclick = async () => {
         const aciertos = [...marcados].filter(n => n === "FREE" || bolasOficiales.includes(n));
         let gano = (tipoSala === "Cartón Lleno") ? (aciertos.length === 25) : (aciertos.length >= 6);
         
         if(gano) {
             await updateDoc(doc(db, "socios", idSoc), { cantoBingo: true });
-            alert("¡BINGO CANTADO! Validando fichas...");
+            alert("¡BINGO ENVIADO! Espera revisión.");
         } else {
-            alert("Fichas incompletas. Verifica tu cartón.");
+            alert("¡Todavía no tienes los números!");
         }
     };
 
-    crearTableroControl();
-    generarCarton(cod);
+    dibujarCarton(cod);
 </script>
 </body>
 </html>
