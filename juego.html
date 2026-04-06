@@ -3,133 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Las Vegas</title>
+    <title>Bingo Club - Las Vegas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #004d61; color: white; text-align: center; margin: 0; padding: 10px; overflow-x: hidden; }
-        .pote { font-size: 1.8rem; color: #25D366; font-weight: 900; margin: 5px 0; }
-        .bola-main { width: 80px; height: 80px; background: white; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; font-weight: 900; margin: 10px auto; border: 5px solid #ffc107; }
         
-        /* DISEÑO LAS VEGAS */
-        .carton-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; max-width: 360px; margin: auto; background: #c0c0c0; padding: 8px; border-radius: 10px; border: 4px solid #808080; }
-        .head-bingo { font-weight: 900; font-size: 1.5rem; color: #d32f2f; background: white; border-radius: 5px; margin-bottom: 2px; }
-        .celda { aspect-ratio: 1; background: #fff; color: #333; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 800; border-radius: 5px; cursor: pointer; border-bottom: 3px solid #bbb; }
-        .celda.marcada { background: #25D366 !important; color: white !important; transform: scale(0.95); border: none; }
-        .free { background: #ffc107; color: #333; font-size: 0.8rem; }
+        /* CABECERA Y PREMIO */
+        .header-info { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 20px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        .pote { font-size: 2.2rem; color: #25D366; font-weight: 900; text-shadow: 0 0 10px rgba(37, 211, 102, 0.4); }
+        
+        /* BOLA ACTUAL */
+        .bola-container { position: relative; width: 100px; height: 100px; margin: 15px auto; }
+        .bola-actual { width: 100%; height: 100%; background: radial-gradient(circle at 30% 30%, #ffffff, #ddd); color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; border: 6px solid #ffc107; box-shadow: 0 10px 20px rgba(0,0,0,0.4); z-index: 2; position: relative; }
+
+        /* DISEÑO CARTÓN LAS VEGAS */
+        .carton-wrapper { background: #dcdcdc; padding: 10px; border-radius: 15px; border: 5px solid #a0a0a0; max-width: 380px; margin: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        .grid-bingo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+        .letra-bingo { background: #d32f2f; color: white; font-weight: 900; font-size: 1.6rem; padding: 5px 0; border-radius: 5px; margin-bottom: 5px; }
+        .celda { aspect-ratio: 1; background: #fff; color: #333; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; border-radius: 8px; cursor: pointer; border-bottom: 4px solid #bbb; transition: 0.2s; }
+        .celda.marcada { background: #25D366 !important; color: white !important; border-bottom: none; transform: scale(0.95); box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
+        .celda.free { background: #ffc107; font-size: 0.7rem; color: #000; }
+
+        /* HISTORIAL DE BOLAS */
+        .historial-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 15px; background: rgba(0,0,0,0.2); margin-top: 15px; border-radius: 10px; scrollbar-width: none; }
+        .bola-hist { min-width: 35px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.2); }
+
+        /* BOTÓN BINGO */
+        .btn-bingo { width: 100%; max-width: 380px; padding: 18px; margin-top: 20px; background: #ff5252; color: white; border: none; border-radius: 50px; font-size: 1.8rem; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 #b71c1c; text-transform: uppercase; }
+        .btn-bingo:active { transform: translateY(4px); box-shadow: none; }
 
         /* CHAT DESPLEGABLE */
-        #chat-container { position: fixed; bottom: 20px; right: 20px; z-index: 100; }
-        #chat-window { display: none; background: white; border-radius: 15px; width: 250px; padding: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); margin-bottom: 10px; }
-        .chat-btn { background: #25D366; width: 50px; height: 50px; border-radius: 50%; border: none; color: white; font-size: 1.5rem; cursor: pointer; float: right; }
-        .msg-pre { display: block; width: 100%; padding: 8px; margin: 4px 0; background: #f0f0f0; border: none; border-radius: 5px; cursor: pointer; font-size: 0.8rem; }
-
-        /* HISTORIAL */
-        .historial-box { display: flex; overflow-x: auto; gap: 5px; padding: 10px; background: rgba(0,0,0,0.2); margin-top: 15px; border-radius: 10px; }
-        .hist-bola { min-width: 30px; height: 30px; background: rgba(255,255,255,0.1); border-radius: 50%; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; }
-        
-        .btn-bingo { width: 100%; max-width: 360px; padding: 15px; margin-top: 15px; background: #ff5252; color: white; border: none; border-radius: 10px; font-size: 1.5rem; font-weight: 900; cursor: pointer; box-shadow: 0 5px 0 #b71c1c; }
+        #chat-float { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+        #chat-box { display: none; background: white; width: 220px; border-radius: 15px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 10px; }
+        .chat-toggle { width: 55px; height: 55px; background: #25D366; color: white; border: none; border-radius: 50%; font-size: 1.5rem; cursor: pointer; float: right; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .msg-btn { width: 100%; padding: 10px; margin: 3px 0; border: none; border-radius: 8px; background: #f0f0f0; cursor: pointer; font-weight: 600; font-size: 0.9rem; text-align: left; }
     </style>
 </head>
 <body>
 
-    <h2 id="salaNom" style="margin:5px 0">---</h2>
-    <div class="pote">Bs. <span id="montoP">0.00</span></div>
-    <div class="bola-main" id="bolaActual">--</div>
-    
-    <div class="carton-grid" id="grid">
-        <div class="head-bingo">B</div><div class="head-bingo">I</div><div class="head-bingo">N</div><div class="head-bingo">G</div><div class="head-bingo">O</div>
+    <div class="header-info">
+        <h2 id="txtSala" style="margin: 0; color: #ffc107;">Cargando...</h2>
+        <div class="pote">Bs. <span id="txtPote">0.00</span></div>
+    </div>
+
+    <div class="bola-container">
+        <div class="bola-actual" id="txtBola">--</div>
+    </div>
+
+    <div class="carton-wrapper">
+        <div class="grid-bingo">
+            <div class="letra-bingo">B</div><div class="letra-bingo">I</div><div class="letra-bingo">N</div><div class="letra-bingo">G</div><div class="letra-bingo">O</div>
         </div>
+        <div class="grid-bingo" id="gridCeldas"></div>
+    </div>
 
-    <div class="historial-box" id="histB"></div>
+    <div class="historial-scroll" id="listaHistorial"></div>
 
-    <button class="btn-bingo" onclick="validarBingo()">¡CANTAR BINGO!</button>
+    <button class="btn-bingo" onclick="cantarBingo()">¡Cantar Bingo!</button>
 
-    <div id="chat-container">
-        <div id="chat-window">
-            <div style="color:#333; font-weight:bold; margin-bottom:5px">Mensajes rápidos</div>
-            <button class="msg-pre" onclick="enviar('¡Hola! 👋')">¡Hola! 👋</button>
-            <button class="msg-pre" onclick="enviar('¡Falta una! 😱')">¡Falta una! 😱</button>
-            <button class="msg-pre" onclick="enviar('¡Suerte! 🍀')">¡Suerte! 🍀</button>
-            <button class="msg-pre" onclick="enviar('¡Esa era la mía! 🔥')">¡Esa era! 🔥</button>
+    <div id="chat-float">
+        <div id="chat-box">
+            <div style="color:#333; font-size:0.8rem; margin-bottom:5px; font-weight:bold;">ENVIAR REACCIÓN:</div>
+            <button class="msg-btn" onclick="enviarMsg('¡BINGO! 🏆')">¡BINGO! 🏆</button>
+            <button class="msg-btn" onclick="enviarMsg('¡Falta una sola! 😱')">¡Falta una sola! 😱</button>
+            <button class="msg-btn" onclick="enviarMsg('¡Suerte a todos! 🍀')">¡Suerte a todos! 🍀</button>
+            <button class="msg-btn" onclick="enviarMsg('¡Esa era la mía! 🔥')">¡Esa era la mía! 🔥</button>
         </div>
-        <button class="chat-btn" onclick="toggleChat()"><i class="fas fa-comment"></i></button>
+        <button class="chat-toggle" onclick="toggleChat()"><i class="fas fa-comments"></i></button>
     </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const firebaseConfig = { apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", authDomain: "bingo-club-6f019.firebaseapp.com", projectId: "bingo-club-6f019", storageBucket: "bingo-club-6f019.firebasestorage.app", messagingSenderId: "1059179173812", appId: "1:1059179173812:web:78b43eaac565d213bec4e1" };
+    const firebaseConfig = { 
+        apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", 
+        authDomain: "bingo-club-6f019.firebaseapp.com", 
+        projectId: "bingo-club-6f019", 
+        storageBucket: "bingo-club-6f019.firebasestorage.app", 
+        messagingSenderId: "1059179173812", 
+        appId: "1:1059179173812:web:78b43eaac565d213bec4e1" 
+    };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     const urlP = new URLSearchParams(window.location.search);
     const idSala = urlP.get('sala'), idSocio = urlP.get('socio');
 
-    let misNumeros = [], marcados = new Set(), bolasOficiales = [], tipo = "";
+    let marcados = new Set(), bolasOficiales = [], tipoSala = "";
 
-    // GENERAR CARTÓN LAS VEGAS (5x5)
-    function generar() {
+    // 1. GENERAR CARTÓN LAS VEGAS (24 NÚMEROS + FREE)
+    function generarCarton() {
         const rangos = [[1,15],[16,30],[31,45],[46,60],[61,75]];
-        let columnas = [[],[],[],[],[]];
+        let cols = [[],[],[],[],[]];
+        
         for(let i=0; i<5; i++) {
-            while(columnas[i].length < 5) {
-                let n = Math.floor(Math.random()*(rangos[i][1]-rangos[i][0]+1))+rangos[i][0];
-                if(!columnas[i].includes(n)) columnas[i].push(n);
+            while(cols[i].length < 5) {
+                let n = Math.floor(Math.random()*(rangos[i][1]-rangos[i][0]+1)) + rangos[i][0];
+                if(!cols[i].includes(n)) cols[i].push(n);
             }
         }
-        const grid = document.getElementById('grid');
-        for(let r=0; r<5; r++) {
-            for(let c=0; c<5; c++) {
-                const cel = document.createElement('div');
-                if(r===2 && c===2) {
-                    cel.className = 'celda free marcada'; cel.innerText = "FREE";
+
+        const grid = document.getElementById('gridCeldas');
+        for(let fila=0; fila<5; fila++) {
+            for(let col=0; col<5; col++) {
+                const div = document.createElement('div');
+                if(fila === 2 && col === 2) {
+                    div.className = 'celda free marcada';
+                    div.innerHTML = "BINGO<br>CLUB";
                     marcados.add("FREE");
                 } else {
-                    const num = columnas[c][r];
-                    misNumeros.push(num);
-                    cel.className = 'celda'; cel.innerText = num;
-                    cel.onclick = () => { cel.classList.toggle('marcada'); marcados.has(num) ? marcados.delete(num) : marcados.add(num); };
+                    const num = cols[col][fila];
+                    div.className = 'celda';
+                    div.innerText = num;
+                    div.onclick = () => {
+                        div.classList.toggle('marcada');
+                        marcados.has(num) ? marcados.delete(num) : marcados.add(num);
+                    };
                 }
-                grid.appendChild(cel);
+                grid.appendChild(div);
             }
         }
     }
 
+    // 2. ESCUCHAR ACTUALIZACIONES DE LA SALA
     onSnapshot(doc(db, "salas", idSala), (snap) => {
         const d = snap.data();
-        document.getElementById('salaNom').innerText = d.nombre;
-        document.getElementById('montoP').innerText = d.premioBs;
-        document.getElementById('bolaActual').innerText = d.ultimaBola;
+        document.getElementById('txtSala').innerText = d.nombre;
+        document.getElementById('txtPote').innerText = d.premioBs;
+        document.getElementById('txtBola').innerText = d.ultimaBola;
         bolasOficiales = d.bolas || [];
-        tipo = d.tipo;
-        document.getElementById('histB').innerHTML = bolasOficiales.slice().reverse().map(b => `<div class="hist-bola">${b}</div>`).join('');
+        tipoSala = d.tipo;
+
+        // Histórico de bolas (las últimas 15)
+        const histDiv = document.getElementById('listaHistorial');
+        histDiv.innerHTML = bolasOficiales.slice().reverse().map(b => `<div class="bola-hist">${b}</div>`).join('');
     });
 
-    window.validarBingo = async () => {
-        const val = [...marcados].filter(n => n === "FREE" || bolasOficiales.includes(n));
-        let gano = false;
-        if(tipo === "Cartón Lleno") {
-            if(val.length === 25) gano = true; // 24 números + FREE
+    // 3. VALIDACIÓN PARA CANTAR BINGO
+    window.cantarBingo = async () => {
+        // Solo cuentan los números marcados que REALMENTE han salido en la sala
+        const aciertos = [...marcados].filter(n => n === "FREE" || bolasOficiales.includes(n));
+        
+        let validado = false;
+        if(tipoSala === "Cartón Lleno") {
+            if(aciertos.length === 25) validado = true;
         } else {
-            // Validación Normal (Cualquier línea de 5 o cruz)
-            if(val.length >= 6) gano = true; 
+            // Regla Normal: Al menos 6 aciertos (Línea o Cruz Pequeña)
+            if(aciertos.length >= 6) validado = true;
         }
 
-        if(gano) {
+        if(validado) {
             await updateDoc(doc(db, "socios", idSocio), { cantoBingo: true });
-            alert("¡Bingo enviado!");
+            alert("¡BINGO CANTADO! Espera la validación del administrador.");
         } else {
-            alert("Faltan números");
+            alert("¡BINGO FALSO! Te faltan números por salir.");
         }
     };
 
+    // CHAT Y REACCIONES
     window.toggleChat = () => {
-        const w = document.getElementById('chat-window');
-        w.style.display = w.style.display === 'block' ? 'none' : 'block';
+        const box = document.getElementById('chat-box');
+        box.style.display = (box.style.display === 'block') ? 'none' : 'block';
     };
 
-    generar();
+    window.enviarMsg = (m) => {
+        alert("Reacción enviada: " + m);
+        toggleChat();
+    };
+
+    generarCarton();
 </script>
 </body>
 </html>
