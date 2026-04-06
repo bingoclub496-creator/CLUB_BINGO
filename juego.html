@@ -3,139 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Club - Sala de Juego</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Bingo Club - Mi Cartón</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #004d61; color: white; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
-        /* Cabecera con Pote Vivo */
-        .header-juego { background: rgba(0,0,0,0.3); padding: 15px; text-align: center; border-bottom: 2px solid #25D366; }
-        .pote-vivo { font-size: 2rem; font-weight: 900; color: #25D366; text-shadow: 0 0 10px rgba(37, 211, 102, 0.5); }
-        
-        /* Panel de Bolas Cantadas */
-        .panel-bolas { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .ultima-bola { width: 120px; height: 120px; background: white; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; border: 8px solid #25D366; box-shadow: 0 0 20px rgba(0,0,0,0.5); margin-bottom: 20px; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
-        
-        .historial-bolas { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 400px; }
-        .bola-peque { width: 35px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.2); }
-
-        /* Chat y Mensajes Predeterminados */
-        .seccion-chat { background: rgba(0,0,0,0.5); border-radius: 20px 20px 0 0; padding: 15px; max-height: 40%; }
-        .contenedor-mensajes { height: 100px; overflow-y: auto; margin-bottom: 10px; font-size: 0.9rem; }
-        .msg { margin-bottom: 5px; padding: 5px 10px; background: rgba(255,255,255,0.05); border-radius: 8px; }
-        .msg b { color: #25D366; }
-
-        .botones-predeterminados { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
-        .btn-chat { background: #1976d2; color: white; border: none; padding: 8px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; transition: 0.2s; }
-        .btn-chat:active { transform: scale(0.95); }
-
-        /* Botón de BINGO */
-        .btn-bingo { background: #ff5252; color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 1.5rem; font-weight: 900; letter-spacing: 2px; cursor: pointer; box-shadow: 0 5px 0 #b71c1c; margin-top: 5px; }
-        .btn-bingo:active { box-shadow: none; transform: translateY(4px); }
+        body { font-family: sans-serif; background: #004d61; color: white; text-align: center; padding: 10px; }
+        .pote { font-size: 2rem; color: #25D366; font-weight: 900; margin: 10px 0; }
+        .bola-actual { width: 80px; height: 80px; background: white; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 900; margin: 15px auto; border: 5px solid #25D366; }
+        .carton { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-width: 350px; margin: auto; background: #ddd; padding: 10px; border-radius: 10px; }
+        .celda { aspect-ratio: 1; background: white; color: #333; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; border-radius: 5px; cursor: pointer; border: 2px solid transparent; }
+        .celda.marcada { background: #25D366; color: white; }
+        .btn-bingo { width: 100%; max-width: 350px; padding: 20px; margin-top: 20px; background: #ff5252; color: white; border: none; border-radius: 10px; font-size: 1.5rem; font-weight: 900; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="header-juego">
-        <div id="nombreSalaJuego">Cargando Sala...</div>
-        <div class="pote-vivo">Bs. <span id="montoPote">0.00</span></div>
-    </div>
+    <h2 id="sNom">Cargando...</h2>
+    <div class="pote">Bs. <span id="sPot">0.00</span></div>
+    <div class="bola-actual" id="sBol">--</div>
+    <div class="carton" id="sCar"></div>
+    <button class="btn-bingo" onclick="validarBingo()">¡CANTAR BINGO!</button>
 
-    <div class="panel-bolas">
-        <div class="ultima-bola" id="bolaActual">--</div>
-        <div style="margin-bottom: 10px; font-size: 0.8rem; color: #ffc107;">HISTORIAL DE BOLAS</div>
-        <div class="historial-bolas" id="historialBolas">
-            </div>
-    </div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <div class="seccion-chat">
-        <div class="contenedor-mensajes" id="chatBox">
-            <div class="msg"><b>Sistema:</b> ¡Bienvenidos al Bingo!</div>
-        </div>
+    const firebaseConfig = { apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", authDomain: "bingo-club-6f019.firebaseapp.com", projectId: "bingo-club-6f019", storageBucket: "bingo-club-6f019.firebasestorage.app", messagingSenderId: "1059179173812", appId: "1:1059179173812:web:78b43eaac565d213bec4e1" };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        <div class="botones-predeterminados">
-            <button class="btn-chat" onclick="enviarMensaje('¡Hola a todos! 👋')">¡Hola! 👋</button>
-            <button class="btn-chat" onclick="enviarMensaje('¡Suerte para mí! 🍀')">Suerte 🍀</button>
-            <button class="btn-chat" onclick="enviarMensaje('¡Falta pocooo! 😱')">Falta poco 😱</button>
-            <button class="btn-chat" onclick="enviarMensaje('¡Casi casi! ✨')">Casi ✨</button>
-            <button class="btn-chat" onclick="enviarMensaje('¡Esa era la mía! 🔥')">Esa era 🔥</button>
-            <button class="btn-chat" onclick="enviarMensaje('¡Ronda emocionante! 🎯')">Emoción 🎯</button>
-        </div>
+    const urlP = new URLSearchParams(window.location.search);
+    const idSala = urlP.get('sala');
+    const idSocio = urlP.get('socio');
 
-        <button class="btn-bingo" onclick="cantarBingo()">¡CANTAR BINGO!</button>
-    </div>
+    let misNum = [];
+    let marcados = new Set();
+    let bolasOficiales = [];
+    let tipoSala = "";
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, collection, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // Generar Cartón
+    const sCar = document.getElementById('sCar');
+    while(misNum.length < 15) { 
+        let n = Math.floor(Math.random()*75)+1; 
+        if(!misNum.includes(n)) misNum.push(n); 
+    }
+    misNum.sort((a,b)=>a-b).forEach(n => {
+        const d = document.createElement('div');
+        d.className = 'celda'; d.innerText = n;
+        d.onclick = () => { d.classList.toggle('marcada'); marcados.has(n) ? marcados.delete(n) : marcados.add(n); };
+        sCar.appendChild(d);
+    });
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
-            authDomain: "bingo-club-6f019.firebaseapp.com",
-            projectId: "bingo-club-6f019",
-            storageBucket: "bingo-club-6f019.firebasestorage.app",
-            messagingSenderId: "1059179173812",
-            appId: "1:1059179173812:web:78b43eaac565d213bec4e1"
-        };
+    onSnapshot(doc(db, "salas", idSala), (snap) => {
+        const data = snap.data();
+        document.getElementById('sNom').innerText = data.nombre;
+        document.getElementById('sPot').innerText = data.premioBs;
+        document.getElementById('sBol').innerText = data.ultimaBola;
+        bolasOficiales = data.bolas || [];
+        tipoSala = data.tipo;
+    });
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    window.validarBingo = async () => {
+        // Filtrar números marcados que SI han salido en la tómbola
+        const validos = [...marcados].filter(n => bolasOficiales.includes(n));
+        
+        let gana = false;
+        if(tipoSala === "Cartón Lleno" && validos.length === 15) gana = true;
+        if(tipoSala === "Normal" && validos.length >= 5) gana = true;
 
-        // Simulamos que el socio entró con un ID de sala y un ID de socio por URL (ej: juego.html?sala=ID&socio=ID)
-        const params = new URLSearchParams(window.location.search);
-        const idSala = params.get('sala');
-        const idSocio = params.get('socio');
-
-        if(!idSala || !idSocio) {
-            alert("Error: Acceso no válido a la sala.");
+        if(gana) {
+            await updateDoc(doc(db, "socios", idSocio), { cantoBingo: true });
+            alert("¡Bingo enviado! Espera validación.");
+        } else {
+            alert("¡BINGO FALSO! Revisa tus números marcados.");
         }
-
-        // 1. ESCUCHAR DATOS DE LA SALA (Pote y Bolas)
-        onSnapshot(doc(db, "salas", idSala), (d) => {
-            if(d.exists()){
-                const sala = d.data();
-                document.getElementById('nombreSalaJuego').innerText = sala.nombre;
-                document.getElementById('montoPote').innerText = sala.premioBs;
-                
-                const bolas = sala.bolas || [];
-                if(bolas.length > 0) {
-                    document.getElementById('bolaActual').innerText = bolas[bolas.length - 1];
-                    const historial = document.getElementById('historialBolas');
-                    historial.innerHTML = bolas.slice(0, -1).reverse().map(b => `<div class="bola-peque">${b}</div>`).join('');
-                }
-            }
-        });
-
-        // 2. CHAT EN TIEMPO REAL
-        window.enviarMensaje = async (texto) => {
-            const socioSnap = await getDoc(doc(db, "socios", idSocio));
-            const nombre = socioSnap.data().nombre;
-            await addDoc(collection(db, "chat"), {
-                idSala,
-                nombre,
-                texto,
-                fecha: new Date()
-            });
-        };
-
-        const qChat = query(collection(db, "chat"), where("idSala", "==", idSala), orderBy("fecha", "desc"), limit(20));
-        onSnapshot(qChat, (snap) => {
-            const chatBox = document.getElementById('chatBox');
-            chatBox.innerHTML = "";
-            snap.forEach(m => {
-                const data = m.data();
-                chatBox.innerHTML += `<div class="msg"><b>${data.nombre}:</b> ${data.texto}</div>`;
-            });
-        });
-
-        // 3. FUNCIÓN CANTAR BINGO
-        window.cantarBingo = async () => {
-            if(confirm("¿Estás seguro de que tienes BINGO? ¡Se notificará al administrador!")) {
-                await updateDoc(doc(db, "socios", idSocio), { cantoBingo: true });
-                alert("¡BINGO NOTIFICADO! Espera la validación del administrador.");
-            }
-        };
-    </script>
+    };
+</script>
 </body>
 </html>
