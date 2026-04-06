@@ -3,24 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Club - Mi Cartón</title>
+    <title>Bingo Las Vegas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: sans-serif; background: #004d61; color: white; text-align: center; padding: 10px; }
-        .pote { font-size: 2rem; color: #25D366; font-weight: 900; margin: 10px 0; }
-        .bola-actual { width: 80px; height: 80px; background: white; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 900; margin: 15px auto; border: 5px solid #25D366; }
-        .carton { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-width: 350px; margin: auto; background: #ddd; padding: 10px; border-radius: 10px; }
-        .celda { aspect-ratio: 1; background: white; color: #333; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; border-radius: 5px; cursor: pointer; border: 2px solid transparent; }
-        .celda.marcada { background: #25D366; color: white; }
-        .btn-bingo { width: 100%; max-width: 350px; padding: 20px; margin-top: 20px; background: #ff5252; color: white; border: none; border-radius: 10px; font-size: 1.5rem; font-weight: 900; cursor: pointer; }
+        body { font-family: 'Segoe UI', sans-serif; background: #004d61; color: white; text-align: center; margin: 0; padding: 10px; overflow-x: hidden; }
+        .pote { font-size: 1.8rem; color: #25D366; font-weight: 900; margin: 5px 0; }
+        .bola-main { width: 80px; height: 80px; background: white; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; font-weight: 900; margin: 10px auto; border: 5px solid #ffc107; }
+        
+        /* DISEÑO LAS VEGAS */
+        .carton-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; max-width: 360px; margin: auto; background: #c0c0c0; padding: 8px; border-radius: 10px; border: 4px solid #808080; }
+        .head-bingo { font-weight: 900; font-size: 1.5rem; color: #d32f2f; background: white; border-radius: 5px; margin-bottom: 2px; }
+        .celda { aspect-ratio: 1; background: #fff; color: #333; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 800; border-radius: 5px; cursor: pointer; border-bottom: 3px solid #bbb; }
+        .celda.marcada { background: #25D366 !important; color: white !important; transform: scale(0.95); border: none; }
+        .free { background: #ffc107; color: #333; font-size: 0.8rem; }
+
+        /* CHAT DESPLEGABLE */
+        #chat-container { position: fixed; bottom: 20px; right: 20px; z-index: 100; }
+        #chat-window { display: none; background: white; border-radius: 15px; width: 250px; padding: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); margin-bottom: 10px; }
+        .chat-btn { background: #25D366; width: 50px; height: 50px; border-radius: 50%; border: none; color: white; font-size: 1.5rem; cursor: pointer; float: right; }
+        .msg-pre { display: block; width: 100%; padding: 8px; margin: 4px 0; background: #f0f0f0; border: none; border-radius: 5px; cursor: pointer; font-size: 0.8rem; }
+
+        /* HISTORIAL */
+        .historial-box { display: flex; overflow-x: auto; gap: 5px; padding: 10px; background: rgba(0,0,0,0.2); margin-top: 15px; border-radius: 10px; }
+        .hist-bola { min-width: 30px; height: 30px; background: rgba(255,255,255,0.1); border-radius: 50%; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; }
+        
+        .btn-bingo { width: 100%; max-width: 360px; padding: 15px; margin-top: 15px; background: #ff5252; color: white; border: none; border-radius: 10px; font-size: 1.5rem; font-weight: 900; cursor: pointer; box-shadow: 0 5px 0 #b71c1c; }
     </style>
 </head>
 <body>
 
-    <h2 id="sNom">Cargando...</h2>
-    <div class="pote">Bs. <span id="sPot">0.00</span></div>
-    <div class="bola-actual" id="sBol">--</div>
-    <div class="carton" id="sCar"></div>
+    <h2 id="salaNom" style="margin:5px 0">---</h2>
+    <div class="pote">Bs. <span id="montoP">0.00</span></div>
+    <div class="bola-main" id="bolaActual">--</div>
+    
+    <div class="carton-grid" id="grid">
+        <div class="head-bingo">B</div><div class="head-bingo">I</div><div class="head-bingo">N</div><div class="head-bingo">G</div><div class="head-bingo">O</div>
+        </div>
+
+    <div class="historial-box" id="histB"></div>
+
     <button class="btn-bingo" onclick="validarBingo()">¡CANTAR BINGO!</button>
+
+    <div id="chat-container">
+        <div id="chat-window">
+            <div style="color:#333; font-weight:bold; margin-bottom:5px">Mensajes rápidos</div>
+            <button class="msg-pre" onclick="enviar('¡Hola! 👋')">¡Hola! 👋</button>
+            <button class="msg-pre" onclick="enviar('¡Falta una! 😱')">¡Falta una! 😱</button>
+            <button class="msg-pre" onclick="enviar('¡Suerte! 🍀')">¡Suerte! 🍀</button>
+            <button class="msg-pre" onclick="enviar('¡Esa era la mía! 🔥')">¡Esa era! 🔥</button>
+        </div>
+        <button class="chat-btn" onclick="toggleChat()"><i class="fas fa-comment"></i></button>
+    </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -31,51 +64,72 @@
     const db = getFirestore(app);
 
     const urlP = new URLSearchParams(window.location.search);
-    const idSala = urlP.get('sala');
-    const idSocio = urlP.get('socio');
+    const idSala = urlP.get('sala'), idSocio = urlP.get('socio');
 
-    let misNum = [];
-    let marcados = new Set();
-    let bolasOficiales = [];
-    let tipoSala = "";
+    let misNumeros = [], marcados = new Set(), bolasOficiales = [], tipo = "";
 
-    // Generar Cartón
-    const sCar = document.getElementById('sCar');
-    while(misNum.length < 15) { 
-        let n = Math.floor(Math.random()*75)+1; 
-        if(!misNum.includes(n)) misNum.push(n); 
+    // GENERAR CARTÓN LAS VEGAS (5x5)
+    function generar() {
+        const rangos = [[1,15],[16,30],[31,45],[46,60],[61,75]];
+        let columnas = [[],[],[],[],[]];
+        for(let i=0; i<5; i++) {
+            while(columnas[i].length < 5) {
+                let n = Math.floor(Math.random()*(rangos[i][1]-rangos[i][0]+1))+rangos[i][0];
+                if(!columnas[i].includes(n)) columnas[i].push(n);
+            }
+        }
+        const grid = document.getElementById('grid');
+        for(let r=0; r<5; r++) {
+            for(let c=0; c<5; c++) {
+                const cel = document.createElement('div');
+                if(r===2 && c===2) {
+                    cel.className = 'celda free marcada'; cel.innerText = "FREE";
+                    marcados.add("FREE");
+                } else {
+                    const num = columnas[c][r];
+                    misNumeros.push(num);
+                    cel.className = 'celda'; cel.innerText = num;
+                    cel.onclick = () => { cel.classList.toggle('marcada'); marcados.has(num) ? marcados.delete(num) : marcados.add(num); };
+                }
+                grid.appendChild(cel);
+            }
+        }
     }
-    misNum.sort((a,b)=>a-b).forEach(n => {
-        const d = document.createElement('div');
-        d.className = 'celda'; d.innerText = n;
-        d.onclick = () => { d.classList.toggle('marcada'); marcados.has(n) ? marcados.delete(n) : marcados.add(n); };
-        sCar.appendChild(d);
-    });
 
     onSnapshot(doc(db, "salas", idSala), (snap) => {
-        const data = snap.data();
-        document.getElementById('sNom').innerText = data.nombre;
-        document.getElementById('sPot').innerText = data.premioBs;
-        document.getElementById('sBol').innerText = data.ultimaBola;
-        bolasOficiales = data.bolas || [];
-        tipoSala = data.tipo;
+        const d = snap.data();
+        document.getElementById('salaNom').innerText = d.nombre;
+        document.getElementById('montoP').innerText = d.premioBs;
+        document.getElementById('bolaActual').innerText = d.ultimaBola;
+        bolasOficiales = d.bolas || [];
+        tipo = d.tipo;
+        document.getElementById('histB').innerHTML = bolasOficiales.slice().reverse().map(b => `<div class="hist-bola">${b}</div>`).join('');
     });
 
     window.validarBingo = async () => {
-        // Filtrar números marcados que SI han salido en la tómbola
-        const validos = [...marcados].filter(n => bolasOficiales.includes(n));
-        
-        let gana = false;
-        if(tipoSala === "Cartón Lleno" && validos.length === 15) gana = true;
-        if(tipoSala === "Normal" && validos.length >= 5) gana = true;
-
-        if(gana) {
-            await updateDoc(doc(db, "socios", idSocio), { cantoBingo: true });
-            alert("¡Bingo enviado! Espera validación.");
+        const val = [...marcados].filter(n => n === "FREE" || bolasOficiales.includes(n));
+        let gano = false;
+        if(tipo === "Cartón Lleno") {
+            if(val.length === 25) gano = true; // 24 números + FREE
         } else {
-            alert("¡BINGO FALSO! Revisa tus números marcados.");
+            // Validación Normal (Cualquier línea de 5 o cruz)
+            if(val.length >= 6) gano = true; 
+        }
+
+        if(gano) {
+            await updateDoc(doc(db, "socios", idSocio), { cantoBingo: true });
+            alert("¡Bingo enviado!");
+        } else {
+            alert("Faltan números");
         }
     };
+
+    window.toggleChat = () => {
+        const w = document.getElementById('chat-window');
+        w.style.display = w.style.display === 'block' ? 'none' : 'block';
+    };
+
+    generar();
 </script>
 </body>
 </html>
