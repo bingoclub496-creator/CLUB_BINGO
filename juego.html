@@ -3,174 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bingo Club - En Vivo</title>
+    <title>Bingo Club - Sala VIP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primario: #004d61; --oro: #ffc107; --verde: #25D366; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--primario); color: white; margin: 0; padding: 10px; overflow-x: hidden; }
+        :root { --gold: #d4af37; --gold-dark: #aa841e; --primary: #0b1a1e; --accent: #ffc107; --danger: #ff4444; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--primary); color: white; margin: 0; padding-bottom: 100px; }
         
-        /* PANEL SUPERIOR */
-        .header { background: rgba(0,0,0,0.3); border: 2px solid var(--oro); border-radius: 15px; padding: 10px; margin-bottom: 10px; }
-        .pote { font-size: 1.8rem; font-weight: 900; color: var(--verde); margin: 5px 0; }
-
-        /* AREA DE LA BOLA */
-        .bola-principal { width: 95px; height: 95px; background: white; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; border: 6px solid var(--oro); margin: 10px auto; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
-        .historial-5 { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; min-height: 40px; }
-        .bola-mini { width: 35px; height: 35px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--oro); border: 1px solid var(--oro); font-weight: bold; }
+        /* VISOR DE BOLAS PREMIUM */
+        .visor-container { background: linear-gradient(180deg, #1a1a1a 0%, #000 100%); padding: 15px; border-bottom: 3px solid var(--gold); display: flex; align-items: center; justify-content: space-around; position: sticky; top:0; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .bola-actual { width: 75px; height: 75px; background: radial-gradient(circle at 30% 30%, #fff, #bbb); border-radius: 50%; color: #000; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: 900; box-shadow: 0 0 25px var(--gold); border: 4px solid var(--gold); transition: 0.5s; }
+        .bolas-recientes { display: flex; gap: 8px; }
+        .bola-hist { width: 38px; height: 38px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; border: 1px solid var(--gold); color: var(--gold); }
 
         /* CONTENEDOR DE CARTONES */
-        #listaCartones { display: flex; flex-direction: column; gap: 25px; align-items: center; width: 100%; }
-        .carton-diseno { background: #e0e0e0; padding: 12px; border-radius: 15px; border: 4px solid #999; width: 90%; max-width: 340px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
-        .carton-header { color: #333; font-weight: 900; font-size: 0.8rem; margin-bottom: 8px; text-transform: uppercase; }
-        .grid-bingo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
-        .celda { aspect-ratio: 1; background: white; color: #222; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; border-radius: 8px; cursor: pointer; border-bottom: 4px solid #bbb; }
-        .celda.marcada { background: var(--verde) !important; color: white !important; border: none; transform: scale(0.96); box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
-        .celda.free { background: var(--oro); font-size: 0.7rem; color: black; }
+        .carton-wrapper { padding: 15px; max-width: 500px; margin: auto; }
+        .carton-card { background: #fff; border-radius: 12px; padding: 6px; margin-bottom: 35px; border: 6px solid var(--gold-dark); position: relative; box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
+        .carton-header { display: grid; grid-template-columns: repeat(5, 1fr); text-align: center; background: var(--gold-dark); color: white; font-weight: 900; font-size: 1.4rem; padding: 8px 0; border-radius: 6px 6px 0 0; }
+        .grid-bingo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: #ccc; padding: 4px; }
+        .celda { aspect-ratio: 1; background: #fff; color: #111; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; border-radius: 5px; cursor: pointer; transition: 0.15s; -webkit-tap-highlight-color: transparent; }
+        .celda.marcada { background: radial-gradient(circle, #d32f2f, #8e0000); color: white; transform: scale(0.92); box-shadow: inset 0 0 10px rgba(0,0,0,0.6); }
+        .celda.free { background: var(--gold); color: #000; font-size: 0.8rem; font-weight: 900; }
 
-        /* CHAT Y BOTONES */
-        .btn-cantar { width: 90%; max-width: 340px; padding: 18px; background: #ff5252; color: white; border: none; border-radius: 40px; font-size: 1.8rem; font-weight: 900; margin: 20px 0; box-shadow: 0 6px 0 #b71c1c; cursor: pointer; }
-        .chat-simple { background: white; color: #333; border-radius: 15px; padding: 10px; width: 90%; max-width: 340px; margin: 0 auto 30px auto; text-align: left; }
-        #mensajesBox { height: 100px; overflow-y: auto; font-size: 0.9rem; border-bottom: 1px solid #ddd; margin-bottom: 10px; }
+        .btn-bingo-carton { width: 100%; background: linear-gradient(to bottom, #ff4444, #990000); color: white; border: none; padding: 15px; font-weight: 900; border-radius: 0 0 6px 6px; cursor: pointer; text-transform: uppercase; font-size: 1.2rem; border-top: 2px solid rgba(255,255,255,0.2); }
+
+        /* CHAT Y CONTROLES */
+        .chat-btn { position: fixed; bottom: 25px; right: 25px; width: 65px; height: 65px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 8px 20px rgba(0,0,0,0.6); z-index: 2000; color: #000; border: 2px solid white; }
+        #chatPanel { display:none; position: fixed; bottom: 100px; right: 25px; width: 280px; background: white; border-radius: 20px; padding: 15px; box-shadow: 0 10px 40px rgba(0,0,0,1); z-index: 2000; }
+        .chat-msg { display: block; width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 10px; text-align: left; background: #f0f2f5; font-size: 0.9rem; cursor: pointer; font-weight: 600; color: #333; }
+        
+        .info-bar { padding: 10px; text-align: center; color: var(--gold); font-weight: bold; font-size: 0.9rem; border-top: 1px solid rgba(212, 175, 55, 0.3); }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div id="nombreSala" style="font-weight: bold; letter-spacing: 1px;">CARGANDO SALA...</div>
-        <div class="pote">Bs. <span id="poteNum">0.00</span></div>
-    </div>
-
-    <div class="bola-principal" id="bolaActual">--</div>
-    <div style="font-size: 0.7rem; color: #ccc; margin-bottom: 5px;">HISTORIAL (ÚLTIMAS 5)</div>
-    <div class="historial-5" id="hist5"></div>
-
-    <div id="listaCartones"></div>
-
-    <button class="btn-cantar" onclick="cantarBingo()">¡BINGO!</button>
-
-    <div class="chat-simple">
-        <div id="mensajesBox"></div>
-        <div style="display:flex; gap:5px; overflow-x:auto;">
-            <button onclick="enviarMsg('¡Falta una! 😱')" style="padding:5px 10px; border-radius:10px; font-size:0.7rem; cursor:pointer;">Falta una 😱</button>
-            <button onclick="enviarMsg('¡Suerte! 🍀')" style="padding:5px 10px; border-radius:10px; font-size:0.7rem; cursor:pointer;">Suerte 🍀</button>
+    <div class="visor-container">
+        <div style="text-align: center;">
+            <small style="color:var(--gold); font-weight:bold;">CANTADA</small>
+            <div id="bolaActual" class="bola-actual">--</div>
+        </div>
+        <div>
+            <small style="color:var(--gold); font-weight:bold; margin-bottom:5px; display:block;">ÚLTIMAS 5</small>
+            <div id="historialBolas" class="bolas-recientes">
+                <div class="bola-hist">-</div><div class="bola-hist">-</div><div class="bola-hist">-</div><div class="bola-hist">-</div><div class="bola-hist">-</div>
+            </div>
         </div>
     </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    <div class="info-bar">
+        SALA: <span id="txtSala" style="color:white;">---</span> | 
+        POTE: <span id="txtPote" style="color:white;">Bs. 0.00</span>
+    </div>
 
-    const firebaseConfig = { 
-        apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", 
-        authDomain: "bingo-club-6f019.firebaseapp.com", 
-        projectId: "bingo-club-6f019", 
-        storageBucket: "bingo-club-6f019.firebasestorage.app", 
-        messagingSenderId: "1059179173812", 
-        appId: "1:1059179173812:web:78b43eaac565d213bec4e1" 
-    };
+    <div class="carton-wrapper" id="contenedorCartones"></div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    <div class="chat-btn" onclick="toggleChat()">
+        <i class="fas fa-comments"></i>
+    </div>
+    <div id="chatPanel">
+        <h3 style="color:#000; margin-top:0;">Mensajes Rápidos</h3>
+        <button class="chat-msg" onclick="msgChat('¡Casi lo tengo! 🤞')">¡Casi lo tengo! 🤞</button>
+        <button class="chat-msg" onclick="msgChat('¡Esa bola no quiere salir! 🔥')">¡Esa bola no quiere salir! 🔥</button>
+        <button class="chat-msg" onclick="msgChat('¡Suerte a todos! 🍀')">¡Suerte a todos! 🍀</button>
+        <button class="chat-msg" onclick="msgChat('¡BINGO en la mira! 🎯')">¡BINGO en la mira! 🎯</button>
+        <button class="chat-msg" onclick="msgChat('¡A una sola! 💎')">¡A una sola! 💎</button>
+    </div>
 
-    // 1. CAPTURAR DATOS DE LA URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const ID_SALA = urlParams.get('sala');
-    const ID_SOCIO = urlParams.get('socio');
-    const COD_BASE = urlParams.get('cod') || "BINGO";
-
-    let miNombre = "Socio";
-
-    // 2. GENERADOR DE CARTONES (Soporta 1 o 2)
-    function seededRandom(s) { let x = Math.sin(s) * 10000; return x - Math.floor(x); }
-    
-    function dibujarCarton(semilla, destino, indice) {
-        let seed = 0; for(let i=0; i<semilla.length; i++) seed += semilla.charCodeAt(i);
-        const contenedor = document.createElement('div');
-        contenedor.className = 'carton-diseno';
-        contenedor.innerHTML = `<div class="carton-header">Cartón #${indice} | Cód: ${semilla}</div>`;
-        
-        const grid = document.createElement('div');
-        grid.className = 'grid-bingo';
-
-        const rangos = [[1,15],[16,30],[31,45],[46,60],[61,75]];
-        let columnas = [];
-        for(let i=0; i<5; i++) {
-            let pool = []; for(let n=rangos[i][0]; n<=rangos[i][1]; n++) pool.push(n);
-            let nums = [];
-            for(let j=0; j<5; j++) {
-                let idx = Math.floor(seededRandom(seed + i + j) * pool.length);
-                nums.push(pool.splice(idx, 1)[0]);
-            }
-            columnas.push(nums);
+    <script type="module" src="app.js"></script>
+    <script>
+        function toggleChat() {
+            const p = document.getElementById('chatPanel');
+            p.style.display = p.style.display === 'block' ? 'none' : 'block';
         }
-
-        for(let f=0; f<5; f++) {
-            for(let c=0; c<5; c++) {
-                const celda = document.createElement('div');
-                if(f===2 && c===2) {
-                    celda.className = 'celda free marcada'; celda.innerText = "BINGO";
-                } else {
-                    celda.className = 'celda'; celda.innerText = columnas[c][f];
-                    celda.onclick = () => celda.classList.toggle('marcada');
-                }
-                grid.appendChild(celda);
-            }
+        function msgChat(m) {
+            console.log("Chat enviado:", m);
+            document.getElementById('chatPanel').style.display = 'none';
         }
-        contenedor.appendChild(grid);
-        destino.appendChild(contenedor);
-    }
-
-    // 3. INICIO Y SINCRONIZACIÓN REAL
-    async function iniciar() {
-        if(!ID_SALA || !ID_SOCIO) {
-            document.getElementById('nombreSala').innerText = "ERROR: ENLACE INVÁLIDO";
-            return;
-        }
-
-        // Obtener datos del socio (Nombre y cuántos cartones)
-        const sSnap = await getDoc(doc(db, "socios", ID_SOCIO));
-        if(sSnap.exists()) {
-            const sData = sSnap.data();
-            miNombre = sData.nombre || "Socio";
-            const numCartones = sData.cartones || 1; // Si en FB dice 2, dibujará 2
-            const zona = document.getElementById('listaCartones');
-            for(let i=1; i<=numCartones; i++) {
-                dibujarCarton(COD_BASE + i, zona, i);
-            }
-        }
-
-        // Escuchar cambios en la Sala
-        onSnapshot(doc(db, "salas", ID_SALA), (snap) => {
-            if(snap.exists()) {
-                const d = snap.data();
-                document.getElementById('nombreSala').innerText = d.nombre.toUpperCase();
-                document.getElementById('poteNum').innerText = d.premioBs;
-                document.getElementById('bolaActual').innerText = d.ultimaBola || "--";
-                
-                // Historial de últimas 5
-                const bolas = d.bolas || [];
-                const ultimas5 = bolas.slice(-6, -1).reverse(); 
-                document.getElementById('hist5').innerHTML = ultimas5.map(b => `<div class="bola-mini">${b}</div>`).join('');
-
-                // Chat
-                if(d.mensajes) {
-                    document.getElementById('mensajesBox').innerHTML = d.mensajes.slice(-6).map(m => `<div><b>${m.user}:</b> ${m.texto}</div>`).join('');
-                    document.getElementById('mensajesBox').scrollTop = 9999;
-                }
-            }
-        });
-    }
-
-    // FUNCIONES GLOBALES
-    window.enviarMsg = async (texto) => {
-        await updateDoc(doc(db, "salas", ID_SALA), { mensajes: arrayUnion({ user: miNombre, texto: texto }) });
-    };
-
-    window.cantarBingo = async () => {
-        await updateDoc(doc(db, "socios", ID_SOCIO), { cantoBingo: true });
-        alert("¡Bingo cantado! El administrador revisará tu cartón.");
-    };
-
-    iniciar();
-</script>
+    </script>
 </body>
 </html>
