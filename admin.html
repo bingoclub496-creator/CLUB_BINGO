@@ -3,44 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Club - Panel Maestro V4</title>
+    <title>Bingo Club - Panel Maestro V5</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #004d61; --accent: #ffc107; --bg: #f4f7f6; --danger: #d32f2f; --success: #25D366; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Sidebar e Info de Salas */
         .sidebar { width: 380px; background: var(--primary); color: white; padding: 20px; overflow-y: auto; box-shadow: 4px 0 10px rgba(0,0,0,0.2); }
         .sala-box { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.2); }
-        .timer { font-family: monospace; font-size: 1.5rem; color: var(--accent); margin: 10px 0; text-align: center; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; font-weight: bold; }
-        
-        /* Área Principal y Tabla */
+        .timer { font-family: monospace; font-size: 1.5rem; color: var(--accent); margin: 10px 0; text-align: center; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; font-weight: bold; min-height: 40px; }
         .main { flex: 1; padding: 25px; overflow-y: auto; }
         .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
         .search-bar { display: flex; gap: 10px; margin-bottom: 20px; position: sticky; top: 0; background: white; padding: 10px 0; z-index: 10; }
         .search-bar input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ddd; outline: none; }
-
         table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th { background: #f8f9fa; padding: 12px; text-align: left; color: var(--primary); position: sticky; top: 0; }
-        td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
-
-        /* Botones Estilizados */
+        th { background: #f8f9fa; padding: 12px; text-align: left; color: var(--primary); }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
         .btn { border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-sync { background: var(--success); color: white; width: 100%; margin-top: 10px; }
         .btn-on { background: #e8f5e9; color: #2e7d32; border: 1px solid #2e7d32; }
         .btn-off { background: #ffebee; color: #c62828; border: 1px solid #c62828; }
-        .btn-copy { background: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb; }
-        code { background: #eee; padding: 3px 6px; border-radius: 4px; font-weight: bold; color: #d32f2f; }
-
-        /* OVERLAY DE GANADOR (Impactante) */
-        #overlayBingo { 
-            display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
-            background: rgba(211, 47, 47, 0.95); z-index:9999; 
-            flex-direction:column; justify-content:center; align-items:center; color:white;
-            text-align: center; animation: pulseBG 1.5s infinite;
-        }
-        @keyframes pulseBG { 0% {background:rgba(211,47,47,0.95);} 50% {background:rgba(183,28,28,1);} 100% {background:rgba(211,47,47,0.95);} }
-        
+        #overlayBingo { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(211, 47, 47, 0.95); z-index:9999; flex-direction:column; justify-content:center; align-items:center; color:white; text-align: center; }
         #modalSocio { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:2000; }
         .modal-content { background:white; padding:25px; border-radius:20px; width:350px; color: #333; }
         .modal-content input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
@@ -49,39 +31,32 @@
 <body>
 
     <div id="overlayBingo">
-        <i class="fas fa-trophy" style="font-size: 6rem; margin-bottom: 20px; color: var(--accent);"></i>
-        <h1 style="font-size: 4.5rem; margin: 0; text-shadow: 2px 2px 10px rgba(0,0,0,0.5);">¡BINGO!</h1>
-        <h2 id="ganadorNombre" style="font-size: 2.5rem; margin: 10px 0;">NOMBRE</h2>
-        <p id="ganadorTel" style="font-size: 1.5rem; opacity: 0.9;">Tel: --</p>
-        <button class="btn" style="background:white; color:var(--danger); padding: 20px 40px; font-size: 1.3rem; margin-top: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);" onclick="verificarYNotificar()">
-            <i class="fab fa-whatsapp"></i> VERIFICAR EN WHATSAPP
-        </button>
+        <h1 style="font-size: 4rem;">¡BINGO!</h1>
+        <h2 id="ganadorNombre">---</h2>
+        <p id="ganadorTel">---</p>
+        <button class="btn" style="background:white; color:var(--danger); padding: 15px 30px;" onclick="verificarYNotificar()">VERIFICAR WHATSAPP</button>
         <audio id="audioAlerta" src="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3" loop></audio>
     </div>
 
     <div class="sidebar">
-        <h2><i class="fas fa-user-shield"></i> Bingo Club Admin</h2>
-        <hr style="opacity:0.2; margin-bottom:20px;">
-        
+        <h2>Panel Bingo Club</h2>
         <div class="sala-box">
-            <h3 style="margin:0; color:var(--accent);">SALA NORMAL</h3>
+            <h3>SALA NORMAL</h3>
             <div class="timer" id="timer_normal">--:--:--</div>
             <label>Pote Inicial (Bs):</label>
-            <input type="number" id="poteInit_normal" class="btn" style="width:100%; margin:5px 0; background:white; color:black;" value="100" onchange="recalcularPotes()">
-            <label>Hora de Inicio:</label>
-            <input type="datetime-local" id="time_normal" class="btn" style="width:100%; background:white; color:black;">
-            <div id="info_normal" style="font-size:0.9rem; margin-top:10px; color:var(--success); font-weight:bold;"></div>
+            <input type="number" id="poteInit_normal" class="btn" style="width:100%; margin:5px 0;" value="100" onchange="recalcularPotes()">
+            <input type="datetime-local" id="time_normal" class="btn" style="width:100%;">
+            <div id="pote_display_normal" style="font-size:0.9rem; margin-top:5px; color:var(--success);"></div>
             <button class="btn btn-sync" id="btn_normal" onclick="sincronizar('normal')">SINCRONIZAR</button>
         </div>
 
         <div class="sala-box" style="border-color: var(--success);">
-            <h3 style="margin:0; color:var(--success);">CARTÓN LLENO</h3>
+            <h3>CARTÓN LLENO</h3>
             <div class="timer" id="timer_carton_lleno">--:--:--</div>
             <label>Pote Inicial (Bs):</label>
-            <input type="number" id="poteInit_carton" class="btn" style="width:100%; margin:5px 0; background:white; color:black;" value="500" onchange="recalcularPotes()">
-            <label>Hora de Inicio:</label>
-            <input type="datetime-local" id="time_carton" class="btn" style="width:100%; background:white; color:black;">
-            <div id="info_carton" style="font-size:0.9rem; margin-top:10px; color:var(--success); font-weight:bold;"></div>
+            <input type="number" id="poteInit_carton" class="btn" style="width:100%; margin:5px 0;" value="500" onchange="recalcularPotes()">
+            <input type="datetime-local" id="time_carton" class="btn" style="width:100%;">
+            <div id="pote_display_carton_lleno" style="font-size:0.9rem; margin-top:5px; color:var(--success);"></div>
             <button class="btn btn-sync" id="btn_carton_lleno" onclick="sincronizar('carton_lleno')">SINCRONIZAR</button>
         </div>
     </div>
@@ -89,18 +64,12 @@
     <div class="main">
         <div class="card">
             <div class="search-bar">
-                <input type="text" id="busqueda" placeholder="🔍 Buscar por nombre o teléfono..." onkeyup="filtrarSocios()">
+                <input type="text" id="busqueda" placeholder="Buscar por nombre o teléfono..." onkeyup="filtrarSocios()">
                 <button class="btn" style="background:var(--primary); color:white;" onclick="abrirModal()">+ NUEVO SOCIO</button>
             </div>
             <table>
                 <thead>
-                    <tr>
-                        <th>Socio / Teléfono</th>
-                        <th>Credenciales</th>
-                        <th>Sala / Cartones</th>
-                        <th>Estado Pago</th>
-                        <th>WhatsApp</th>
-                    </tr>
+                    <tr><th>Socio</th><th>Credenciales</th><th>Sala/Cartones</th><th>Pago</th><th>WhatsApp</th></tr>
                 </thead>
                 <tbody id="listaSocios"></tbody>
             </table>
@@ -108,17 +77,17 @@
     </div>
 
     <div id="modalSocio"><div class="modal-content">
-        <h3 style="margin-top:0;">Nuevo Socio</h3>
-        <input type="text" id="newNom" placeholder="Nombre Apellido">
-        <input type="text" id="newTel" placeholder="Teléfono (Ej: 58426...)">
-        <input type="text" id="newUser" placeholder="Usuario de acceso">
-        <button class="btn btn-sync" onclick="guardarSocio()">CREAR CUENTA</button>
+        <h3>Nuevo Socio</h3>
+        <input type="text" id="newNom" placeholder="Nombre">
+        <input type="text" id="newTel" placeholder="Teléfono (58...)">
+        <input type="text" id="newUser" placeholder="Usuario">
+        <button class="btn btn-sync" onclick="guardarSocio()">CREAR</button>
         <button class="btn" style="width:100%; margin-top:10px;" onclick="document.getElementById('modalSocio').style.display='none'">CANCELAR</button>
     </div></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = { 
         apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", 
@@ -136,7 +105,7 @@
     let horariosSalas = { normal: null, carton_lleno: null };
     let ganadorActivo = null;
 
-    // --- ESCUCHA DE ALERTAS (GANADORES) ---
+    // ESCUCHA ALERTAS
     onSnapshot(collection(db, "alertas"), (snap) => {
         snap.docChanges().forEach((change) => {
             if (change.type === "added") {
@@ -145,24 +114,22 @@
                 document.getElementById('ganadorNombre').innerText = data.nombre;
                 document.getElementById('ganadorTel').innerText = "Tel: " + data.telefono;
                 document.getElementById('overlayBingo').style.display = 'flex';
-                document.getElementById('audioAlerta').play().catch(e => {});
+                document.getElementById('audioAlerta').play().catch(() => {});
             }
         });
     });
 
     window.verificarYNotificar = async () => {
         if(!ganadorActivo) return;
-        const telLimpio = ganadorActivo.telefono.replace(/\D/g, '');
-        const msg = encodeURIComponent(`¡Hola ${ganadorActivo.nombre}! 👋 Soy el Admin de Bingo Club. ¡Recibí tu alerta de BINGO! 🏆 Pásame foto de tu cartón para verificar.`);
-        window.open(`https://wa.me/${telLimpio}?text=${msg}`, '_blank');
-        
+        const tel = ganadorActivo.telefono.replace(/\D/g, '');
+        window.open(`https://wa.me/${tel}?text=Hola%20${ganadorActivo.nombre},%20recibí%20tu%20alerta%20de%20BINGO!`, '_blank');
         document.getElementById('overlayBingo').style.display = 'none';
         document.getElementById('audioAlerta').pause();
         await deleteDoc(doc(db, "alertas", ganadorActivo.idDoc));
         ganadorActivo = null;
     };
 
-    // --- ESCUCHA DE SOCIOS ---
+    // ESCUCHA SOCIOS
     onSnapshot(collection(db, "socios"), (snap) => {
         sociosLocales = [];
         snap.forEach(d => sociosLocales.push({id: d.id, ...d.data()}));
@@ -170,7 +137,7 @@
         recalcularPotes();
     });
 
-    // --- ESCUCHA DE SALAS (RELOJ PERSISTENTE) ---
+    // ESCUCHA SALAS (RELOJES)
     onSnapshot(collection(db, "salas"), (snap) => {
         snap.forEach(d => {
             const tipo = d.id === 'SALA_NORMAL_ID' ? 'normal' : 'carton_lleno';
@@ -184,7 +151,7 @@
         lista.forEach(s => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><b>${s.nombre}</b><br><small>${s.telefono || 'Sin número'}</small></td>
+                <td><b>${s.nombre}</b><br><small>${s.telefono || ''}</small></td>
                 <td>U: <code>${s.usuario}</code><br>P: <code>${s.password}</code></td>
                 <td>
                     <select onchange="actualizarSocio('${s.id}', {idSala: this.value})">
@@ -196,7 +163,7 @@
                     </select>
                 </td>
                 <td><button class="btn ${s.activo?'btn-on':'btn-off'}" onclick="actualizarSocio('${s.id}', {activo: ${!s.activo}})">${s.activo?'PAGADO':'PENDIENTE'}</button></td>
-                <td><button class="btn btn-copy" onclick="copiarAcceso('${s.nombre}','${s.usuario}','${s.password}')"><i class="fab fa-whatsapp"></i> ENVIAR</button></td>
+                <td><button class="btn" style="background:#e3f2fd; color:#1976d2;" onclick="copiarAcceso('${s.nombre}','${s.usuario}','${s.password}')">WhatsApp</button></td>
             `;
             tbody.appendChild(tr);
         });
@@ -205,12 +172,11 @@
     window.sincronizar = async (tipo) => {
         const inputId = tipo === 'normal' ? 'time_normal' : 'time_carton';
         const hora = document.getElementById(inputId).value;
-        if(!hora) return alert("Selecciona la hora de inicio");
+        if(!hora) return alert("Selecciona hora");
         const docId = tipo === 'normal' ? 'SALA_NORMAL_ID' : 'SALA_CARTON_ID';
         await updateDoc(doc(db, "salas", docId), { horaInicio: hora });
         const btn = document.getElementById('btn_' + tipo);
-        btn.innerText = "✅ SINCRONIZADO"; btn.style.background = "#004d61";
-        setTimeout(() => { btn.innerText = "SINCRONIZAR"; btn.style.background = "var(--success)"; }, 2000);
+        btn.innerText = "✅ OK"; setTimeout(() => btn.innerText = "SINCRONIZAR", 2000);
     };
 
     window.recalcularPotes = async () => {
@@ -218,41 +184,39 @@
         for(let t of tipos) {
             const pInit = parseFloat(document.getElementById(t==='normal'?'poteInit_normal':'poteInit_carton').value) || 0;
             const activos = sociosLocales.filter(s => s.activo && s.idSala === t);
-            const totalCartones = activos.reduce((acc, curr) => acc + (curr.cartones || 1), 0);
-            const pFinal = pInit + (pInit * 0.04 * totalCartones);
-            document.getElementById(`info_${t==='normal'?'normal':'carton'}`).innerHTML = `Pote Actual: Bs. ${pFinal.toFixed(2)}`;
-            await setDoc(doc(db, "salas", t==='normal'?'SALA_NORMAL_ID':'SALA_CARTON_ID'), { premioBs: pFinal.toFixed(2), cartonesJugando: totalCartones }, {merge:true});
+            const totalC = activos.reduce((acc, curr) => acc + (curr.cartones || 1), 0);
+            const pFinal = pInit + (pInit * 0.04 * totalC);
+            const displayId = 'pote_display_' + t;
+            const displayEl = document.getElementById(displayId);
+            if(displayEl) displayEl.innerText = `Pote Actual: Bs. ${pFinal.toFixed(2)}`;
+            await setDoc(doc(db, "salas", t==='normal'?'SALA_NORMAL_ID':'SALA_CARTON_ID'), { premioBs: pFinal.toFixed(2), cartonesJugando: totalC }, {merge:true});
         }
     };
 
     setInterval(() => {
         ['normal', 'carton_lleno'].forEach(t => {
-            const meta = horariosSalas[t];
             const display = document.getElementById('timer_' + t);
-            if(!meta) return;
+            const meta = horariosSalas[t];
+            if(!meta || !display) return;
             const diff = new Date(meta) - new Date();
             if(diff <= 0) { display.innerText = "¡EN JUEGO!"; display.style.color = "var(--success)"; return; }
             const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
             display.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            display.style.color = "var(--accent)";
         });
     }, 1000);
 
     window.actualizarSocio = async (id, data) => await updateDoc(doc(db, "socios", id), data);
-    window.abrirModal = () => document.getElementById('modalSocio').style.display = 'flex';
+    window.abrirModal = () => document.getElementById('modalSocio').style.display='flex';
     window.guardarSocio = async () => {
         const n = document.getElementById('newNom').value, t = document.getElementById('newTel').value, u = document.getElementById('newUser').value;
-        if(!n || !u) return alert("Faltan datos");
         await addDoc(collection(db, "socios"), { nombre: n, telefono: t, usuario: u, password: Math.random().toString(36).substring(2, 6).toUpperCase(), activo: false, cartones: 1, idSala: 'normal' });
-        document.getElementById('modalSocio').style.display = 'none';
-        document.getElementById('newNom').value = ""; document.getElementById('newTel').value = ""; document.getElementById('newUser').value = "";
+        document.getElementById('modalSocio').style.display='none';
     };
-
     window.copiarAcceso = (nombre, user, pass) => {
-        const link = "https://bingoclub496-creator.github.io/CLUB_BINGO/";
-        const texto = `*¡Hola ${nombre}!* 👋 Bienvenido a *Bingo Club* 🏆\n👤 *Usuario:* ${user}\n🔑 *Clave:* ${pass}\n🔗 ${link}`;
-        navigator.clipboard.writeText(texto).then(() => alert("Copiado para WhatsApp"));
+        const texto = `Bingo Club: User: ${user} Pass: ${pass}`;
+        navigator.clipboard.writeText(texto).then(() => alert("Copiado"));
     };
-
     window.filtrarSocios = () => {
         const txt = document.getElementById('busqueda').value.toLowerCase();
         renderizarTabla(sociosLocales.filter(s => s.nombre.toLowerCase().includes(txt) || (s.telefono && s.telefono.includes(txt))));
