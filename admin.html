@@ -1,212 +1,50 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bingo Club - Admin Maestro V9</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root { --primary: #004d61; --vip: #b8860b; --accent: #ffc107; --bg: #f4f7f6; --success: #25D366; --danger: #d32f2f; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        #loginOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--primary); z-index:20000; display:flex; justify-content:center; align-items:center; flex-direction:column; color:white; }
-        #loginOverlay input { padding:15px; border-radius:10px; border:none; margin-bottom:15px; width:220px; text-align:center; font-size:1.2rem; }
-        .sidebar { width: 380px; background: var(--primary); color: white; padding: 20px; overflow-y: auto; box-shadow: 4px 0 10px rgba(0,0,0,0.3); z-index: 10; }
-        .main { flex: 1; padding: 20px; overflow-y: auto; background: #f0f2f5; }
-        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
-        .sala-box { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.2); }
-        .timer { font-family: monospace; font-size: 1.5rem; color: var(--accent); text-align: center; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; margin: 10px 0; }
-        table { width: 100%; border-collapse: collapse; background: white; font-size: 0.9rem; }
-        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6; }
-        td { padding: 10px; border-bottom: 1px solid #eee; }
-        .lanzador-window { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:600px; background:white; border-radius:20px; box-shadow:0 0 40px rgba(0,0,0,0.4); z-index:15000; padding:20px; border: 4px solid var(--vip); }
-        .grid-mini { display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; margin-top: 15px; }
-        .bola-s { aspect-ratio:1; background:#f0f0f0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.75rem; cursor:pointer; font-weight:bold; border:1px solid #ccc; transition: 0.2s; }
-        .bola-s.active { background: var(--accent); color: black; border-color: orange; box-shadow: 0 0 8px orange; transform: scale(1.1); }
-        .btn { border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-sync { background: var(--success); color: white; width: 100%; }
-        .btn-vip { background: var(--vip); color: white; width: 100%; margin-top: 8px; }
-        #overlayBingo { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(211,47,47,0.95); z-index:30000; flex-direction:column; justify-content:center; align-items:center; color:white; text-align: center; }
-    </style>
-</head>
-<body>
-    <div id="loginOverlay">
-        <i class="fas fa-lock-open" style="font-size: 3rem; margin-bottom: 15px; color: var(--accent);"></i>
-        <h2>Acceso Administrativo</h2>
-        <input type="password" id="passMaster" placeholder="PIN Maestro">
-        <button onclick="acceder()" class="btn" style="background:var(--success); color:white; width:220px; padding:15px;">INGRESAR AL PANEL</button>
-    </div>
+/* DENTRO DE TU SCRIPT DE ADMIN, SUSTITUYE LA FUNCIÓN abrirNuevoSocio POR ESTA */
 
-    <div id="overlayBingo">
-        <i class="fas fa-trophy" style="font-size: 4rem; margin-bottom: 15px;"></i>
-        <h1 style="font-size: 3rem;">¡BINGO!</h1>
-        <h2 id="ganadorNom">---</h2>
-        <button class="btn" style="background:white; color:red; padding: 15px 30px;" onclick="atenderGanador()">CONTACTAR POR WHATSAPP</button>
-        <audio id="audioAlerta" src="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3" loop></audio>
-    </div>
-
-    <div id="winLanzador" class="lanzador-window">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 id="lanzadorTitulo" style="margin:0; color:var(--vip);">Sorteo VIP</h3>
-            <button onclick="cerrarLanzador()" style="border:none; background:none; font-size:1.5rem;">&times;</button>
-        </div>
-        <div id="gridLanzador" class="grid-mini"></div>
-        <button class="btn" style="width:100%; margin-top:20px; background:#f4f4f4;" onclick="reiniciarBolas()">LIMPIAR SORTEO</button>
-    </div>
-
-    <div class="sidebar">
-        <h2 style="color:var(--accent); text-align:center;">BINGO CLUB 496</h2>
-        <div id="controlesSalas"></div>
-    </div>
-
-    <div class="main">
-        <div class="card">
-            <div style="display:flex; gap:12px; margin-bottom:20px;">
-                <input type="text" id="busqueda" placeholder="🔍 Buscar por TELÉFONO..." onkeyup="buscarTelefono()" style="flex:1; padding:12px; border-radius:10px; border:1px solid #ddd;">
-                <button class="btn" style="background:var(--primary); color:white;" onclick="abrirNuevoSocio()">+ NUEVO SOCIO</button>
-            </div>
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead><tr><th>Socio</th><th>Claves</th><th>Sala</th><th>Cartones</th><th>Pago</th><th>Link</th></tr></thead>
-                    <tbody id="listaSocios"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = { 
-            apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", 
-            authDomain: "bingo-club-6f019.firebaseapp.com", 
-            projectId: "bingo-club-6f019", 
-            storageBucket: "bingo-club-6f019.firebasestorage.app", 
-            messagingSenderId: "1059179173812", 
-            appId: "1:1059179173812:web:78b43eaac565d213bec4e1" 
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        const SALAS = [
-            { id: "SALA_NORMAL", n: "NORMAL", c: "var(--accent)", vip: false },
-            { id: "SALA_CARTON", n: "CARTÓN LLENO", c: "var(--success)", vip: false },
-            { id: "SALA_NORMAL_VIP", n: "NORMAL VIP", c: "var(--vip)", vip: true },
-            { id: "SALA_CARTON_VIP", n: "C. LLENO VIP", c: "var(--vip)", vip: true }
-        ];
-
-        let sociosLocales = [], horarios = {}, bolasPorSala = {}, intervalAutos = {}, salaActivaId = "";
-
-        window.acceder = () => {
-            if(document.getElementById('passMaster').value === "ADMIN496") {
-                document.getElementById('loginOverlay').style.display = 'none';
-                initApp();
-            } else { alert("PIN Incorrecto"); }
-        };
-
-        function initApp() {
-            renderPanelSalas();
-            onSnapshot(collection(db, "socios"), snap => {
-                sociosLocales = []; snap.forEach(d => sociosLocales.push({id: d.id, ...d.data()}));
-                renderSocios(sociosLocales);
-                actualizarPotesFirestore();
-            });
-            onSnapshot(collection(db, "salas"), snap => snap.forEach(d => {
-                horarios[d.id] = d.data().horaInicio;
-                bolasPorSala[d.id] = d.data().bolas || [];
-                if(salaActivaId === d.id) pintarBolasLanzador();
-            }));
-            onSnapshot(collection(db, "alertas"), snap => snap.docChanges().forEach(c => {
-                if(c.type === "added") {
-                    window.actualGanador = { ...c.doc.data(), docId: c.doc.id };
-                    document.getElementById('ganadorNom').innerText = window.actualGanador.nombre;
-                    document.getElementById('overlayBingo').style.display = 'flex';
-                    document.getElementById('audioAlerta').play();
-                }
-            }));
-        }
-
-        window.abrirNuevoSocio = async () => {
-            const nom = prompt("Nombre del Socio:");
-            const tel = prompt("Teléfono:");
-            const usu = prompt("Código/Usuario de Acceso (minúsculas):");
-            const pass = prompt("Contraseña:");
-            if(nom && usu && pass) {
-                await addDoc(collection(db, "socios"), {
-                    nombre: nom, telefono: tel, usuario: usu.toLowerCase().trim(),
-                    password: pass, idSala: "SALA_NORMAL", cartones: 1, activo: false
-                });
-                alert("Socio Creado");
-            }
-        };
-
-        window.updS = async (id, data) => await updateDoc(doc(db, "socios", id), data);
-
-        function renderSocios(lista) {
-            document.getElementById('listaSocios').innerHTML = lista.map(s => `
-                <tr>
-                    <td><b>${s.nombre}</b><br><small>${s.telefono}</small></td>
-                    <td>U: ${s.usuario}<br>P: ${s.password}</td>
-                    <td><select onchange="updS('${s.id}',{idSala:this.value})">
-                        ${SALAS.map(sa => `<option value="${sa.id}" ${s.idSala==sa.id?'selected':''}>${sa.n}</option>`).join('')}
-                    </select></td>
-                    <td><input type="number" value="${s.cartones||1}" style="width:40px;" onchange="updS('${s.id}',{cartones:parseInt(this.value)})"></td>
-                    <td><button onclick="updS('${s.id}',{activo:${!s.activo}})" class="btn ${s.activo?'btn-sync':''}">${s.activo?'PAGÓ':'PEND'}</button></td>
-                    <td><button class="btn" onclick="whatsapp('${s.nombre}','${s.usuario}','${s.password}')"><i class="fab fa-whatsapp"></i></button></td>
-                </tr>
-            `).join('');
-        }
-
-        // --- LAS DEMÁS FUNCIONES (Reloj, Lanzador, Potes) SE MANTIENEN IGUAL ---
-        function renderPanelSalas() {
-            const cont = document.getElementById('controlesSalas');
-            cont.innerHTML = SALAS.map(s => `
-                <div class="sala-box" style="border-left: 5px solid ${s.c}">
-                    <h4 style="margin:0">${s.n}</h4>
-                    <div class="timer" id="timer_${s.id}">--:--:--</div>
-                    <input type="number" id="pote_${s.id}" value="100" class="btn" style="width:100%; margin:5px 0;" onchange="actualizarPotesFirestore()">
-                    <input type="datetime-local" id="hora_${s.id}" class="btn" style="width:100%; background:white;">
-                    <div id="disp_${s.id}" style="font-size:0.8rem; color:var(--accent);"></div>
-                    <button class="btn btn-sync" onclick="syncSala('${s.id}')">SINCRONIZAR</button>
-                    ${s.vip ? `<button class="btn btn-vip" onclick="abrirLanzador('${s.id}','${s.n}')">MANUAL</button>` : ''}
+// Función para mostrar el formulario de creación profesional
+window.abrirNuevoSocio = () => {
+    const modalHtml = `
+        <div id="modalSocio" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:50000; display:flex; justify-content:center; align-items:center;">
+            <div style="background:white; padding:30px; border-radius:20px; width:90%; max-width:400px; color:#333;">
+                <h3 style="margin-top:0; color:#004d61;">Registrar Nuevo Socio</h3>
+                <input type="text" id="n_nom" placeholder="Nombre Completo" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ccc; border-radius:8px;">
+                <input type="text" id="n_tel" placeholder="Teléfono" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ccc; border-radius:8px;">
+                <input type="text" id="n_usu" placeholder="Usuario (para el login)" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ccc; border-radius:8px;">
+                <input type="text" id="n_pass" placeholder="Contraseña" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ccc; border-radius:8px;">
+                <select id="n_sala" style="width:100%; padding:12px; margin-bottom:20px; border:1px solid #ccc; border-radius:8px;">
+                    <option value="SALA_NORMAL">SALA NORMAL</option>
+                    <option value="SALA_CARTON">SALA CARTÓN LLENO</option>
+                    <option value="SALA_NORMAL_VIP">SALA NORMAL VIP</option>
+                    <option value="SALA_CARTON_VIP">SALA CARTÓN LLENO VIP</option>
+                </select>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="guardarNuevoSocio()" style="flex:1; padding:12px; background:#25D366; color:white; border:none; border-radius:8px; font-weight:bold;">GUARDAR</button>
+                    <button onclick="document.getElementById('modalSocio').remove()" style="flex:1; padding:12px; background:#ccc; border:none; border-radius:8px;">CANCELAR</button>
                 </div>
-            `).join('');
-        }
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+};
 
-        window.whatsapp = (n,u,p) => {
-            const m = `*Bingo Club 496*\n🏆 Socio: ${n}\n👤 Usuario: ${u}\n🔑 Clave: ${p}\nhttps://bingoclub496-creator.github.io/CLUB_BINGO/`;
-            navigator.clipboard.writeText(m).then(()=>alert("Copiado"));
-        };
+// Función para enviar a Firebase
+window.guardarNuevoSocio = async () => {
+    const nombre = document.getElementById('n_nom').value;
+    const telefono = document.getElementById('n_tel').value;
+    const usuario = document.getElementById('n_usu').value.toLowerCase().trim();
+    const password = document.getElementById('n_pass').value.trim();
+    const idSala = document.getElementById('n_sala').value;
 
-        window.syncSala = async (id) => {
-            const h = document.getElementById('hora_'+id).value;
-            await updateDoc(doc(db, "salas", id), { horaInicio: h });
-        };
+    if(!nombre || !usuario || !password) return alert("Nombre, Usuario y Clave son obligatorios");
 
-        window.actualizarPotesFirestore = () => {
-            SALAS.forEach(async s => {
-                const pBase = parseFloat(document.getElementById('pote_'+s.id).value) || 0;
-                const totalC = sociosLocales.filter(x => x.activo && x.idSala === s.id).reduce((acc,curr)=> acc + (curr.cartones || 1), 0);
-                const poteF = pBase + (pBase * 0.04 * totalC);
-                document.getElementById('disp_'+s.id).innerText = "Total: Bs. " + poteF.toFixed(2);
-                await setDoc(doc(db, "salas", s.id), { premioBs: poteF.toFixed(2) }, {merge:true});
-            });
-        };
-        
-        // Reloj e Intervalos se mantienen...
-        setInterval(() => {
-            SALAS.forEach(s => {
-                const el = document.getElementById('timer_'+s.id);
-                if(!horarios[s.id] || !el) return;
-                const diff = new Date(horarios[s.id]) - new Date();
-                if(diff <= 0) el.innerText = "¡EN JUEGO!";
-                else {
-                    const m = Math.floor((diff%3600000)/60000), sec = Math.floor((diff%60000)/1000);
-                    el.innerText = `${m}:${sec.toString().padStart(2,'0')}`;
-                }
-            });
-        }, 1000);
-    </script>
-</body>
-</html>
+    try {
+        await addDoc(collection(db, "socios"), {
+            nombre, telefono, usuario, password, idSala,
+            cartones: 1,
+            activo: false
+        });
+        alert("¡Socio creado con éxito!");
+        document.getElementById('modalSocio').remove();
+    } catch(e) {
+        alert("Error al guardar en Firebase");
+    }
+};
