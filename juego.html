@@ -2,47 +2,56 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bingo Club - En Vivo</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #004d61; color: white; text-align: center; margin: 0; padding: 10px; }
-        .header-bingo { background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; border: 1px solid #ffc107; margin-bottom: 10px; }
-        .bola-viva { width: 90px; height: 90px; background: white; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; border: 6px solid #ffc107; margin: 10px auto; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .hist-bolas { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; min-height: 35px; }
-        .b-small { width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: #ffc107; border: 1px solid #ffc107; }
+        :root { --primario: #004d61; --oro: #ffc107; --verde: #25D366; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--primario); color: white; margin: 0; padding: 10px; overflow-x: hidden; }
         
-        #contenedorCartones { display: flex; flex-direction: column; gap: 20px; align-items: center; }
-        .carton { background: #eee; padding: 10px; border-radius: 12px; border: 4px solid #888; width: 100%; max-width: 330px; }
-        .grid-bingo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-        .celda { aspect-ratio: 1; background: white; color: #222; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; border-radius: 5px; cursor: pointer; border-bottom: 3px solid #bbb; }
-        .celda.marcada { background: #25D366 !important; color: white !important; border: none; transform: scale(0.95); }
-        .celda.free { background: #ffc107; font-size: 0.6rem; color: #000; font-weight: 900; }
+        /* PANEL SUPERIOR */
+        .header { background: rgba(0,0,0,0.3); border: 2px solid var(--oro); border-radius: 15px; padding: 10px; margin-bottom: 10px; }
+        .pote { font-size: 1.8rem; font-weight: 900; color: var(--verde); margin: 5px 0; }
 
-        .chat-area { background: white; color: #333; border-radius: 15px; margin-top: 20px; padding: 10px; text-align: left; max-width: 350px; margin: 20px auto; }
-        #msjs { height: 80px; overflow-y: auto; font-size: 0.8rem; border-bottom: 1px solid #ddd; margin-bottom: 10px; }
-        
-        .btn-bingo { width: 100%; max-width: 350px; padding: 15px; background: #ff5252; color: white; border: none; border-radius: 30px; font-size: 1.5rem; font-weight: 900; cursor: pointer; box-shadow: 0 5px 0 #b71c1c; }
+        /* AREA DE LA BOLA */
+        .bola-principal { width: 95px; height: 95px; background: white; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; border: 6px solid var(--oro); margin: 10px auto; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+        .historial-5 { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; min-height: 40px; }
+        .bola-mini { width: 35px; height: 35px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--oro); border: 1px solid var(--oro); font-weight: bold; }
+
+        /* CONTENEDOR DE CARTONES */
+        #listaCartones { display: flex; flex-direction: column; gap: 25px; align-items: center; width: 100%; }
+        .carton-diseno { background: #e0e0e0; padding: 12px; border-radius: 15px; border: 4px solid #999; width: 90%; max-width: 340px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
+        .carton-header { color: #333; font-weight: 900; font-size: 0.8rem; margin-bottom: 8px; text-transform: uppercase; }
+        .grid-bingo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+        .celda { aspect-ratio: 1; background: white; color: #222; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; border-radius: 8px; cursor: pointer; border-bottom: 4px solid #bbb; }
+        .celda.marcada { background: var(--verde) !important; color: white !important; border: none; transform: scale(0.96); box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
+        .celda.free { background: var(--oro); font-size: 0.7rem; color: black; }
+
+        /* CHAT Y BOTONES */
+        .btn-cantar { width: 90%; max-width: 340px; padding: 18px; background: #ff5252; color: white; border: none; border-radius: 40px; font-size: 1.8rem; font-weight: 900; margin: 20px 0; box-shadow: 0 6px 0 #b71c1c; cursor: pointer; }
+        .chat-simple { background: white; color: #333; border-radius: 15px; padding: 10px; width: 90%; max-width: 340px; margin: 0 auto 30px auto; text-align: left; }
+        #mensajesBox { height: 100px; overflow-y: auto; font-size: 0.9rem; border-bottom: 1px solid #ddd; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="header-bingo">
-        <div id="txtSala" style="color:#ffc107; font-weight:bold;">CONECTANDO...</div>
-        <div style="font-size: 1.4rem; font-weight: 900; color:#25D366;">Pote: Bs. <span id="valPote">0.00</span></div>
+    <div class="header">
+        <div id="nombreSala" style="font-weight: bold; letter-spacing: 1px;">CARGANDO SALA...</div>
+        <div class="pote">Bs. <span id="poteNum">0.00</span></div>
     </div>
 
-    <div class="bola-viva" id="bolaA">--</div>
-    <div class="hist-bolas" id="historial"></div>
+    <div class="bola-principal" id="bolaActual">--</div>
+    <div style="font-size: 0.7rem; color: #ccc; margin-bottom: 5px;">HISTORIAL (ÚLTIMAS 5)</div>
+    <div class="historial-5" id="hist5"></div>
 
-    <div id="contenedorCartones"></div>
+    <div id="listaCartones"></div>
 
-    <button class="btn-bingo" id="btnCantar">¡CANTAR BINGO!</button>
+    <button class="btn-cantar" onclick="cantarBingo()">¡BINGO!</button>
 
-    <div class="chat-area">
-        <div id="msjs"></div>
-        <div style="display:flex; gap:5px;">
-            <button onclick="msg('¡Falta una!')" style="font-size:0.7rem; padding:5px; border-radius:10px;">¡Falta una! 😱</button>
-            <button onclick="msg('¡Casi!')" style="font-size:0.7rem; padding:5px; border-radius:10px;">¡Casi! 🔥</button>
+    <div class="chat-simple">
+        <div id="mensajesBox"></div>
+        <div style="display:flex; gap:5px; overflow-x:auto;">
+            <button onclick="enviarMsg('¡Falta una! 😱')" style="padding:5px 10px; border-radius:10px; font-size:0.7rem; cursor:pointer;">Falta una 😱</button>
+            <button onclick="enviarMsg('¡Suerte! 🍀')" style="padding:5px 10px; border-radius:10px; font-size:0.7rem; cursor:pointer;">Suerte 🍀</button>
         </div>
     </div>
 
@@ -50,98 +59,118 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, onSnapshot, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const firebaseConfig = { apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", authDomain: "bingo-club-6f019.firebaseapp.com", projectId: "bingo-club-6f019", storageBucket: "bingo-club-6f019.firebasestorage.app", messagingSenderId: "1059179173812", appId: "1:1059179173812:web:78b43eaac565d213bec4e1" };
+    const firebaseConfig = { 
+        apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", 
+        authDomain: "bingo-club-6f019.firebaseapp.com", 
+        projectId: "bingo-club-6f019", 
+        storageBucket: "bingo-club-6f019.firebasestorage.app", 
+        messagingSenderId: "1059179173812", 
+        appId: "1:1059179173812:web:78b43eaac565d213bec4e1" 
+    };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // LECTURA DE PARÁMETROS (REFORZADA)
-    const params = new URLSearchParams(window.location.search);
-    const idS = params.get('sala');
-    const idSoc = params.get('socio');
-    const codC = params.get('cod') || "FREE";
+    // 1. CAPTURAR DATOS DE LA URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const ID_SALA = urlParams.get('sala');
+    const ID_SOCIO = urlParams.get('socio');
+    const COD_BASE = urlParams.get('cod') || "BINGO";
 
-    let nombreUser = "Socio";
+    let miNombre = "Socio";
 
-    // 1. DIBUJAR CARTÓN
+    // 2. GENERADOR DE CARTONES (Soporta 1 o 2)
     function seededRandom(s) { let x = Math.sin(s) * 10000; return x - Math.floor(x); }
-    function crearCarton(seedStr, padre, n) {
-        let seed = 0; for(let i=0; i<seedStr.length; i++) seed += seedStr.charCodeAt(i);
-        const divC = document.createElement('div'); divC.className = 'carton';
-        divC.innerHTML = `<div style="color:#222; font-size:0.7rem; font-weight:bold; margin-bottom:5px;">CARTÓN #${n}</div>`;
-        const grid = document.createElement('div'); grid.className = 'grid-bingo';
+    
+    function dibujarCarton(semilla, destino, indice) {
+        let seed = 0; for(let i=0; i<semilla.length; i++) seed += semilla.charCodeAt(i);
+        const contenedor = document.createElement('div');
+        contenedor.className = 'carton-diseno';
+        contenedor.innerHTML = `<div class="carton-header">Cartón #${indice} | Cód: ${semilla}</div>`;
         
+        const grid = document.createElement('div');
+        grid.className = 'grid-bingo';
+
         const rangos = [[1,15],[16,30],[31,45],[46,60],[61,75]];
+        let columnas = [];
         for(let i=0; i<5; i++) {
-            let pool = []; for(let x=rangos[i][0]; x<=rangos[i][1]; x++) pool.push(x);
-            let colNums = [];
+            let pool = []; for(let n=rangos[i][0]; n<=rangos[i][1]; n++) pool.push(n);
+            let nums = [];
             for(let j=0; j<5; j++) {
                 let idx = Math.floor(seededRandom(seed + i + j) * pool.length);
-                colNums.push(pool.splice(idx, 1)[0]);
+                nums.push(pool.splice(idx, 1)[0]);
             }
-            // Dibujar por columnas
-            window.tempCols = window.tempCols || [];
-            window.tempCols[i] = colNums;
+            columnas.push(nums);
         }
 
         for(let f=0; f<5; f++) {
             for(let c=0; c<5; c++) {
                 const celda = document.createElement('div');
-                if(f===2 && c===2) { celda.className='celda free marcada'; celda.innerText='BINGO'; }
-                else {
-                    celda.className='celda'; celda.innerText = window.tempCols[c][f];
+                if(f===2 && c===2) {
+                    celda.className = 'celda free marcada'; celda.innerText = "BINGO";
+                } else {
+                    celda.className = 'celda'; celda.innerText = columnas[c][f];
                     celda.onclick = () => celda.classList.toggle('marcada');
                 }
                 grid.appendChild(celda);
             }
         }
-        divC.appendChild(grid); padre.appendChild(divC);
+        contenedor.appendChild(grid);
+        destino.appendChild(contenedor);
     }
 
-    // 2. LÓGICA DE INICIO
-    async function arrancar() {
-        if(!idS || !idSoc) {
-            document.getElementById('txtSala').innerText = "ERROR: ENLACE SIN DATOS";
+    // 3. INICIO Y SINCRONIZACIÓN REAL
+    async function iniciar() {
+        if(!ID_SALA || !ID_SOCIO) {
+            document.getElementById('nombreSala').innerText = "ERROR: ENLACE INVÁLIDO";
             return;
         }
 
-        // Cargar Socio y Cartones
-        const sDoc = await getDoc(doc(db, "socios", idSoc));
-        if(sDoc.exists()) {
-            const d = sDoc.data();
-            nombreUser = d.nombre;
-            const cant = d.cartones || 1;
-            const cont = document.getElementById('contenedorCartones');
-            for(let i=0; i<cant; i++) { crearCarton(codC + i, cont, i+1); }
+        // Obtener datos del socio (Nombre y cuántos cartones)
+        const sSnap = await getDoc(doc(db, "socios", ID_SOCIO));
+        if(sSnap.exists()) {
+            const sData = sSnap.data();
+            miNombre = sData.nombre || "Socio";
+            const numCartones = sData.cartones || 1; // Si en FB dice 2, dibujará 2
+            const zona = document.getElementById('listaCartones');
+            for(let i=1; i<=numCartones; i++) {
+                dibujarCarton(COD_BASE + i, zona, i);
+            }
         }
 
-        // Escuchar Sala
-        onSnapshot(doc(db, "salas", idS), (snap) => {
+        // Escuchar cambios en la Sala
+        onSnapshot(doc(db, "salas", ID_SALA), (snap) => {
             if(snap.exists()) {
-                const data = snap.data();
-                document.getElementById('txtSala').innerText = data.nombre.toUpperCase();
-                document.getElementById('valPote').innerText = data.premioBs;
-                document.getElementById('bolaA').innerText = data.ultimaBola || "--";
+                const d = snap.data();
+                document.getElementById('nombreSala').innerText = d.nombre.toUpperCase();
+                document.getElementById('poteNum').innerText = d.premioBs;
+                document.getElementById('bolaActual').innerText = d.ultimaBola || "--";
                 
-                const bolas = data.bolas || [];
-                document.getElementById('historial').innerHTML = bolas.slice(-6, -1).reverse().map(b => `<div class="b-small">${b}</div>`).join('');
-                
-                if(data.mensajes) {
-                    document.getElementById('msjs').innerHTML = data.mensajes.slice(-5).map(m => `<div><b>${m.user}:</b> ${m.texto}</div>`).join('');
+                // Historial de últimas 5
+                const bolas = d.bolas || [];
+                const ultimas5 = bolas.slice(-6, -1).reverse(); 
+                document.getElementById('hist5').innerHTML = ultimas5.map(b => `<div class="bola-mini">${b}</div>`).join('');
+
+                // Chat
+                if(d.mensajes) {
+                    document.getElementById('mensajesBox').innerHTML = d.mensajes.slice(-6).map(m => `<div><b>${m.user}:</b> ${m.texto}</div>`).join('');
+                    document.getElementById('mensajesBox').scrollTop = 9999;
                 }
             }
         });
     }
 
-    window.msg = async (t) => {
-        await updateDoc(doc(db, "salas", idS), { mensajes: arrayUnion({ user: nombreUser, texto: t }) });
+    // FUNCIONES GLOBALES
+    window.enviarMsg = async (texto) => {
+        await updateDoc(doc(db, "salas", ID_SALA), { mensajes: arrayUnion({ user: miNombre, texto: texto }) });
     };
 
-    document.getElementById('btnCantar').onclick = async () => {
-        await updateDoc(doc(db, "socios", idSoc), { cantoBingo: true });
-        alert("¡BINGO ENVIADO!");
+    window.cantarBingo = async () => {
+        await updateDoc(doc(db, "socios", ID_SOCIO), { cantoBingo: true });
+        alert("¡Bingo cantado! El administrador revisará tu cartón.");
     };
 
-    arrancar();
+    iniciar();
 </script>
 </body>
 </html>
