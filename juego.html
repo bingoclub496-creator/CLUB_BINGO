@@ -2,81 +2,95 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bingo Club - Sala VIP</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Bingo Club - En Juego</title>
     <style>
-        :root { --gold: #d4af37; --gold-dark: #aa841e; --primary: #0b1a1e; --accent: #ffc107; --danger: #ff4444; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--primary); color: white; margin: 0; padding-bottom: 100px; }
-        
-        /* VISOR DE BOLAS PREMIUM */
-        .visor-container { background: linear-gradient(180deg, #1a1a1a 0%, #000 100%); padding: 15px; border-bottom: 3px solid var(--gold); display: flex; align-items: center; justify-content: space-around; position: sticky; top:0; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .bola-actual { width: 75px; height: 75px; background: radial-gradient(circle at 30% 30%, #fff, #bbb); border-radius: 50%; color: #000; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: 900; box-shadow: 0 0 25px var(--gold); border: 4px solid var(--gold); transition: 0.5s; }
-        .bolas-recientes { display: flex; gap: 8px; }
-        .bola-hist { width: 38px; height: 38px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; border: 1px solid var(--gold); color: var(--gold); }
-
-        /* CONTENEDOR DE CARTONES */
-        .carton-wrapper { padding: 15px; max-width: 500px; margin: auto; }
-        .carton-card { background: #fff; border-radius: 12px; padding: 6px; margin-bottom: 35px; border: 6px solid var(--gold-dark); position: relative; box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
-        .carton-header { display: grid; grid-template-columns: repeat(5, 1fr); text-align: center; background: var(--gold-dark); color: white; font-weight: 900; font-size: 1.4rem; padding: 8px 0; border-radius: 6px 6px 0 0; }
-        .grid-bingo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: #ccc; padding: 4px; }
-        .celda { aspect-ratio: 1; background: #fff; color: #111; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; border-radius: 5px; cursor: pointer; transition: 0.15s; -webkit-tap-highlight-color: transparent; }
-        .celda.marcada { background: radial-gradient(circle, #d32f2f, #8e0000); color: white; transform: scale(0.92); box-shadow: inset 0 0 10px rgba(0,0,0,0.6); }
-        .celda.free { background: var(--gold); color: #000; font-size: 0.8rem; font-weight: 900; }
-
-        .btn-bingo-carton { width: 100%; background: linear-gradient(to bottom, #ff4444, #990000); color: white; border: none; padding: 15px; font-weight: 900; border-radius: 0 0 6px 6px; cursor: pointer; text-transform: uppercase; font-size: 1.2rem; border-top: 2px solid rgba(255,255,255,0.2); }
-
-        /* CHAT Y CONTROLES */
-        .chat-btn { position: fixed; bottom: 25px; right: 25px; width: 65px; height: 65px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 8px 20px rgba(0,0,0,0.6); z-index: 2000; color: #000; border: 2px solid white; }
-        #chatPanel { display:none; position: fixed; bottom: 100px; right: 25px; width: 280px; background: white; border-radius: 20px; padding: 15px; box-shadow: 0 10px 40px rgba(0,0,0,1); z-index: 2000; }
-        .chat-msg { display: block; width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 10px; text-align: left; background: #f0f2f5; font-size: 0.9rem; cursor: pointer; font-weight: 600; color: #333; }
-        
-        .info-bar { padding: 10px; text-align: center; color: var(--gold); font-weight: bold; font-size: 0.9rem; border-top: 1px solid rgba(212, 175, 55, 0.3); }
+        body { font-family: sans-serif; background: #004d61; color: white; text-align: center; }
+        .info-panel { background: rgba(0,0,0,0.3); padding: 15px; margin-bottom: 20px; border-bottom: 2px solid #ffc107; }
+        .timer { font-size: 2rem; color: #ffc107; font-weight: bold; }
+        .bolas-container { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; padding: 10px; max-width: 500px; margin: auto; }
+        .bola { width: 35px; height: 35px; background: #eee; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; opacity: 0.3; }
+        .bola.activa { opacity: 1; background: #ffc107; transform: scale(1.1); box-shadow: 0 0 10px #ffc107; }
     </style>
 </head>
 <body>
 
-    <div class="visor-container">
-        <div style="text-align: center;">
-            <small style="color:var(--gold); font-weight:bold;">CANTADA</small>
-            <div id="bolaActual" class="bola-actual">--</div>
-        </div>
-        <div>
-            <small style="color:var(--gold); font-weight:bold; margin-bottom:5px; display:block;">ÚLTIMAS 5</small>
-            <div id="historialBolas" class="bolas-recientes">
-                <div class="bola-hist">-</div><div class="bola-hist">-</div><div class="bola-hist">-</div><div class="bola-hist">-</div><div class="bola-hist">-</div>
-            </div>
-        </div>
+    <div class="info-panel">
+        <h2 id="saludoSocio">Cargando...</h2>
+        <div id="statusJuego" style="font-size: 1.2rem;">Sincronizando con el Administrador...</div>
+        <div class="timer" id="cronometro">00:00:00</div>
+        <div id="premioDisplay" style="margin-top: 10px; font-weight: bold; color: #25D366;">PREMIO: Bs. 0.00</div>
     </div>
 
-    <div class="info-bar">
-        SALA: <span id="txtSala" style="color:white;">---</span> | 
-        POTE: <span id="txtPote" style="color:white;">Bs. 0.00</span>
-    </div>
+    <h3>BOLAS CANTADAS</h3>
+    <div id="tableroBolas" class="bolas-container"></div>
 
-    <div class="carton-wrapper" id="contenedorCartones"></div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <div class="chat-btn" onclick="toggleChat()">
-        <i class="fas fa-comments"></i>
-    </div>
-    <div id="chatPanel">
-        <h3 style="color:#000; margin-top:0;">Mensajes Rápidos</h3>
-        <button class="chat-msg" onclick="msgChat('¡Casi lo tengo! 🤞')">¡Casi lo tengo! 🤞</button>
-        <button class="chat-msg" onclick="msgChat('¡Esa bola no quiere salir! 🔥')">¡Esa bola no quiere salir! 🔥</button>
-        <button class="chat-msg" onclick="msgChat('¡Suerte a todos! 🍀')">¡Suerte a todos! 🍀</button>
-        <button class="chat-msg" onclick="msgChat('¡BINGO en la mira! 🎯')">¡BINGO en la mira! 🎯</button>
-        <button class="chat-msg" onclick="msgChat('¡A una sola! 💎')">¡A una sola! 💎</button>
-    </div>
+        const firebaseConfig = { /* TU CONFIGURACIÓN AQUÍ */ };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    <script type="module" src="app.js"></script>
-    <script>
-        function toggleChat() {
-            const p = document.getElementById('chatPanel');
-            p.style.display = p.style.display === 'block' ? 'none' : 'block';
+        // 1. VALIDACIÓN DE SESIÓN INMEDIATA
+        const socio = JSON.parse(sessionStorage.getItem('socioLogueado'));
+        if(!socio) { window.location.href = 'index.html'; }
+
+        document.getElementById('saludoSocio').innerText = "Hola, " + socio.nombre;
+
+        // 2. EL GUARDIÁN: ESCUCHA SI EL ADMIN LO DESACTIVA
+        onSnapshot(doc(db, "socios", socio.id), (snap) => {
+            if(!snap.exists() || snap.data().activo === false) {
+                alert("⛔ SESIÓN FINALIZADA POR EL ADMINISTRADOR");
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            }
+        });
+
+        // 3. MONITOR DE SALA (TIEMPO, PREMIO Y BOLAS)
+        onSnapshot(doc(db, "salas", socio.idSala), (snap) => {
+            const data = snap.data();
+            if(!data) return;
+
+            // Actualizar Premio
+            document.getElementById('premioDisplay').innerText = `PREMIO ACUMULADO: Bs. ${data.premioBs || '0.00'}`;
+
+            // Manejar Cronómetro
+            const horaInicio = new Date(data.horaInicio);
+            actualizarReloj(horaInicio);
+
+            // Pintar Tablero de Bolas
+            renderTablero(data.bolas || []);
+        });
+
+        function renderTablero(bolasCantadas) {
+            const container = document.getElementById('tableroBolas');
+            container.innerHTML = "";
+            for(let i=1; i<=75; i++) {
+                const b = document.createElement('div');
+                b.className = `bola ${bolasCantadas.includes(i) ? 'activa' : ''}`;
+                b.innerText = i;
+                container.appendChild(b);
+            }
         }
-        function msgChat(m) {
-            console.log("Chat enviado:", m);
-            document.getElementById('chatPanel').style.display = 'none';
+
+        function actualizarReloj(inicio) {
+            const t = document.getElementById('cronometro');
+            const st = document.getElementById('statusJuego');
+            
+            setInterval(() => {
+                const ahora = new Date();
+                const dif = inicio - ahora;
+
+                if (dif <= 0) {
+                    t.innerText = "¡EN JUEGO!";
+                    st.innerText = "El sorteo ha comenzado. ¡Buena suerte!";
+                } else {
+                    const h = Math.floor(dif/3600000), m = Math.floor((dif%3600000)/60000), s = Math.floor((dif%60000)/1000);
+                    t.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                    st.innerText = "Esperando la hora de inicio...";
+                }
+            }, 1000);
         }
     </script>
 </body>
