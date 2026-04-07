@@ -3,76 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Club - Consola de Mando</title>
+    <title>Bingo Club - Panel Maestro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #004d61; --accent: #ffc107; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Lateral */
-        .sidebar { width: 350px; background: var(--primary); color: white; padding: 25px; box-shadow: 4px 0 10px rgba(0,0,0,0.2); }
+        .sidebar { width: 380px; background: var(--primary); color: white; padding: 20px; overflow-y: auto; box-shadow: 4px 0 10px rgba(0,0,0,0.2); }
         .sala-box { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.2); }
-        .input-dark { background: rgba(0,0,0,0.3); border: 1px solid #555; color: white; padding: 8px; border-radius: 5px; width: 100%; margin-top: 5px; }
         
-        /* Contenido */
-        .main { flex: 1; padding: 30px; overflow-y: auto; }
-        .header-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .main { flex: 1; padding: 25px; overflow-y: auto; }
         .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
         
+        /* Buscador y Filtros */
+        .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-bar input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ddd; }
+
         /* Tabla */
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 12px; color: var(--primary); border-bottom: 2px solid #eee; }
-        td { padding: 12px; border-bottom: 1px solid #eee; }
-        
-        .btn { border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-add { background: var(--accent); color: #000; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; color: var(--primary); }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+
+        /* Botones */
+        .btn { border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .btn-sync { background: #25D366; color: white; width: 100%; margin-top: 10px; }
+        .btn-copy { background: #e3f2fd; color: #1976d2; padding: 5px 10px; }
         .btn-on { background: #e8f5e9; color: #2e7d32; }
         .btn-off { background: #ffebee; color: #c62828; }
-
-        /* Modal */
-        #modalSocio { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; }
-        .modal-content { background:white; padding:30px; border-radius:20px; width:350px; }
+        
+        .timer { font-family: monospace; font-size: 1.2rem; color: var(--accent); }
+        
+        #modalSocio { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:1000; }
+        .modal-content { background:white; padding:25px; border-radius:20px; width:350px; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2><i class="fas fa-cog"></i> Configurador</h2>
-        <hr style="opacity:0.2">
+        <h2><i class="fas fa-microchip"></i> Panel de Control</h2>
         
-        <div class="sala-box">
-            <h3>SALA NORMAL</h3>
-            <label>Pote Inicial (Bs):</label>
-            <input type="number" id="poteInit_normal" class="input-dark" value="100" onchange="actualizarPremios('normal')">
-            <label>Inicio del Juego:</label>
-            <input type="datetime-local" id="time_normal" class="input-dark">
-            <button class="btn btn-sync" onclick="sincronizar('normal')">SINCRONIZAR SALA</button>
-        </div>
+        <div id="resumenSalas">
+            <div class="sala-box" id="resumen_normal">
+                <h3>SALA NORMAL</h3>
+                <div class="timer" id="count_normal">--:--:--</div>
+                <input type="number" id="poteInit_normal" placeholder="Pote Inicial Bs" class="btn" style="width:80%; margin:10px 0;">
+                <input type="datetime-local" id="time_normal" class="btn" style="width:80%;">
+                <button class="btn btn-sync" id="btnSync_normal" onclick="sincronizar('normal')">Sincronizar</button>
+            </div>
 
-        <div class="sala-box" style="border-color: #25D366;">
-            <h3>CARTÓN LLENO</h3>
-            <label>Pote Inicial (Bs):</label>
-            <input type="number" id="poteInit_carton" class="input-dark" value="500" onchange="actualizarPremios('carton_lleno')">
-            <label>Inicio del Juego:</label>
-            <input type="datetime-local" id="time_carton" class="input-dark">
-            <button class="btn btn-sync" onclick="sincronizar('carton_lleno')">SINCRONIZAR SALA</button>
+            <div class="sala-box" id="resumen_carton">
+                <h3>CARTÓN LLENO</h3>
+                <div class="timer" id="count_carton">--:--:--</div>
+                <input type="number" id="poteInit_carton" placeholder="Pote Inicial Bs" class="btn" style="width:80%; margin:10px 0;">
+                <input type="datetime-local" id="time_carton" class="btn" style="width:80%;">
+                <button class="btn btn-sync" id="btnSync_carton" onclick="sincronizar('carton_lleno')">Sincronizar</button>
+            </div>
         </div>
     </div>
 
     <div class="main">
         <div class="card">
-            <div class="header-main">
-                <h2>Socios Registrados</h2>
-                <button class="btn btn-add" onclick="abrirModal()">+ NUEVO SOCIO</button>
+            <div class="search-bar">
+                <input type="text" id="busqueda" placeholder="🔍 Buscar por teléfono o nombre..." onkeyup="filtrarSocios()">
+                <button class="btn" style="background:var(--primary); color:white;" onclick="abrirModal()">+ NUEVO SOCIO</button>
             </div>
+            
             <table>
                 <thead>
                     <tr>
-                        <th>Socio / Usuario</th>
-                        <th>Sala</th>
-                        <th>Cartones</th>
-                        <th>Estado</th>
+                        <th>Socio / Teléfono</th>
+                        <th>Credenciales</th>
+                        <th>Sala / Cartones</th>
+                        <th>Pago</th>
                         <th>Acción</th>
                     </tr>
                 </thead>
@@ -84,17 +86,16 @@
     <div id="modalSocio">
         <div class="modal-content">
             <h3>Nuevo Socio</h3>
-            <input type="text" id="newNom" placeholder="Nombre Real" class="input-dark" style="color:black; border:1px solid #ccc"><br><br>
-            <input type="text" id="newUser" placeholder="Usuario (Login)" class="input-dark" style="color:black; border:1px solid #ccc"><br><br>
-            <input type="password" id="newPass" placeholder="Contraseña" class="input-dark" style="color:black; border:1px solid #ccc"><br><br>
-            <button class="btn btn-sync" onclick="guardarSocio()">CREAR SOCIO</button>
-            <button class="btn" onclick="document.getElementById('modalSocio').style.display='none'">Cancelar</button>
+            <input type="text" id="newNom" placeholder="Nombre" class="btn" style="width:90%; border:1px solid #ddd; margin-bottom:10px;">
+            <input type="text" id="newTel" placeholder="Teléfono (Ej: 0426...)" class="btn" style="width:90%; border:1px solid #ddd; margin-bottom:10px;">
+            <input type="text" id="newUser" placeholder="Usuario" class="btn" style="width:90%; border:1px solid #ddd; margin-bottom:10px;">
+            <button class="btn btn-sync" onclick="guardarSocio()">CREAR Y GENERAR CLAVE</button>
         </div>
     </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = { 
         apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", 
@@ -110,99 +111,128 @@
 
     let sociosLocales = [];
 
-    // --- CARGAR SOCIOS Y CALCULAR POTES ---
+    // --- GENERADOR DE CLAVE ALFANUMÉRICA ---
+    const generarClave = () => Math.random().toString(36).substring(2, 6).toUpperCase();
+
+    // --- ESCUCHA EN TIEMPO REAL ---
     onSnapshot(collection(db, "socios"), (snap) => {
+        sociosLocales = [];
+        snap.forEach(d => sociosLocales.push({id: d.id, ...d.data()}));
+        renderizarTabla(sociosLocales);
+        recalcularPotes();
+    });
+
+    function renderizarTabla(lista) {
         const tbody = document.getElementById('listaSocios');
         tbody.innerHTML = '';
-        sociosLocales = [];
-        
-        snap.forEach(d => {
-            const s = d.data();
-            const id = d.id;
-            sociosLocales.push({id, ...s});
-
+        lista.forEach(s => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><b>${s.usuario}</b><br>${s.nombre}</td>
+                <td><b>${s.nombre}</b><br><small>${s.telefono || 'Sin tel'}</small></td>
                 <td>
-                    <select onchange="actualizarSocio('${id}', {idSala: this.value})">
+                    User: <code>${s.usuario}</code><br>
+                    Pass: <code>${s.password}</code>
+                </td>
+                <td>
+                    <select onchange="actualizarSocio('${s.id}', {idSala: this.value})">
                         <option value="normal" ${s.idSala==='normal'?'selected':''}>Normal</option>
-                        <option value="carton_lleno" ${s.idSala==='carton_lleno'?'selected':''}>Cartón Lleno</option>
+                        <option value="carton_lleno" ${s.idSala==='carton_lleno'?'selected':''}>C. Lleno</option>
+                    </select>
+                    <select onchange="actualizarSocio('${s.id}', {cartones: parseInt(this.value)})">
+                        ${[1,2,3,4,5,6].map(n => `<option value="${n}" ${s.cartones==n?'selected':''}>${n}C</option>`).join('')}
                     </select>
                 </td>
                 <td>
-                    <select onchange="actualizarSocio('${id}', {cartones: parseInt(this.value)})">
-                        ${[1,2,3,4,5,6].map(n => `<option value="${n}" ${s.cartones==n?'selected':''}>${n} Cartones</option>`).join('')}
-                    </select>
-                </td>
-                <td>
-                    <button class="btn ${s.activo?'btn-on':'btn-off'}" onclick="actualizarSocio('${id}', {activo: ${!s.activo}})">
-                        ${s.activo?'ACTIVO':'INACTIVO'}
+                    <button class="btn ${s.activo?'btn-on':'btn-off'}" onclick="actualizarSocio('${s.id}', {activo: ${!s.activo}})">
+                        ${s.activo?'PAGADO':'PENDIENTE'}
                     </button>
                 </td>
-                <td><i class="fas fa-trash" style="color:red; cursor:pointer"></i></td>
+                <td>
+                    <button class="btn btn-copy" onclick="copiarAcceso('${s.nombre}','${s.usuario}','${s.password}')">
+                        <i class="fas fa-copy"></i> WhatsApp
+                    </button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
-        recalcularTodo();
-    });
+    }
 
-    // --- LÓGICA MATEMÁTICA DEL POTE ---
-    // El pote sube 4% por cada cartón de socio activo. 
-    // Fórmula: $$PoteFinal = PoteInicial + (PoteInicial \times 0.04 \times \text{TotalCartonesActivos})$$
-    
-    window.recalcularTodo = async () => {
+    // --- BUSCADOR ---
+    window.filtrarSocios = () => {
+        const txt = document.getElementById('busqueda').value.toLowerCase();
+        const filtrados = sociosLocales.filter(s => 
+            s.nombre.toLowerCase().includes(txt) || (s.telefono && s.telefono.includes(txt))
+        );
+        renderizarTabla(filtrados);
+    };
+
+    // --- COPIAR PARA WHATSAPP ---
+    window.copiarAcceso = (nombre, user, pass) => {
+        const texto = `¡Hola ${nombre}! 👋 Bienvenido a Bingo Club.
+Tus datos de acceso son:
+👤 Usuario: ${user}
+🔑 Clave: ${pass}
+🔗 Entra aquí: https://dubramny.github.io/tu-repo/`;
+        navigator.clipboard.writeText(texto);
+        alert("Texto copiado para WhatsApp");
+    };
+
+    // --- MATEMÁTICA Y SINCRONIZACIÓN ---
+    window.recalcularPotes = async () => {
         const salas = ['normal', 'carton_lleno'];
-        
-        for(let tipo of salas) {
-            const pInit = parseFloat(document.getElementById(`poteInit_${tipo==='normal'?'normal':'carton'}`).value);
-            const cartonesActivos = sociosLocales
-                .filter(s => s.activo && s.idSala === tipo)
-                .reduce((acc, curr) => acc + (curr.cartones || 1), 0);
+        for(let t of salas) {
+            const pInit = parseFloat(document.getElementById(t==='normal'?'poteInit_normal':'poteInit_carton').value) || 0;
+            const activos = sociosLocales.filter(s => s.activo && s.idSala === t);
+            const numCartones = activos.reduce((acc, curr) => acc + (curr.cartones || 1), 0);
+            const final = pInit + (pInit * 0.04 * numCartones);
             
-            const nuevoPremio = pInit + (pInit * 0.04 * cartonesActivos);
-            
-            // Actualizamos en Firebase (Solo el premio acumulado)
-            await updateDoc(doc(db, "salas", tipo === 'normal' ? 'SALA_NORMAL_ID' : 'SALA_CARTON_ID'), {
-                premioBs: nuevoPremio.toFixed(2),
-                totalCartones: cartonesActivos
-            });
+            const docID = t === 'normal' ? 'SALA_NORMAL_ID' : 'SALA_CARTON_ID';
+            await setDoc(doc(db, "salas", docID), { premioBs: final.toFixed(2), cartones: numCartones }, {merge:true});
         }
     };
 
-    window.actualizarSocio = async (id, data) => {
-        await updateDoc(doc(db, "socios", id), data);
-        recalcularTodo();
-    };
-
     window.sincronizar = async (tipo) => {
-        const time = document.getElementById(`time_${tipo==='normal'?'normal':'carton'}`).value;
-        const idDoc = tipo === 'normal' ? 'SALA_NORMAL_ID' : 'SALA_CARTON_ID';
-        await updateDoc(doc(db, "salas", idDoc), { fechaInicio: time });
-        alert("¡Sala Sincronizada!");
-    };
+        const btn = document.getElementById('btnSync_'+tipo);
+        const hora = document.getElementById('time_'+tipo).value;
+        const docID = tipo === 'normal' ? 'SALA_NORMAL_ID' : 'SALA_CARTON_ID';
+        
+        await updateDoc(doc(db, "salas", docID), { horaInicio: hora });
+        
+        btn.innerText = "✅ ¡LISTO!";
+        btn.style.background = "#004d61";
+        setTimeout(() => { btn.innerText = "Sincronizar"; btn.style.background = "#25D366"; }, 2000);
+    }
 
-    // --- GESTIÓN DE NUEVO SOCIO ---
+    // --- CONTADOR REGRESIVO ---
+    setInterval(() => {
+        ['normal', 'carton_lleno'].forEach(async t => {
+            const hora = document.getElementById('time_'+t).value;
+            if(!hora) return;
+            const diff = new Date(hora) - new Date();
+            const el = document.getElementById('count_'+t);
+            if(diff <= 0) { el.innerText = "¡EN JUEGO!"; return; }
+            const h = Math.floor(diff/3600000);
+            const m = Math.floor((diff%3600000)/60000);
+            const s = Math.floor((diff%60000)/1000);
+            el.innerText = `${h}h ${m}m ${s}s`;
+        });
+    }, 1000);
+
+    window.actualizarSocio = async (id, data) => await updateDoc(doc(db, "socios", id), data);
     window.abrirModal = () => document.getElementById('modalSocio').style.display='flex';
     
     window.guardarSocio = async () => {
-        const user = document.getElementById('newUser').value;
-        const pass = document.getElementById('newPass').value;
         const nom = document.getElementById('newNom').value;
-        
-        if(!user || !pass) return alert("Completa los datos");
+        const tel = document.getElementById('newTel').value;
+        const user = document.getElementById('newUser').value;
+        if(!nom || !user) return alert("Faltan datos");
 
         await addDoc(collection(db, "socios"), {
-            usuario: user,
-            password: pass,
-            nombre: nom,
-            cartones: 1,
-            idSala: "normal",
-            activo: false
+            nombre: nom, telefono: tel, usuario: user,
+            password: generarClave(),
+            activo: false, cartones: 1, idSala: 'normal'
         });
-        
         document.getElementById('modalSocio').style.display='none';
-        alert("Socio Creado");
     };
 </script>
 </body>
