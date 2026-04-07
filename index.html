@@ -6,25 +6,27 @@
     <title>Bingo Club - Ingreso</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Arial', sans-serif; background: url('fondo.jpg') no-repeat center center fixed; background-size: cover; display: flex; justify-content: center; align-items: center; }
-        .glass-panel { background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(10px); border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.5); width: 85%; max-width: 350px; padding: 40px 20px; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
-        .img-logo { width: 120px; margin-bottom: 30px; }
-        input { width: 100%; padding: 15px; margin-bottom: 15px; border: none; border-radius: 12px; text-align: center; font-size: 1.1rem; font-weight: bold; color: #444; box-sizing: border-box; text-transform: uppercase; }
-        .btn-entrar { width: 100%; padding: 15px; background: #004d61; color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; margin-bottom: 25px; }
-        .footer-text { color: #004d61; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; }
-        .btn-whatsapp { display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: white; text-decoration: none; padding: 12px; border-radius: 25px; font-weight: bold; width: 100%; box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Arial Black', sans-serif; background: url('fondo.jpg') no-repeat center center fixed; background-size: cover; display: flex; justify-content: center; align-items: center; }
+        .glass-panel { background: rgba(255, 255, 255, 0.35); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 40px; border: 2px solid rgba(255, 255, 255, 0.5); width: 90%; max-width: 400px; padding: 50px 30px; text-align: center; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); }
+        /* LOGO MÁS GRANDE */
+        .img-logo { width: 180px; height: auto; margin-bottom: 40px; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2)); }
+        /* INPUTS MÁS GRANDES Y LEGIBLES */
+        input { width: 100%; padding: 20px; margin-bottom: 20px; border: none; border-radius: 15px; text-align: center; font-size: 1.3rem; font-weight: 900; color: #004d61; box-sizing: border-box; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-transform: uppercase; }
+        input::placeholder { color: #aaa; font-weight: normal; }
+        .btn-entrar { width: 100%; padding: 22px; background: #004d61; color: white; border: none; border-radius: 15px; font-weight: 900; font-size: 1.4rem; text-transform: uppercase; cursor: pointer; margin-bottom: 30px; transition: 0.3s; box-shadow: 0 8px 20px rgba(0,77,97,0.4); }
+        .footer-text { color: #004d61; font-size: 1.1rem; margin-bottom: 15px; font-weight: 900; }
+        .btn-whatsapp { display: flex; align-items: center; justify-content: center; gap: 12px; background: #25D366; color: white; text-decoration: none; padding: 18px; border-radius: 40px; font-weight: 900; font-size: 1.2rem; width: 100%; box-sizing: border-box; box-shadow: 0 8px 15px rgba(37, 211, 102, 0.3); }
     </style>
 </head>
 <body>
     <div class="glass-panel">
-        <img src="logo.png" class="img-logo">
+        <img src="logo.png" class="img-logo" alt="Logo Bingo Club">
         <input type="text" id="user" placeholder="USUARIO">
         <input type="password" id="pass" placeholder="CONTRASEÑA">
         <button class="btn-entrar" id="btnIngresar">ENTRAR AL CLUB</button>
-        
         <p class="footer-text">¿Aún no tienes cuenta?</p>
         <a href="https://wa.me/584265709830" class="btn-whatsapp">
-            <i class="fab fa-whatsapp"></i> Solicítala aquí
+            <i class="fab fa-whatsapp" style="font-size: 1.8rem;"></i> Solicítala aquí
         </a>
     </div>
 
@@ -47,17 +49,28 @@
         async function ingresar() {
             const u = document.getElementById('user').value.trim().toLowerCase();
             const p = document.getElementById('pass').value.trim();
+            const btn = document.getElementById('btnIngresar');
 
-            if(!u || !p) return alert("Completa los datos");
+            if(!u || !p) return alert("⚠️ Por favor rellena ambos campos.");
 
-            const q = query(collection(db, "socios"), where("usuario", "==", u), where("password", "==", p));
-            const snap = await getDocs(q);
+            btn.disabled = true;
+            btn.innerText = "VERIFICANDO...";
 
-            if (!snap.empty) {
-                sessionStorage.setItem('socioLogueado', JSON.stringify({id: snap.docs[0].id, ...snap.docs[0].data()}));
-                window.location.href = 'juego.html';
-            } else {
-                alert("Usuario o Clave incorrectos");
+            try {
+                const q = query(collection(db, "socios"), where("usuario", "==", u), where("password", "==", p));
+                const snap = await getDocs(q);
+
+                if (!snap.empty) {
+                    sessionStorage.setItem('socioLogueado', JSON.stringify({id: snap.docs[0].id, ...snap.docs[0].data()}));
+                    window.location.href = 'juego.html';
+                } else {
+                    alert("❌ Datos incorrectos. Verifica tu usuario y clave.");
+                    btn.disabled = false;
+                    btn.innerText = "ENTRAR AL CLUB";
+                }
+            } catch (e) {
+                alert("Error de conexión");
+                btn.disabled = false;
             }
         }
         document.getElementById('btnIngresar').onclick = ingresar;
