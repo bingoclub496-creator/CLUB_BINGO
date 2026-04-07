@@ -1,96 +1,44 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bingo Club - Ingreso</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Arial Black', sans-serif; background: url('fondo.jpg') no-repeat center center fixed; background-size: cover; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        .glass-panel { background: rgba(255, 255, 255, 0.35); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 40px; border: 2px solid rgba(255, 255, 255, 0.5); width: 90%; max-width: 400px; padding: 50px 30px; text-align: center; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); animation: fadeIn 0.8s ease-out; }
-        .img-logo { width: 180px; height: auto; margin-bottom: 40px; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2)); }
-        input { width: 100%; padding: 20px; margin-bottom: 20px; border: none; border-radius: 15px; text-align: center; font-size: 1.3rem; font-weight: 900; color: #004d61; box-sizing: border-box; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-transform: uppercase; }
-        input::placeholder { color: #aaa; font-weight: normal; text-transform: none; }
-        .btn-entrar { width: 100%; padding: 22px; background: #004d61; color: white; border: none; border-radius: 15px; font-weight: 900; font-size: 1.4rem; text-transform: uppercase; cursor: pointer; margin-bottom: 30px; transition: 0.3s; box-shadow: 0 8px 20px rgba(0,77,97,0.4); }
-        .btn-entrar:active { transform: scale(0.95); box-shadow: 0 4px 10px rgba(0,77,97,0.2); }
-        .footer-text { color: #004d61; font-size: 1.1rem; margin-bottom: 15px; font-weight: 900; text-shadow: 0 1px 2px rgba(255,255,255,0.5); }
-        .btn-whatsapp { display: flex; align-items: center; justify-content: center; gap: 12px; background: #25D366; color: white; text-decoration: none; padding: 18px; border-radius: 40px; font-weight: 900; font-size: 1.2rem; width: 100%; box-sizing: border-box; box-shadow: 0 8px 15px rgba(37, 211, 102, 0.3); transition: 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
-</head>
-<body>
-    <div class="glass-panel">
-        <img src="logo.png" class="img-logo" alt="Logo Bingo Club">
-        <input type="text" id="user" placeholder="USUARIO" autocomplete="off">
-        <input type="password" id="pass" placeholder="CONTRASEÑA">
-        <button class="btn-entrar" id="btnIngresar">ENTRAR AL CLUB</button>
-        <p class="footer-text">¿Aún no tienes cuenta?</p>
-        <a href="https://wa.me/584265709830" class="btn-whatsapp">
-            <i class="fab fa-whatsapp" style="font-size: 1.8rem;"></i> Solicítala aquí
-        </a>
-    </div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    const firebaseConfig = { /* TU CONFIGURACIÓN AQUÍ */ };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", 
-            authDomain: "bingo-club-6f019.firebaseapp.com", 
-            projectId: "bingo-club-6f019", 
-            storageBucket: "bingo-club-6f019.firebasestorage.app", 
-            messagingSenderId: "1059179173812", 
-            appId: "1:1059179173812:web:78b43eaac565d213bec4e1" 
-        };
+    document.getElementById('btnIngresar').addEventListener('click', async () => {
+        const u = document.getElementById('user').value.trim().toLowerCase();
+        const p = document.getElementById('pass').value.trim();
+        const btn = document.getElementById('btnIngresar');
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        if(!u || !p) return alert("⚠️ Rellena los campos.");
 
-        // Vinculación directa del evento click
-        document.getElementById('btnIngresar').addEventListener('click', async () => {
-            const u = document.getElementById('user').value.trim().toLowerCase();
-            const p = document.getElementById('pass').value.trim();
-            const btn = document.getElementById('btnIngresar');
+        btn.disabled = true;
+        btn.innerText = "VERIFICANDO...";
 
-            if(!u || !p) {
-                alert("⚠️ Por favor rellena ambos campos.");
-                return;
-            }
+        try {
+            // EL FILTRO CRÍTICO: solo buscamos usuarios que tengan activo: true
+            const q = query(
+                collection(db, "socios"), 
+                where("usuario", "==", u), 
+                where("password", "==", p),
+                where("activo", "==", true) // <--- SI ESTÁ APAGADO, NO LO ENCONTRARÁ
+            );
+            
+            const snap = await getDocs(q);
 
-            btn.disabled = true;
-            btn.innerText = "VERIFICANDO...";
-
-            try {
-                // Consulta a la colección 'socios' buscando coincidencia exacta
-                const q = query(collection(db, "socios"), where("usuario", "==", u), where("password", "==", p));
-                const snap = await getDocs(q);
-
-                if (!snap.empty) {
-                    const datosSocio = { id: snap.docs[0].id, ...snap.docs[0].data() };
-                    
-                    // Verificamos si el socio está marcado como activo (pago realizado)
-                    if (datosSocio.activo === false) {
-                        alert("⌛ Tu acceso está pendiente de activación por pago. Contacta al administrador.");
-                        btn.disabled = false;
-                        btn.innerText = "ENTRAR AL CLUB";
-                        return;
-                    }
-
-                    // Guardamos la sesión y redirigimos
-                    sessionStorage.setItem('socioLogueado', JSON.stringify(datosSocio));
-                    window.location.href = 'juego.html';
-                } else {
-                    alert("❌ Datos incorrectos. Verifica tu usuario y clave.");
-                    btn.disabled = false;
-                    btn.innerText = "ENTRAR AL CLUB";
-                }
-            } catch (e) {
-                console.error(e);
-                alert("Error de conexión con el servidor.");
+            if (!snap.empty) {
+                const datos = { id: snap.docs[0].id, ...snap.docs[0].data() };
+                sessionStorage.setItem('socioLogueado', JSON.stringify(datos));
+                window.location.href = 'juego.html';
+            } else {
+                alert("❌ ACCESO DENEGADO: Usuario incorrecto, clave errónea o falta de pago.");
                 btn.disabled = false;
                 btn.innerText = "ENTRAR AL CLUB";
             }
-        });
-    </script>
-</body>
-</html>
+        } catch (e) {
+            alert("Error de conexión");
+            btn.disabled = false;
+        }
+    });
+</script>
