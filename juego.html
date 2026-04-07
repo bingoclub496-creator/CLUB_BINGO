@@ -29,7 +29,7 @@
         .chat-box { background: rgba(255,255,255,0.95); color: #333; border-radius: 15px; margin-top: 20px; padding: 10px; text-align: left; max-width: 360px; margin-left: auto; margin-right: auto; }
         #mensajes { height: 80px; overflow-y: auto; font-size: 0.8rem; margin-bottom: 10px; border-bottom: 1px solid #ccc; }
         .chat-btns { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 5px; }
-        .c-btn { background: #004d61; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; white-space: nowrap; cursor: pointer; }
+        .c-btn { background: #004d61; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; white-space: nowrap; cursor: pointer; font-weight: bold; }
 
         .btn-bingo { width: 100%; max-width: 360px; padding: 18px; margin: 20px 0; background: #ff5252; color: white; border: none; border-radius: 40px; font-size: 1.8rem; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 #b71c1c; }
     </style>
@@ -74,26 +74,13 @@
     const db = getFirestore(app);
 
     const urlP = new URLSearchParams(window.location.search);
-    const idS = urlP.get('sala'), idSoc = urlP.get('socio'), cod = urlP.get('cod') || "FREE";
+    const idS = urlP.get('sala');
+    const idSoc = urlP.get('socio');
+    const cod = urlP.get('cod') || "DEMO";
 
     let bolasOficiales = [], tSala = "", miNombre = "Socio";
 
-    // 1. CARGAR DATOS DEL SOCIO Y DIBUJAR CARTONES
-    async function cargarSocio() {
-        if(!idSoc) return;
-        const sSnap = await getDoc(doc(db, "socios", idSoc));
-        if(sSnap.exists()) {
-            const sData = sSnap.data();
-            miNombre = sData.nombre;
-            const nCartones = sData.cartones || 1;
-            const zona = document.getElementById('zonaCartones');
-            
-            for(let i=0; i<nCartones; i++) {
-                generarCartonUI(cod + i, zona, i+1);
-            }
-        }
-    }
-
+    // GENERADOR DE CARTÓN UI
     function seededRandom(s) { let x = Math.sin(s) * 10000; return x - Math.floor(x); }
     function generarCartonUI(semilla, padre, num) {
         let seed = 0; for(let i=0; i<semilla.length; i++) seed += semilla.charCodeAt(i);
@@ -128,8 +115,41 @@
         padre.appendChild(box);
     }
 
-    // 2. ESCUCHA REAL DE LA SALA
-    if(idS) {
+    // --- EL SISTEMA DE DIAGNÓSTICO ---
+    const zona = document.getElementById('zonaCartones');
+
+    if(!idS || !idSoc) {
+        // SI FALTAN LOS DATOS EN EL ENLACE, MOSTRAMOS UN ERROR CLARO
+        document.getElementById('nomSala').innerHTML = "<span style='color:red;'>⚠️ ERROR EN EL ENLACE</span>";
+        document.getElementById('poteVal').innerText = "FALTAN IDs";
+        document.getElementById('mensajes').innerHTML = "<i>Asegúrate de que el enlace termine en ?sala=ID&socio=ID</i>";
+        generarCartonUI("DEMO123", zona, 1); // Generamos un cartón de prueba para que veas que el diseño sirve
+    } else {
+        // SI LOS DATOS EXISTEN, ARRANCAMOS EL JUEGO REAL
+        cargarSocio();
+        escucharSala();
+    }
+
+    async function cargarSocio() {
+        try {
+            const sSnap = await getDoc(doc(db, "socios", idSoc));
+            if(sSnap.exists()) {
+                const sData = sSnap.data();
+                miNombre = sData.nombre || "Socio";
+                const nCartones = sData.cartones || 1;
+                for(let i=0; i<nCartones; i++) {
+                    generarCartonUI(cod + i, zona, i+1);
+                }
+            } else {
+                document.getElementById('nomSala').innerHTML = "<span style='color:red;'>SOCIO NO ENCONTRADO</span>";
+            }
+        } catch(error) {
+            console.error("Error cargando socio:", error);
+            document.getElementById('nomSala').innerText = "ERROR DE CONEXIÓN BD";
+        }
+    }
+
+    function escucharSala() {
         onSnapshot(doc(db, "salas", idS), (snap) => {
             if(snap.exists()) {
                 const d = snap.data();
@@ -139,33 +159,34 @@
                 bolasOficiales = d.bolas || [];
                 tSala = d.tipo;
 
-                // Historial 5
                 const h = document.getElementById('hist5');
                 h.innerHTML = bolasOficiales.slice(-6, -1).reverse().map(b => `<div class="b-small">${b}</div>`).join('');
 
-                // Chat
                 const msgDiv = document.getElementById('mensajes');
                 if(d.mensajes) {
-                    msgDiv.innerHTML = d.mensajes.slice(-6).map(m => `<div><b>${m.user}:</b> ${m.texto}</div>`).join('');
+                    msgDiv.innerHTML = d.mensajes.slice(-5).map(m => `<div><b>${m.user}:</b> ${m.texto}</div>`).join('');
                     msgDiv.scrollTop = msgDiv.scrollHeight;
-                } else { msgDiv.innerHTML = "<i>¡Suerte a todos!</i>"; }
+                }
+            } else {
+                document.getElementById('nomSala').innerHTML = "<span style='color:red;'>SALA NO EXISTE</span>";
             }
+        }, (error) => {
+            console.error(error);
+            document.getElementById('nomSala').innerText = "ERROR DE PERMISOS";
         });
     }
 
-    // 3. FUNCIONES GLOBALES
     window.sendM = async (t) => {
-        await updateDoc(doc(db, "salas", idS), {
-            mensajes: arrayUnion({ user: miNombre, texto: t })
-        });
+        if(!idS) return alert("Modo Demo: No se puede enviar mensajes.");
+        await updateDoc(doc(db, "salas", idS), { mensajes: arrayUnion({ user: miNombre, texto: t }) });
     };
 
     document.getElementById('cantarBtn').onclick = async () => {
+        if(!idSoc) return alert("Modo Demo: ¡Este botón funcionará en el juego real!");
         await updateDoc(doc(db, "socios", idSoc), { cantoBingo: true });
         alert("¡BINGO CANTADO! El administrador revisará tu cartón.");
     };
 
-    cargarSocio();
 </script>
 </body>
 </html>
