@@ -6,21 +6,20 @@
     <title>Bingo Club - Ingreso</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Arial Black', sans-serif; background: #004d61; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        .glass-panel { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(15px); border-radius: 40px; border: 2px solid rgba(255, 255, 255, 0.3); width: 90%; max-width: 400px; padding: 50px 30px; text-align: center; color: white; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); }
-        .img-logo { width: 160px; margin-bottom: 30px; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3)); }
-        input { width: 100%; padding: 18px; margin-bottom: 20px; border: none; border-radius: 15px; text-align: center; font-size: 1.2rem; font-weight: 900; color: #004d61; box-sizing: border-box; background: white; text-transform: uppercase; }
-        .btn-entrar { width: 100%; padding: 20px; background: #ffc107; color: #004d61; border: none; border-radius: 15px; font-weight: 900; font-size: 1.4rem; text-transform: uppercase; cursor: pointer; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(255,193,7,0.3); }
-        .btn-whatsapp { display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: white; text-decoration: none; padding: 15px; border-radius: 40px; font-weight: 900; font-size: 1rem; width: 100%; box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Arial Black', sans-serif; background: #0a0e17; display: flex; justify-content: center; align-items: center; }
+        .glass-panel { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); border-radius: 40px; border: 2px solid rgba(255, 255, 255, 0.2); width: 90%; max-width: 400px; padding: 50px 30px; text-align: center; color: white; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .img-logo { width: 160px; margin-bottom: 30px; filter: drop-shadow(0 0 10px #ffc107); }
+        input { width: 100%; padding: 18px; margin-bottom: 20px; border: none; border-radius: 15px; text-align: center; font-size: 1.2rem; font-weight: 900; color: #004d61; background: white; text-transform: uppercase; }
+        .btn-entrar { width: 100%; padding: 20px; background: #ffc107; color: #000; border: none; border-radius: 15px; font-weight: 900; font-size: 1.4rem; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
+        .btn-entrar:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
     <div class="glass-panel">
         <img src="logo.png" class="img-logo" alt="Logo">
-        <input type="text" id="user" placeholder="USUARIO" autocomplete="off">
+        <input type="text" id="user" placeholder="USUARIO">
         <input type="password" id="pass" placeholder="CONTRASEÑA">
         <button class="btn-entrar" id="btnIngresar">ENTRAR AL CLUB</button>
-        <a href="https://wa.me/584265709830" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Solicitar Acceso</a>
     </div>
 
     <script type="module">
@@ -44,8 +43,6 @@
             const p = document.getElementById('pass').value.trim();
             const btn = document.getElementById('btnIngresar');
 
-            if(!u || !p) return alert("⚠️ Ingresa tus datos");
-
             btn.disabled = true;
             btn.innerText = "VERIFICANDO...";
 
@@ -56,22 +53,17 @@
                 if (!snap.empty) {
                     const datos = { id: snap.docs[0].id, ...snap.docs[0].data() };
                     
-                    // VALIDACIÓN TRIPLE: Clave + Estado Activo
                     if (datos.password !== p) {
                         alert("❌ Contraseña incorrecta.");
                     } else if (datos.activo !== true) {
-                        alert("⛔ ACCESO DENEGADO: Tu cuenta no está activa. Reporta tu pago al administrador.");
+                        alert("⛔ CUENTA INACTIVA: Reporta tu pago al administrador.");
                     } else {
                         sessionStorage.setItem('socioLogueado', JSON.stringify(datos));
                         window.location.href = 'juego.html';
                         return;
                     }
-                } else {
-                    alert("❌ El usuario no existe.");
-                }
-            } catch (e) {
-                alert("Error de conexión");
-            }
+                } else { alert("❌ Usuario no encontrado."); }
+            } catch (e) { alert("Error de conexión"); }
             btn.disabled = false;
             btn.innerText = "ENTRAR AL CLUB";
         });
