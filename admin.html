@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bingo Club - Admin Maestro V9.1</title>
+    <title>Bingo Club - Admin Maestro V9.2</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #004d61; --vip: #b8860b; --accent: #ffc107; --bg: #f4f7f6; --success: #25D366; --danger: #d32f2f; }
@@ -16,27 +16,26 @@
         .main { flex: 1; padding: 20px; overflow-y: auto; background: #f0f2f5; }
         .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
 
-        .sala-box { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid var(--accent); }
+        .sala-box { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.2); }
         .timer { font-family: monospace; font-size: 1.5rem; color: var(--accent); text-align: center; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; margin: 10px 0; }
-        
-        table { width: 100%; border-collapse: collapse; background: white; font-size: 0.9rem; }
+        .monitor-sala { font-size: 0.8rem; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-top: 10px; line-height: 1.4; }
+
+        table { width: 100%; border-collapse: collapse; background: white; font-size: 0.85rem; }
         th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6; }
         td { padding: 10px; border-bottom: 1px solid #eee; }
 
-        /* LANZADOR VIP */
         .lanzador-window { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:600px; background:white; border-radius:20px; box-shadow:0 0 40px rgba(0,0,0,0.4); z-index:15000; padding:20px; border: 4px solid var(--vip); }
-        .grid-mini { display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; margin-top: 15px; }
+        .grid-mini { display: grid; grid-template-columns: repeat(15, 12fr); gap: 4px; margin-top: 15px; }
         .bola-s { aspect-ratio:1; background:#f0f0f0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.75rem; cursor:pointer; font-weight:bold; border:1px solid #ccc; }
-        .bola-s.active { background: var(--accent); color: black; border-color: orange; box-shadow: 0 0 8px orange; transform: scale(1.1); }
+        .bola-s.active { background: var(--accent); color: black; border-color: orange; box-shadow: 0 0 8px orange; }
 
-        /* MODAL NUEVO SOCIO */
         #modalSocio { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:50000; display:none; justify-content:center; align-items:center; }
-        .modal-content { background:white; padding:30px; border-radius:20px; width:90%; max-width:400px; color:#333; }
-        .modal-content input, .modal-content select { width:100%; padding:12px; margin-bottom:12px; border:1px solid #ddd; border-radius:8px; box-sizing: border-box; }
+        .modal-content { background:white; padding:30px; border-radius:20px; width:90%; max-width:400px; }
 
-        .btn { border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn { border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .btn-sync { background: var(--success); color: white; width: 100%; }
         .btn-vip { background: var(--vip); color: white; width: 100%; margin-top: 8px; }
+        .btn-del { background: #fee2e2; color: #ef4444; }
 
         #overlayBingo { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(211,47,47,0.95); z-index:30000; flex-direction:column; justify-content:center; align-items:center; color:white; text-align: center; }
     </style>
@@ -52,37 +51,21 @@
 
     <div id="modalSocio">
         <div class="modal-content">
-            <h3 style="margin-top:0; color:var(--primary);">Registrar Socio</h3>
-            <input type="text" id="n_nom" placeholder="Nombre del Socio" onkeyup="generarUsuarioAuto()">
-            <input type="text" id="n_tel" placeholder="Teléfono WhatsApp">
-            <input type="text" id="n_usu" placeholder="Usuario (Automático)" style="background:#f0f0f0;">
-            <select id="n_sala">
-                <option value="SALA_NORMAL">NORMAL</option>
+            <h3 style="margin-top:0; color:var(--primary);">Registrar Nuevo Socio</h3>
+            <input type="text" id="n_nom" placeholder="Nombre Completo" onkeyup="generarUsuarioAuto()" style="width:100%; padding:10px; margin-bottom:10px;">
+            <input type="text" id="n_tel" placeholder="Teléfono" style="width:100%; padding:10px; margin-bottom:10px;">
+            <input type="text" id="n_usu" placeholder="Usuario Sugerido" style="width:100%; padding:10px; margin-bottom:10px; background:#eee;" readonly>
+            <select id="n_sala" style="width:100%; padding:10px; margin-bottom:20px;">
+                <option value="SALA_NORMAL">SALA NORMAL</option>
                 <option value="SALA_CARTON">CARTÓN LLENO</option>
                 <option value="SALA_NORMAL_VIP">NORMAL VIP</option>
                 <option value="SALA_CARTON_VIP">C. LLENO VIP</option>
             </select>
             <div style="display:flex; gap:10px;">
-                <button onclick="guardarNuevoSocio()" class="btn" style="background:var(--success); color:white; flex:1;">CREAR</button>
+                <button onclick="guardarSocio()" class="btn" style="background:var(--success); color:white; flex:1;">GUARDAR</button>
                 <button onclick="cerrarModal()" class="btn" style="background:#ccc; flex:1;">CANCELAR</button>
             </div>
         </div>
-    </div>
-
-    <div id="overlayBingo">
-        <h1 style="font-size: 3rem;">¡BINGO!</h1>
-        <h2 id="ganadorNom">---</h2>
-        <button class="btn" style="background:white; color:red;" onclick="atenderGanador()">WHATSAPP GANADOR</button>
-        <audio id="audioAlerta" src="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3" loop></audio>
-    </div>
-
-    <div id="winLanzador" class="lanzador-window">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 id="lanzadorTitulo" style="margin:0; color:var(--vip);">Sorteo VIP</h3>
-            <button onclick="cerrarLanzador()" style="border:none; background:none; font-size:1.5rem;">&times;</button>
-        </div>
-        <div id="gridLanzador" class="grid-mini"></div>
-        <button class="btn" style="width:100%; margin-top:20px; background:#f4f4f4;" onclick="reiniciarBolas()">LIMPIAR SORTEO</button>
     </div>
 
     <div class="sidebar">
@@ -96,11 +79,31 @@
                 <input type="text" id="busqueda" placeholder="🔍 Buscar por TELÉFONO..." onkeyup="buscarTelefono()" style="flex:1; padding:12px; border-radius:10px; border:1px solid #ddd;">
                 <button class="btn" style="background:var(--primary); color:white;" onclick="abrirModal()">+ NUEVO SOCIO</button>
             </div>
-            <table>
-                <thead><tr><th>Socio</th><th>Claves</th><th>Sala</th><th>Cartones</th><th>Pago</th><th>WhatsApp</th></tr></thead>
-                <tbody id="listaSocios"></tbody>
-            </table>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr><th>Socio / Tel</th><th>Accesos</th><th>Sala</th><th>Cartones</th><th>Estado</th><th>Acciones</th></tr>
+                    </thead>
+                    <tbody id="listaSocios"></tbody>
+                </table>
+            </div>
         </div>
+    </div>
+
+    <div id="winLanzador" class="lanzador-window">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 id="lanzadorTitulo" style="margin:0; color:var(--vip);">Sorteo VIP</h3>
+            <button onclick="cerrarLanzador()" style="border:none; background:none; font-size:1.5rem;">&times;</button>
+        </div>
+        <div id="gridLanzador" class="grid-mini"></div>
+        <button class="btn" style="width:100%; margin-top:20px; background:#f4f4f4;" onclick="reiniciarBolas()">LIMPIAR SORTEO</button>
+    </div>
+
+    <div id="overlayBingo">
+        <h1 style="font-size: 3rem;">¡BINGO!</h1>
+        <h2 id="ganadorNom">---</h2>
+        <button class="btn" style="background:white; color:red; padding:15px;" onclick="atenderGanador()">CONTACTAR POR WHATSAPP</button>
+        <audio id="audioAlerta" src="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3" loop></audio>
     </div>
 
     <script type="module">
@@ -120,10 +123,10 @@
         const db = getFirestore(app);
 
         const SALAS = [
-            { id: "SALA_NORMAL", n: "NORMAL", c: "var(--accent)", vip: false },
-            { id: "SALA_CARTON", n: "CARTÓN LLENO", c: "var(--success)", vip: false },
-            { id: "SALA_NORMAL_VIP", n: "NORMAL VIP", c: "var(--vip)", vip: true },
-            { id: "SALA_CARTON_VIP", n: "C. LLENO VIP", c: "var(--vip)", vip: true }
+            { id: "SALA_NORMAL", n: "NORMAL", c: "#ffc107", vip: false },
+            { id: "SALA_CARTON", n: "CARTÓN LLENO", c: "#25D366", vip: false },
+            { id: "SALA_NORMAL_VIP", n: "NORMAL VIP", c: "#b8860b", vip: true },
+            { id: "SALA_CARTON_VIP", n: "C. LLENO VIP", c: "#b8860b", vip: true }
         ];
 
         let sociosLocales = [], horarios = {}, bolasPorSala = {}, salaActivaId = "";
@@ -138,8 +141,10 @@
         function initApp() {
             renderPanelSalas();
             onSnapshot(collection(db, "socios"), snap => {
-                sociosLocales = []; snap.forEach(d => sociosLocales.push({id: d.id, ...d.data()}));
+                sociosLocales = []; 
+                snap.forEach(d => sociosLocales.push({id: d.id, ...d.data()}));
                 renderSocios(sociosLocales);
+                actualizarMonitores();
             });
             onSnapshot(collection(db, "salas"), snap => snap.forEach(d => {
                 horarios[d.id] = d.data().horaInicio;
@@ -157,30 +162,119 @@
         }
 
         // --- GESTIÓN DE SOCIOS ---
-        window.abrirModal = () => document.getElementById('modalSocio').style.display = 'flex';
-        window.cerrarModal = () => {
-            document.getElementById('modalSocio').style.display = 'none';
-            document.getElementById('n_nom').value = "";
-            document.getElementById('n_usu').value = "";
+        window.renderSocios = (lista) => {
+            const container = document.getElementById('listaSocios');
+            container.innerHTML = lista.map(s => `
+                <tr>
+                    <td><b>${s.nombre}</b><br><small>${s.telefono}</small></td>
+                    <td>U: ${s.usuario}<br>P: ${s.password}</td>
+                    <td>
+                        <select onchange="updS('${s.id}',{idSala:this.value})" style="padding:5px; border-radius:5px;">
+                            ${SALAS.map(sa => `<option value="${sa.id}" ${s.idSala==sa.id?'selected':''}>${sa.n}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td>
+                        <select onchange="updS('${s.id}',{cartones:parseInt(this.value)})" style="padding:5px; border-radius:5px;">
+                            ${[1,2,3,4,5,6].map(n => `<option value="${n}" ${s.cartones==n?'selected':''}>${n}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td>
+                        <button onclick="updS('${s.id}',{activo:${!s.activo}})" class="btn" style="background:${s.activo?'#dcfce7':'#fee2e2'}; color:${s.activo?'#166534':'#991b1b'}; padding:5px 10px;">
+                            ${s.activo?'PAGÓ':'PEND'}
+                        </button>
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn" style="background:#e0f2fe; color:#0369a1;" onclick="enviarWhatsApp('${s.nombre}','${s.usuario}','${s.password}')"><i class="fab fa-whatsapp"></i></button>
+                            <button class="btn btn-del" onclick="eliminarSocio('${s.id}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
         };
+
+        window.updS = async (id, data) => await updateDoc(doc(db, "socios", id), data);
+
+        window.eliminarSocio = async (id) => {
+            if(confirm("¿Estás seguro de ELIMINAR permanentemente a este socio?")) {
+                await deleteDoc(doc(db, "socios", id));
+            }
+        };
+
+        window.buscarTelefono = () => {
+            const txt = document.getElementById('busqueda').value.toLowerCase();
+            const filtrados = sociosLocales.filter(s => s.telefono.includes(txt) || s.nombre.toLowerCase().includes(txt));
+            renderSocios(filtrados);
+        };
+
+        // --- REGISTRO ---
+        window.abrirModal = () => document.getElementById('modalSocio').style.display = 'flex';
+        window.cerrarModal = () => document.getElementById('modalSocio').style.display = 'none';
         window.generarUsuarioAuto = () => {
             const nom = document.getElementById('n_nom').value.trim().toLowerCase().split(" ")[0];
             if(nom.length > 2) document.getElementById('n_usu').value = nom + Math.floor(100 + Math.random()*900);
         };
-        window.guardarNuevoSocio = async () => {
-            const d = {
-                nombre: document.getElementById('n_nom').value,
-                telefono: document.getElementById('n_tel').value,
-                usuario: document.getElementById('n_usu').value,
+        window.guardarSocio = async () => {
+            const nom = document.getElementById('n_nom').value;
+            const tel = document.getElementById('n_tel').value;
+            const usu = document.getElementById('n_usu').value;
+            const sala = document.getElementById('n_sala').value;
+            if(!nom || !tel) return alert("Faltan datos");
+            await addDoc(collection(db, "socios"), {
+                nombre: nom, telefono: tel, usuario: usu, 
                 password: Math.floor(1000 + Math.random()*9000).toString(),
-                idSala: document.getElementById('n_sala').value,
-                cartones: 1, activo: false
-            };
-            await addDoc(collection(db, "socios"), d);
+                idSala: sala, cartones: 1, activo: false
+            });
             cerrarModal();
         };
 
-        // --- LANZADOR VIP CORREGIDO ---
+        // --- MONITORES Y SALAS ---
+        window.renderPanelSalas = () => {
+            document.getElementById('controlesSalas').innerHTML = SALAS.map(s => `
+                <div class="sala-box" style="border-left: 5px solid ${s.c}">
+                    <h4 style="margin:0">${s.n}</h4>
+                    <div class="timer" id="timer_${s.id}">--:--:--</div>
+                    
+                    <label style="font-size:0.7rem;">Premio Inicial Bs:</label>
+                    <input type="number" id="base_${s.id}" value="100" class="btn" style="width:100%; background:white; margin:5px 0; border:1px solid #ddd;" onchange="actualizarMonitores()">
+                    
+                    <input type="datetime-local" id="hora_${s.id}" class="btn" style="width:100%; background:white; margin-bottom:5px; border:1px solid #ddd;">
+                    <button class="btn btn-sync" onclick="syncHora('${s.id}')">SINCRONIZAR</button>
+                    
+                    <div class="monitor-sala" id="mon_${s.id}">
+                        Cargando monitores...
+                    </div>
+                    
+                    ${s.vip ? `<button class="btn btn-vip" onclick="window.abrirLanzador('${s.id}','${s.n}')">CANTAR MANUAL</button>` : ''}
+                </div>
+            `).join('');
+        };
+
+        window.actualizarMonitores = () => {
+            SALAS.forEach(async s => {
+                const base = parseFloat(document.getElementById('base_'+s.id).value) || 0;
+                const sociosSala = sociosLocales.filter(x => x.idSala === s.id && x.activo);
+                const totalCartones = sociosSala.reduce((acc, curr) => acc + (curr.cartones || 1), 0);
+                
+                // Calculo: Base + 4% de la base por cada carton
+                const premioFinal = base + (base * 0.04 * totalCartones);
+                
+                document.getElementById('mon_'+s.id).innerHTML = `
+                    👥 Socios: ${sociosSala.length} | 🎫 Cartones: ${totalCartones}<br>
+                    <b>🏆 Premio: Bs. ${premioFinal.toFixed(2)}</b>
+                `;
+                
+                // Actualizar en Firebase para que los socios lo vean
+                await setDoc(doc(db, "salas", s.id), { premioBs: premioFinal.toFixed(2), cartonesJugando: totalCartones }, {merge:true});
+            });
+        };
+
+        window.syncHora = async (id) => {
+            const h = document.getElementById('hora_'+id).value;
+            if(h) await updateDoc(doc(db, "salas", id), { horaInicio: h });
+        };
+
+        // --- LANZADOR VIP ---
         window.abrirLanzador = (id, nom) => {
             salaActivaId = id;
             document.getElementById('lanzadorTitulo').innerText = "Cantar: " + nom;
@@ -189,14 +283,14 @@
             for(let i=1; i<=75; i++) {
                 const b = document.createElement('div');
                 b.className = "bola-s"; b.id = `ball_${i}`; b.innerText = i;
-                b.onclick = () => window.marcarBolaManual(i);
+                b.onclick = () => window.marcarBola(i);
                 grid.appendChild(b);
             }
             window.pintarBolasLanzador();
             document.getElementById('winLanzador').style.display = 'block';
         };
 
-        window.marcarBolaManual = async (n) => {
+        window.marcarBola = async (n) => {
             let bolas = bolasPorSala[salaActivaId] || [];
             bolas.includes(n) ? bolas = bolas.filter(x => x !== n) : bolas.push(n);
             await updateDoc(doc(db, "salas", salaActivaId), { bolas });
@@ -210,41 +304,12 @@
             }
         };
 
-        window.reiniciarBolas = async () => { if(confirm("¿Limpiar?")) await updateDoc(doc(db, "salas", salaActivaId), { bolas: [] }); };
         window.cerrarLanzador = () => { document.getElementById('winLanzador').style.display='none'; salaActivaId=""; };
+        window.reiniciarBolas = async () => { if(confirm("¿Vaciar bolas?")) await updateDoc(doc(db, "salas", salaActivaId), { bolas: [] }); };
 
-        // --- UTILIDADES ---
-        window.renderSocios = (lista) => {
-            document.getElementById('listaSocios').innerHTML = lista.map(s => `
-                <tr>
-                    <td><b>${s.nombre}</b><br><small>${s.telefono}</small></td>
-                    <td>U: ${s.usuario}<br>P: ${s.password}</td>
-                    <td>${s.idSala}</td>
-                    <td>${s.cartones}</td>
-                    <td><button onclick="updS('${s.id}',{activo:${!s.activo}})" class="btn ${s.activo?'btn-sync':''}">${s.activo?'PAGÓ':'PEND'}</button></td>
-                    <td><button class="btn" style="background:#25D366; color:white;" onclick="whatsapp('${s.nombre}','${s.usuario}','${s.password}')"><i class="fab fa-whatsapp"></i></button></td>
-                </tr>
-            `).join('');
-        };
-        window.updS = async (id, data) => await updateDoc(doc(db, "socios", id), data);
-        window.whatsapp = (n,u,p) => {
-            const m = `*Bingo Club 496*\n🏆 Socio: ${n}\n👤 Usuario: ${u}\n🔑 Clave: ${p}\n🔗 https://bingoclub496-creator.github.io/CLUB_BINGO/`;
-            navigator.clipboard.writeText(m).then(()=>alert("Copiado"));
-        };
-        window.syncSala = async (id) => {
-            const h = document.getElementById('hora_'+id).value;
-            await updateDoc(doc(db, "salas", id), { horaInicio: h });
-        };
-        window.renderPanelSalas = () => {
-            document.getElementById('controlesSalas').innerHTML = SALAS.map(s => `
-                <div class="sala-box" style="border-left: 5px solid ${s.c}">
-                    <h4>${s.n}</h4>
-                    <div class="timer" id="timer_${s.id}">--:--:--</div>
-                    <input type="datetime-local" id="hora_${s.id}" class="btn" style="width:100%; background:white; margin-bottom:5px;">
-                    <button class="btn btn-sync" onclick="syncSala('${s.id}')">SINCRONIZAR</button>
-                    ${s.vip ? `<button class="btn btn-vip" onclick="abrirLanzador('${s.id}','${s.n}')">CANTAR MANUAL</button>` : ''}
-                </div>
-            `).join('');
+        window.enviarWhatsApp = (n,u,p) => {
+            const msg = `*Bingo Club 496*\n🏆 Socio: ${n}\n👤 Usuario: ${u}\n🔑 Clave: ${p}\n🔗 https://bingoclub496-creator.github.io/CLUB_BINGO/`;
+            navigator.clipboard.writeText(msg).then(() => alert("Datos copiados para enviar por WhatsApp"));
         };
 
         setInterval(() => {
@@ -252,9 +317,16 @@
                 const el = document.getElementById('timer_'+s.id);
                 if(!horarios[s.id] || !el) return;
                 const diff = new Date(horarios[s.id]) - new Date();
-                el.innerText = diff <= 0 ? "¡EN JUEGO!" : new Date(diff).toISOString().substr(11, 8);
+                if(diff <= 0) {
+                    el.innerText = "¡EN JUEGO!"; el.style.color = "#25D366";
+                } else {
+                    const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), sec = Math.floor((diff%60000)/1000);
+                    el.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+                    el.style.color = "var(--accent)";
+                }
             });
         }, 1000);
+
     </script>
 </body>
 </html>
