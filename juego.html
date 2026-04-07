@@ -2,96 +2,103 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Bingo Club - En Juego</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bingo Club - Sala de Juego</title>
     <style>
-        body { font-family: sans-serif; background: #004d61; color: white; text-align: center; }
-        .info-panel { background: rgba(0,0,0,0.3); padding: 15px; margin-bottom: 20px; border-bottom: 2px solid #ffc107; }
-        .timer { font-size: 2rem; color: #ffc107; font-weight: bold; }
-        .bolas-container { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; padding: 10px; max-width: 500px; margin: auto; }
-        .bola { width: 35px; height: 35px; background: #eee; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; opacity: 0.3; }
-        .bola.activa { opacity: 1; background: #ffc107; transform: scale(1.1); box-shadow: 0 0 10px #ffc107; }
+        body { margin: 0; font-family: 'Arial', sans-serif; background: #f0f2f5; color: #333; }
+        .header { background: #004d61; color: white; padding: 20px; text-align: center; border-bottom: 4px solid #ffc107; position: sticky; top: 0; z-index: 100; }
+        .premio-box { background: #25D366; color: white; padding: 10px; border-radius: 10px; display: inline-block; margin-top: 10px; font-weight: bold; font-size: 1.2rem; }
+        .timer { font-size: 2.5rem; font-weight: bold; color: #ffc107; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); margin: 10px 0; }
+        .tablero { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; padding: 15px; background: white; margin: 10px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .bola { aspect-ratio: 1; background: #e0e0e0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; color: #999; }
+        .bola.activa { background: #ffc107; color: #004d61; transform: scale(1.1); box-shadow: 0 0 10px #ffc107; border: 2px solid orange; }
+        #statusJuego { font-weight: bold; color: #ddd; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
-    <div class="info-panel">
-        <h2 id="saludoSocio">Cargando...</h2>
-        <div id="statusJuego" style="font-size: 1.2rem;">Sincronizando con el Administrador...</div>
+    <div class="header">
+        <div id="statusJuego">Sincronizando...</div>
         <div class="timer" id="cronometro">00:00:00</div>
-        <div id="premioDisplay" style="margin-top: 10px; font-weight: bold; color: #25D366;">PREMIO: Bs. 0.00</div>
+        <div class="premio-box" id="premioDisplay">BS. 0.00</div>
+        <div style="margin-top:5px; opacity:0.8;" id="nombreSocio">---</div>
     </div>
 
-    <h3>BOLAS CANTADAS</h3>
-    <div id="tableroBolas" class="bolas-container"></div>
+    <h4 style="text-align:center; margin-bottom:5px;">BOLAS CANTADAS</h4>
+    <div class="tablero" id="tableroBolas"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { /* TU CONFIGURACIÓN AQUÍ */ };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", 
+            authDomain: "bingo-club-6f019.firebaseapp.com", 
+            projectId: "bingo-club-6f019", 
+            storageBucket: "bingo-club-6f019.firebasestorage.app", 
+            messagingSenderId: "1059179173812", 
+            appId: "1:1059179173812:web:78b43eaac565d213bec4e1" 
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 1. VALIDACIÓN DE SESIÓN INMEDIATA
         const socio = JSON.parse(sessionStorage.getItem('socioLogueado'));
         if(!socio) { window.location.href = 'index.html'; }
+        document.getElementById('nombreSocio').innerText = "Socio: " + socio.nombre;
 
-        document.getElementById('saludoSocio').innerText = "Hola, " + socio.nombre;
-
-        // 2. EL GUARDIÁN: ESCUCHA SI EL ADMIN LO DESACTIVA
+        // 1. EL GUARDIÁN: Si el admin lo desactiva, lo expulsa en tiempo real
         onSnapshot(doc(db, "socios", socio.id), (snap) => {
-            if(!snap.exists() || snap.data().activo === false) {
-                alert("⛔ SESIÓN FINALIZADA POR EL ADMINISTRADOR");
+            if(!snap.exists() || snap.data().activo !== true) {
+                alert("⛔ Tu acceso ha sido revocado.");
                 sessionStorage.clear();
                 window.location.href = 'index.html';
             }
         });
 
-        // 3. MONITOR DE SALA (TIEMPO, PREMIO Y BOLAS)
+        // 2. MONITOR DE SALA: Reloj, Premios y Bolas
+        let intervaloReloj;
         onSnapshot(doc(db, "salas", socio.idSala), (snap) => {
             const data = snap.data();
             if(!data) return;
 
             // Actualizar Premio
-            document.getElementById('premioDisplay').innerText = `PREMIO ACUMULADO: Bs. ${data.premioBs || '0.00'}`;
+            document.getElementById('premioDisplay').innerText = `🏆 PREMIO: Bs. ${data.premioBs || '0.00'}`;
 
-            // Manejar Cronómetro
-            const horaInicio = new Date(data.horaInicio);
-            actualizarReloj(horaInicio);
+            // Actualizar Reloj
+            if(data.horaInicio) {
+                if(intervaloReloj) clearInterval(intervaloReloj);
+                const destino = new Date(data.horaInicio).getTime();
+                
+                intervaloReloj = setInterval(() => {
+                    const ahora = new Date().getTime();
+                    const dif = destino - ahora;
+                    const t = document.getElementById('cronometro');
+                    const st = document.getElementById('statusJuego');
 
-            // Pintar Tablero de Bolas
-            renderTablero(data.bolas || []);
-        });
+                    if (dif <= 0) {
+                        t.innerText = "¡EN JUEGO!";
+                        t.style.color = "#25D366";
+                        st.innerText = "Sorteo Iniciado";
+                    } else {
+                        const h = Math.floor(dif/3600000), m = Math.floor((dif%3600000)/60000), s = Math.floor((dif%60000)/1000);
+                        t.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                        st.innerText = "Esperando Inicio";
+                    }
+                }, 1000);
+            }
 
-        function renderTablero(bolasCantadas) {
+            // Pintar Bolas
             const container = document.getElementById('tableroBolas');
             container.innerHTML = "";
+            const bolasCantadas = data.bolas || [];
             for(let i=1; i<=75; i++) {
-                const b = document.createElement('div');
-                b.className = `bola ${bolasCantadas.includes(i) ? 'activa' : ''}`;
-                b.innerText = i;
-                container.appendChild(b);
+                const div = document.createElement('div');
+                div.className = `bola ${bolasCantadas.includes(i) ? 'activa' : ''}`;
+                div.innerText = i;
+                container.appendChild(div);
             }
-        }
-
-        function actualizarReloj(inicio) {
-            const t = document.getElementById('cronometro');
-            const st = document.getElementById('statusJuego');
-            
-            setInterval(() => {
-                const ahora = new Date();
-                const dif = inicio - ahora;
-
-                if (dif <= 0) {
-                    t.innerText = "¡EN JUEGO!";
-                    st.innerText = "El sorteo ha comenzado. ¡Buena suerte!";
-                } else {
-                    const h = Math.floor(dif/3600000), m = Math.floor((dif%3600000)/60000), s = Math.floor((dif%60000)/1000);
-                    t.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-                    st.innerText = "Esperando la hora de inicio...";
-                }
-            }, 1000);
-        }
+        });
     </script>
 </body>
 </html>
