@@ -24,13 +24,15 @@
     <div class="glass-panel">
         <img src="logo.png" alt="Bingo Club" class="img-logo">
         <img src="bienvenido.png" alt="Bienvenidos" class="img-bienvenido">
-        <div class="label-codigo">CÓDIGO / USUARIO</div>
-        <input type="text" id="accessCode" autocomplete="off">
+        <div class="label-codigo">CÓDIGO</div>
+        <input type="text" id="accessCode" maxlength="15" autocomplete="off">
         <button class="btn-ingresar" id="btnIngresar">INGRESAR AL CLUB</button>
+        
         <div class="footer-links">
-            <p class="info-text">¿No tienes acceso?</p>
+            <p class="info-text">¿No tienes código?</p>
             <a href="https://wa.me/584265709830?text=Hola%20Bingo%20Club..." class="solicita-link" target="_blank">
-                <i class="fab fa-whatsapp" style="font-size: 1.6rem;"></i> Solicita tu código aquí
+                <i class="fab fa-whatsapp" style="font-size: 1.6rem;"></i>
+                Solicita tu código aquí
             </a>
         </div>
     </div>
@@ -39,13 +41,13 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", 
-            authDomain: "bingo-club-6f019.firebaseapp.com", 
-            projectId: "bingo-club-6f019", 
-            storageBucket: "bingo-club-6f019.firebasestorage.app", 
-            messagingSenderId: "1059179173812", 
-            appId: "1:1059179173812:web:78b43eaac565d213bec4e1" 
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4",
+            authDomain: "bingo-club-6f019.firebaseapp.com",
+            projectId: "bingo-club-6f019",
+            storageBucket: "bingo-club-6f019.firebasestorage.app",
+            messagingSenderId: "1059179173812",
+            appId: "1:1059179173812:web:78b43eaac565d213bec4e1"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -56,21 +58,24 @@
             const btn = document.getElementById('btnIngresar');
             const codigo = input.value.trim().toLowerCase();
 
-            if(!codigo) { alert("⚠️ Ingresa tu usuario o código."); return; }
+            if(!codigo) {
+                alert("⚠️ Por favor, ingresa tu código de socio.");
+                return;
+            }
 
             btn.disabled = true;
             btn.innerText = "VERIFICANDO...";
 
             try {
-                // Sincronizado para buscar por el campo 'usuario' que crea el admin
+                // Sincronizado: Busca por el campo 'usuario' que es el que se crea en Admin
                 const q = query(collection(db, "socios"), where("usuario", "==", codigo));
                 const querySnapshot = await getDocs(q);
 
                 if (!querySnapshot.empty) {
                     const socioDoc = querySnapshot.docs[0];
                     const datosSocio = socioDoc.data();
-                    
-                    // IMPORTANTE: Guardamos con el nombre que el JUEGO espera
+
+                    // Guardamos la sesión con el nombre que el JUEGO espera (socioLogueado)
                     sessionStorage.setItem('socioLogueado', JSON.stringify({
                         id: socioDoc.id,
                         ...datosSocio
@@ -78,19 +83,22 @@
 
                     window.location.href = 'juego.html';
                 } else {
-                    alert("❌ Usuario no encontrado. Verifica con el administrador.");
+                    alert("❌ Código no encontrado. Por favor, solicita uno nuevo.");
                     btn.disabled = false;
                     btn.innerText = "INGRESAR AL CLUB";
                 }
             } catch (error) {
-                console.error(error);
-                alert("Error de conexión.");
+                console.error("Error:", error);
+                alert("Hubo un problema de conexión.");
                 btn.disabled = false;
+                btn.innerText = "INGRESAR AL CLUB";
             }
         }
 
-        document.getElementById('btnIngresar').onclick = validarEntrada;
-        document.getElementById('accessCode').onkeypress = (e) => { if(e.key === 'Enter') validarEntrada(); };
+        document.getElementById('btnIngresar').addEventListener('click', validarEntrada);
+        document.getElementById('accessCode').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') validarEntrada();
+        });
     </script>
 </body>
 </html>
