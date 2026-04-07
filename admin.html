@@ -3,80 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Club - Admin VIP Elite</title>
+    <title>Bingo Club - Admin VIP Gold</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #004d61; --vip: #b8860b; --accent: #ffc107; --bg: #f4f7f6; --success: #25D366; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
+        :root { --primary: #004d61; --vip: #b8860b; --accent: #ffc107; --bg: #f4f7f6; --success: #25D366; --danger: #d32f2f; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
+        /* LOGIN */
         #loginOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--primary); z-index:10000; display:flex; justify-content:center; align-items:center; flex-direction:column; color:white; }
         #loginOverlay input { padding:15px; border-radius:10px; border:none; margin-top:10px; width:250px; text-align:center; font-size:1.2rem; }
 
-        #adminApp { display: none; height: 100vh; flex-direction: row; }
-        .sidebar { width: 400px; background: var(--primary); color: white; padding: 20px; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.3); }
-        .sala-box { background: rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.2); }
-        .timer { font-family: monospace; font-size: 1.3rem; color: var(--accent); text-align: center; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 5px; margin: 5px 0; }
-        
-        .main { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
-        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        /* ESTRUCTURA */
+        .sidebar { width: 420px; background: var(--primary); color: white; padding: 20px; overflow-y: auto; box-shadow: 4px 0 15px rgba(0,0,0,0.3); z-index: 5; }
+        .main { flex: 1; padding: 25px; overflow-y: auto; background: #eef2f3; }
+        .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); margin-bottom: 25px; }
 
-        /* TABLERO VIP */
-        .tablero-container { display: grid; grid-template-columns: repeat(15, 1fr); gap: 5px; margin-top: 10px; }
-        .bola { aspect-ratio: 1; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 0.8rem; transition: 0.2s; background: white; }
-        .bola.active { background: var(--vip); color: white; border-color: gold; box-shadow: 0 0 8px gold; }
+        /* TABLERO VIP ESTILO PROFESIONAL */
+        .bingo-grid { display: flex; flex-direction: column; gap: 10px; background: #222; padding: 15px; border-radius: 15px; border: 3px solid var(--vip); }
+        .bingo-row { display: flex; align-items: center; gap: 10px; }
+        .letra-bingo { width: 30px; font-weight: 900; color: var(--vip); font-size: 1.5rem; text-align: center; }
+        .bolas-row { display: grid; grid-template-columns: repeat(15, 1fr); gap: 5px; flex: 1; }
+        .bola { aspect-ratio: 1; background: #444; color: #999; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: 0.3s; border: 2px solid transparent; }
+        .bola:hover { transform: scale(1.1); background: #555; }
+        .bola.active { background: radial-gradient(circle at 30% 30%, var(--accent), var(--vip)); color: #000; border-color: #fff; box-shadow: 0 0 15px var(--accent); transform: scale(1.1); animation: flash 0.5s; }
+        @keyframes flash { 0% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th { background: #f8f9fa; padding: 10px; text-align: left; }
-        td { padding: 8px; border-bottom: 1px solid #eee; }
-        .btn { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+        /* TABLA Y BOTONES */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; color: #666; }
+        td { padding: 12px; border-bottom: 1px solid #f0f0f0; }
+        .btn { border: none; padding: 10px 18px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-sync { background: var(--success); color: white; }
-        .btn-vip { background: var(--vip); color: white; }
+        .btn-primary { background: var(--primary); color: white; }
+        .sala-tag { padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: bold; color: white; }
 
-        #overlayBingo { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(211,47,47,0.95); z-index:9999; flex-direction:column; justify-content:center; align-items:center; color:white; }
+        /* MODALES */
+        #modalSocio { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:11000; justify-content:center; align-items:center; }
+        .modal-content { background:white; padding:30px; border-radius:20px; width:400px; }
+        .modal-content input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+
+        #overlayBingo { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(211,47,47,0.95); z-index:12000; flex-direction:column; justify-content:center; align-items:center; color:white; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="loginOverlay">
-        <i class="fas fa-crown" style="font-size: 3rem; color: var(--accent);"></i>
-        <h2>Bingo Club - Acceso Maestro</h2>
-        <input type="password" id="passMaster" placeholder="PIN de Seguridad" onkeyup="verificarLogin(event)">
+        <h1 style="color:var(--accent)">BINGO CLUB VIP</h1>
+        <input type="password" id="passMaster" placeholder="PIN DE ACCESO" onkeyup="verificarLogin(event)">
     </div>
 
-    <div id="adminApp">
-        <div id="overlayBingo">
-            <h1 style="font-size: 5rem;">¡BINGO!</h1>
-            <h2 id="ganadorNombre" style="font-size: 2.5rem;">---</h2>
-            <button class="btn" style="background:white; color:red; padding: 20px 40px; font-size: 1.2rem;" onclick="verificarYNotificar()">HABLAR CON GANADOR</button>
-            <audio id="audioAlerta" src="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3" loop></audio>
+    <div id="overlayBingo">
+        <i class="fas fa-trophy" style="font-size: 5rem; margin-bottom: 20px;"></i>
+        <h1 style="font-size: 4rem;">¡BINGO!</h1>
+        <h2 id="ganadorNombre">---</h2>
+        <button class="btn" style="background:white; color:red; padding: 20px; font-size: 1.2rem; margin-top: 20px;" onclick="cerrarAlerta()">NOTIFICAR POR WHATSAPP</button>
+        <audio id="audioAlerta" src="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3" loop></audio>
+    </div>
+
+    <div class="sidebar">
+        <h2><i class="fas fa-tasks"></i> Gestión de Salas</h2>
+        <div id="controlesSide"></div>
+    </div>
+
+    <div class="main">
+        <div class="card">
+            <h3 style="color:var(--vip); margin-top:0;"><i class="fas fa-bullhorn"></i> LANZADOR MANUAL VIP</h3>
+            <div class="bingo-grid" id="tableroVip"></div>
+            <button class="btn" style="margin-top:15px; background:#ddd;" onclick="limpiarTablero()">REINICIAR TABLERO</button>
         </div>
 
-        <div class="sidebar">
-            <h2 style="color: var(--accent);"><i class="fas fa-gem"></i> PANEL DE CONTROL</h2>
-            
-            <div id="controlesSalas"></div>
-        </div>
-
-        <div class="main">
-            <div class="card" style="border: 2px solid var(--vip);">
-                <h3 style="margin: 0; color: var(--vip);"><i class="fas fa-th"></i> TABLERO DIGITAL MANUAL (SALA VIP)</h3>
-                <p style="font-size: 0.8rem; margin: 5px 0;">Haz clic en los números que vayan saliendo para marcarlos a los socios VIP.</p>
-                <div class="tablero-container" id="tableroVip"></div>
-                <button class="btn" style="margin-top:10px; background:#eee;" onclick="limpiarTablero()">REINICIAR TABLERO</button>
+        <div class="card">
+            <div style="display:flex; gap:15px;">
+                <input type="text" id="busqueda" placeholder="🔍 Buscar por nombre o teléfono..." onkeyup="ejecutarBusqueda()" style="flex:1; padding:12px; border-radius:10px; border:1px solid #ddd;">
+                <button class="btn btn-primary" onclick="abrirModalSocio()">+ NUEVO SOCIO</button>
             </div>
-
-            <div class="card">
-                <div style="display:flex; gap:10px; margin-bottom:15px;">
-                    <input type="text" id="busqueda" placeholder="Buscar socio..." onkeyup="filtrarSocios()" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ddd;">
-                    <button class="btn btn-sync" onclick="abrirModal()">+ NUEVO SOCIO</button>
-                </div>
-                <table>
-                    <thead><tr><th>Socio</th><th>Claves</th><th>Sala Activa</th><th>Pago</th><th>WhatsApp</th></tr></thead>
-                    <tbody id="listaSocios"></tbody>
-                </table>
-            </div>
+            <table>
+                <thead><tr><th>Socio</th><th>Accesos</th><th>Sala</th><th>Estado</th><th>WhatsApp</th></tr></thead>
+                <tbody id="listaSocios"></tbody>
+            </table>
         </div>
     </div>
+
+    <div id="modalSocio"><div class="modal-content">
+        <h3>Registrar Nuevo Socio</h3>
+        <input type="text" id="n_nom" placeholder="Nombre Completo">
+        <input type="text" id="n_tel" placeholder="Teléfono (58426...)">
+        <input type="text" id="n_user" placeholder="Usuario de ingreso">
+        <button class="btn btn-sync" style="width:100%" onclick="crearSocioBase()">GUARDAR SOCIO</button>
+        <button class="btn" style="width:100%; margin-top:10px;" onclick="cerrarModalSocio()">CANCELAR</button>
+    </div></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -94,180 +109,182 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // LOGIN
-    const CLAVE_MAESTRA = "ADMIN496";
-    window.verificarLogin = (e) => {
-        if(e.key === "Enter" || !e.key) {
-            if(document.getElementById('passMaster').value === CLAVE_MAESTRA) {
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('adminApp').style.display = 'flex';
-                initTablero();
-            }
-        }
-    };
-
-    let sociosLocales = [];
-    let horarios = {};
-    let ganador = null;
-    let bolasMarcadas = [];
-
-    const SALAS_CONFIG = [
-        { id: "SALA_NORMAL_ID", nombre: "NORMAL", color: "var(--accent)" },
-        { id: "SALA_CARTON_ID", nombre: "CARTÓN LLENO", color: "var(--success)" },
-        { id: "SALA_NORMAL_VIP_ID", nombre: "NORMAL VIP", color: "var(--vip)" },
-        { id: "SALA_CARTON_VIP_ID", nombre: "C. LLENO VIP", color: "var(--vip)" }
+    const SALAS = [
+        { id: "SALA_NORMAL_ID", n: "NORMAL", c: "var(--accent)" },
+        { id: "SALA_CARTON_ID", n: "CARTÓN LLENO", c: "var(--success)" },
+        { id: "SALA_NORMAL_VIP_ID", n: "NORMAL VIP", c: "var(--vip)" },
+        { id: "SALA_CARTON_VIP_ID", n: "C. LLENO VIP", c: "var(--vip)" }
     ];
 
-    // INICIALIZAR CONTROLES SIDEBAR
-    const container = document.getElementById('controlesSalas');
-    SALAS_CONFIG.forEach(sala => {
-        container.innerHTML += `
-            <div class="sala-box" style="border-left: 5px solid ${sala.color}">
-                <h4 style="margin:0">${sala.nombre}</h4>
-                <div class="timer" id="timer_${sala.id}">--:--:--</div>
-                <input type="number" id="pote_${sala.id}" class="btn" style="width:100%; background:white; margin:5px 0;" value="100" onchange="recalcularPotes()">
-                <input type="datetime-local" id="time_${sala.id}" class="btn" style="width:100%; background:white;">
-                <div id="disp_${sala.id}" style="font-weight:bold; font-size:0.8rem; margin:5px 0;"></div>
-                <button class="btn btn-sync" onclick="sincronizar('${sala.id}')">SINCRONIZAR</button>
+    window.verificarLogin = (e) => {
+        if(e.key === "Enter" || !e.key) {
+            if(document.getElementById('passMaster').value === "ADMIN496") {
+                document.getElementById('loginOverlay').style.display = 'none';
+                initPanel();
+            }
+        }
+    };
+
+    let sociosFull = [];
+    let horarios = {};
+    let bolasVip = [];
+    let ganadorInfo = null;
+
+    function initPanel() {
+        renderSide();
+        initTableroVisual();
+        
+        // Escuchas Firebase
+        onSnapshot(collection(db, "socios"), snap => {
+            sociosFull = [];
+            snap.forEach(d => sociosFull.push({id: d.id, ...d.data()}));
+            renderSocios(sociosFull);
+            recalc();
+        });
+
+        onSnapshot(collection(db, "salas"), snap => {
+            snap.forEach(d => { horarios[d.id] = d.data().horaInicio; });
+        });
+
+        onSnapshot(doc(db, "juego", "tablero_vip"), d => {
+            bolasVip = d.exists() ? d.data().numeros : [];
+            actualizarBolas();
+        });
+
+        onSnapshot(collection(db, "alertas"), s => {
+            s.docChanges().forEach(c => {
+                if(c.type === "added") {
+                    ganadorInfo = { ...c.doc.data(), id: c.doc.id };
+                    document.getElementById('ganadorNombre').innerText = ganadorInfo.nombre;
+                    document.getElementById('overlayBingo').style.display = 'flex';
+                    document.getElementById('audioAlerta').play().catch(()=>{});
+                }
+            });
+        });
+    }
+
+    function renderSide() {
+        const div = document.getElementById('controlesSide');
+        div.innerHTML = SALAS.map(s => `
+            <div style="background:rgba(255,255,255,0.1); padding:15px; border-radius:15px; margin-bottom:15px; border-left:5px solid ${s.c}">
+                <h4 style="margin:0">${s.n}</h4>
+                <div id="t_${s.id}" style="text-align:center; font-family:monospace; font-size:1.2rem; color:var(--accent); margin:5px 0;">--:--:--</div>
+                <input type="number" id="p_${s.id}" value="100" class="btn" style="width:100%; background:white; margin-bottom:5px;" onchange="recalc()">
+                <input type="datetime-local" id="h_${s.id}" class="btn" style="width:100%; background:white;">
+                <div id="d_${s.id}" style="font-size:0.8rem; margin:5px 0;"></div>
+                <button class="btn btn-sync" style="width:100%" onclick="syncSala('${s.id}')">SINCRONIZAR</button>
             </div>
-        `;
-    });
+        `).join('');
+    }
 
-    // MANEJO DEL TABLERO VIP
-    function initTablero() {
+    function initTableroVisual() {
         const t = document.getElementById('tableroVip');
-        t.innerHTML = '';
+        const letras = ["B", "I", "N", "G", "O"];
+        t.innerHTML = letras.map((l, i) => `
+            <div class="bingo-row">
+                <div class="letra-bingo">${l}</div>
+                <div class="bolas-row">
+                    ${Array.from({length: 15}, (_, j) => {
+                        const num = (i * 15) + j + 1;
+                        return `<div class="bola" id="b_${num}" onclick="toggleBola(${num})">${num}</div>`;
+                    }).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.toggleBola = async (n) => {
+        if(bolasVip.includes(n)) bolasVip = bolasVip.filter(x => x !== n);
+        else bolasVip.push(n);
+        await setDoc(doc(db, "juego", "tablero_vip"), { numeros: bolasVip });
+    };
+
+    function actualizarBolas() {
         for(let i=1; i<=75; i++) {
-            const b = document.createElement('div');
-            b.className = 'bola';
-            b.id = `bola_${i}`;
-            b.innerText = i;
-            b.onclick = () => togglerBola(i);
-            t.appendChild(b);
-        }
-        // Escuchar estado del tablero en Firebase
-        onSnapshot(doc(db, "juego", "tablero_vip"), (d) => {
-            if(d.exists()) {
-                bolasMarcadas = d.data().numeros || [];
-                actualizarInterfazTablero();
-            }
-        });
-    }
-
-    async function togglerBola(num) {
-        if(bolasMarcadas.includes(num)) {
-            bolasMarcadas = bolasMarcadas.filter(n => n !== num);
-        } else {
-            bolasMarcadas.push(num);
-        }
-        await setDoc(doc(db, "juego", "tablero_vip"), { numeros: bolasMarcadas });
-    }
-
-    function actualizarInterfazTablero() {
-        for(let i=1; i<=75; i++) {
-            const b = document.getElementById(`bola_${i}`);
-            if(bolasMarcadas.includes(i)) b.classList.add('active');
-            else b.classList.remove('active');
+            const el = document.getElementById('b_'+i);
+            if(bolasVip.includes(i)) el.classList.add('active');
+            else el.classList.remove('active');
         }
     }
 
-    window.limpiarTablero = async () => {
-        if(confirm("¿Reiniciar el tablero para una nueva partida VIP?")) {
-            await setDoc(doc(db, "juego", "tablero_vip"), { numeros: [] });
-        }
-    };
-
-    // ESCUCHA ALERTAS
-    onSnapshot(collection(db, "alertas"), (s) => {
-        s.docChanges().forEach(c => {
-            if(c.type === "added") {
-                ganador = { ...c.doc.data(), id: c.doc.id };
-                document.getElementById('ganadorNombre').innerText = ganador.nombre;
-                document.getElementById('overlayBingo').style.display = 'flex';
-                document.getElementById('audioAlerta').play().catch(()=>{});
-            }
-        });
-    });
-
-    window.verificarYNotificar = async () => {
-        const tel = ganador.telefono.replace(/\D/g,'');
-        const link = `https://wa.me/${tel}?text=¡BINGO!%20Verificando%20tu%20cartón...`;
-        window.open(link, '_blank');
-        document.getElementById('overlayBingo').style.display = 'none';
-        document.getElementById('audioAlerta').pause();
-        await deleteDoc(doc(db, "alertas", ganador.id));
-    };
-
-    // ESCUCHA SOCIOS
-    onSnapshot(collection(db, "socios"), (snap) => {
-        sociosLocales = [];
-        snap.forEach(d => sociosLocales.push({id: d.id, ...d.data()}));
-        render();
-        recalcularPotes();
-    });
-
-    // ESCUCHA SALAS
-    onSnapshot(collection(db, "salas"), (snap) => {
-        snap.forEach(d => { horarios[d.id] = d.data().horaInicio; });
-    });
-
-    function render() {
-        const tb = document.getElementById('listaSocios');
-        tb.innerHTML = '';
-        sociosLocales.forEach(s => {
-            tb.innerHTML += `<tr>
-                <td><b>${s.nombre}</b><br><small>${s.telefono}</small></td>
-                <td>U: ${s.usuario}<br>P: ${s.password}</td>
-                <td>
-                    <select onchange="upd('${s.id}',{idSala:this.value})">
-                        <option value="SALA_NORMAL_ID" ${s.idSala=='SALA_NORMAL_ID'?'selected':''}>Normal</option>
-                        <option value="SALA_CARTON_ID" ${s.idSala=='SALA_CARTON_ID'?'selected':''}>C. Lleno</option>
-                        <option value="SALA_NORMAL_VIP_ID" ${s.idSala=='SALA_NORMAL_VIP_ID'?'selected':''}>Normal VIP</option>
-                        <option value="SALA_CARTON_VIP_ID" ${s.idSala=='SALA_CARTON_VIP_ID'?'selected':''}>C. Lleno VIP</option>
-                    </select>
-                </td>
-                <td><button onclick="upd('${s.id}',{activo:${!s.activo}})" class="btn ${s.activo?'btn-sync':''}">${s.activo?'PAGADO':'PENDIENTE'}</button></td>
-                <td><button class="btn" style="background:#e3f2fd; color:#1976d2;" onclick="copy('${s.nombre}','${s.usuario}','${s.password}')"><i class="fab fa-whatsapp"></i> LINK</button></td>
-            </tr>`;
-        });
-    }
-
-    window.copy = (nom, user, pass) => {
-        const linkApp = "https://bingoclub496-creator.github.io/CLUB_BINGO/";
-        const msg = `*¡Hola ${nom}!* 🏆\nBienvenido a *Bingo Club VIP*\n👤 *Usuario:* ${user}\n🔑 *Clave:* ${pass}\n🔗 Acceso: ${linkApp}`;
-        navigator.clipboard.writeText(msg).then(() => alert("Copiado para WhatsApp"));
-    };
-
-    window.sincronizar = async (id) => {
-        const h = document.getElementById('time_'+id).value;
+    window.syncSala = async (id) => {
+        const h = document.getElementById('h_'+id).value;
         await updateDoc(doc(db, "salas", id), { horaInicio: h });
         alert("Sincronizado");
     };
 
-    window.recalcularPotes = () => {
-        SALAS_CONFIG.forEach(async sala => {
-            const pInit = parseFloat(document.getElementById('pote_'+sala.id).value) || 0;
-            const cant = sociosLocales.filter(s => s.activo && s.idSala === sala.id).reduce((acc,curr)=>acc+(curr.cartones||1),0);
-            const total = pInit + (pInit * 0.04 * cant);
-            document.getElementById('disp_'+sala.id).innerText = "Total Pote: Bs. " + total.toFixed(2);
-            await setDoc(doc(db, "salas", sala.id), { premioBs: total.toFixed(2), cartonesJugando: cant }, {merge:true});
+    window.recalc = () => {
+        SALAS.forEach(async s => {
+            const p = parseFloat(document.getElementById('p_'+s.id).value) || 0;
+            const c = sociosFull.filter(x => x.activo && x.idSala === s.id).reduce((a,b)=>a+(b.cartones||1),0);
+            const total = p + (p * 0.04 * c);
+            document.getElementById('d_'+s.id).innerText = "Pote: Bs. " + total.toFixed(2);
+            await setDoc(doc(db, "salas", s.id), { premioBs: total.toFixed(2), cartonesJugando: c }, {merge:true});
         });
     };
 
+    function renderSocios(lista) {
+        document.getElementById('listaSocios').innerHTML = lista.map(s => `
+            <tr>
+                <td><b>${s.nombre}</b><br><small>${s.telefono}</small></td>
+                <td>U: ${s.usuario}<br>P: ${s.password}</td>
+                <td>
+                    <select onchange="updSoci('${s.id}',{idSala:this.value})">
+                        ${SALAS.map(sala => `<option value="${sala.id}" ${s.idSala==sala.id?'selected':''}>${sala.n}</option>`).join('')}
+                    </select>
+                </td>
+                <td><button onclick="updSoci('${s.id}',{activo:${!s.activo}})" class="btn ${s.activo?'btn-sync':''}">${s.activo?'PAGADO':'PENDIENTE'}</button></td>
+                <td><button class="btn" style="background:#e3f2fd; color:#1976d2;" onclick="copyS('${s.nombre}','${s.usuario}','${s.password}')">WhatsApp</button></td>
+            </tr>
+        `).join('');
+    }
+
+    // BUSCADOR CORREGIDO
+    window.ejecutarBusqueda = () => {
+        const txt = document.getElementById('busqueda').value.toLowerCase();
+        const filtrados = sociosFull.filter(s => s.nombre.toLowerCase().includes(txt) || s.telefono.includes(txt));
+        renderSocios(filtrados);
+    };
+
+    // NUEVO SOCIO CORREGIDO
+    window.abrirModalSocio = () => document.getElementById('modalSocio').style.display='flex';
+    window.cerrarModalSocio = () => document.getElementById('modalSocio').style.display='none';
+    window.crearSocioBase = async () => {
+        const n = document.getElementById('n_nom').value, t = document.getElementById('n_tel').value, u = document.getElementById('n_user').value;
+        if(!n || !u) return alert("Faltan datos");
+        await addDoc(collection(db, "socios"), { 
+            nombre: n, telefono: t, usuario: u, 
+            password: Math.random().toString(36).substring(2,6).toUpperCase(), 
+            activo: false, cartones: 1, idSala: 'SALA_NORMAL_ID' 
+        });
+        cerrarModalSocio();
+        document.getElementById('n_nom').value = ""; document.getElementById('n_tel').value = ""; document.getElementById('n_user').value = "";
+    };
+
+    window.copyS = (nom, user, pass) => {
+        const msg = `*¡Hola ${nom}!* 🏆\nBienvenido a *Bingo Club VIP*\n👤 *Usuario:* ${user}\n🔑 *Clave:* ${pass}\n🔗 Acceso: https://bingoclub496-creator.github.io/CLUB_BINGO/`;
+        navigator.clipboard.writeText(msg).then(() => alert("Copiado"));
+    };
+
+    window.updSoci = async (id, data) => await updateDoc(doc(db, "socios", id), data);
+    
     setInterval(() => {
-        SALAS_CONFIG.forEach(sala => {
-            const meta = horarios[sala.id];
-            const div = document.getElementById('timer_'+sala.id);
-            if(!meta || !div) return;
-            const diff = new Date(meta) - new Date();
-            if(diff <= 0) { div.innerText = "¡EN JUEGO!"; div.style.color = "var(--success)"; return; }
-            const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-            div.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        SALAS.forEach(s => {
+            const el = document.getElementById('t_'+s.id);
+            if(!horarios[s.id] || !el) return;
+            const diff = new Date(horarios[s.id]) - new Date();
+            if(diff <= 0) { el.innerText = "¡EN JUEGO!"; el.style.color = "var(--success)"; return; }
+            const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s_ = Math.floor((diff%60000)/1000);
+            el.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s_.toString().padStart(2,'0')}`;
         });
     }, 1000);
 
-    window.upd = async (id, data) => await updateDoc(doc(db, "socios", id), data);
-    window.updSalas = async (id, data) => await updateDoc(doc(db, "salas", id), data);
+    window.cerrarAlerta = async () => {
+        window.open(`https://wa.me/${ganadorInfo.telefono.replace(/\D/g,'')}?text=Felicidades!`, '_blank');
+        document.getElementById('overlayBingo').style.display='none';
+        document.getElementById('audioAlerta').pause();
+        await deleteDoc(doc(db, "alertas", ganadorInfo.id));
+    };
 </script>
 </body>
 </html>
