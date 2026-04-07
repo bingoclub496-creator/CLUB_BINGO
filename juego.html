@@ -3,190 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Club - Vivo</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Bingo Club - En Vivo</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #004d61; color: white; text-align: center; margin: 0; padding: 10px; }
-        
-        /* HEADER */
-        .status-bar { background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; border: 1px solid #ffc107; margin-bottom: 10px; }
-        .pote-text { font-size: 1.5rem; font-weight: 900; color: #25D366; }
-
-        /* BOLA */
-        .bola-main { width: 90px; height: 90px; background: white; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; border: 6px solid #ffc107; margin: 10px auto; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .hist-5 { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; height: 40px; }
+        .header-bingo { background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; border: 1px solid #ffc107; margin-bottom: 10px; }
+        .bola-viva { width: 90px; height: 90px; background: white; color: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; border: 6px solid #ffc107; margin: 10px auto; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .hist-bolas { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; min-height: 35px; }
         .b-small { width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: #ffc107; border: 1px solid #ffc107; }
-
-        /* CARTONES */
-        #zonaCartones { display: flex; flex-direction: column; gap: 25px; align-items: center; }
-        .carton-box { background: #dcdcdc; padding: 10px; border-radius: 12px; border: 4px solid #888; width: 100%; max-width: 340px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-        .grid-5x5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-        .celda { aspect-ratio: 1; background: white; color: #222; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; border-radius: 6px; cursor: pointer; border-bottom: 4px solid #999; }
-        .celda.marcada { background: #25D366 !important; color: white !important; border: none; transform: scale(0.96); box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
+        
+        #contenedorCartones { display: flex; flex-direction: column; gap: 20px; align-items: center; }
+        .carton { background: #eee; padding: 10px; border-radius: 12px; border: 4px solid #888; width: 100%; max-width: 330px; }
+        .grid-bingo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+        .celda { aspect-ratio: 1; background: white; color: #222; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; border-radius: 5px; cursor: pointer; border-bottom: 3px solid #bbb; }
+        .celda.marcada { background: #25D366 !important; color: white !important; border: none; transform: scale(0.95); }
         .celda.free { background: #ffc107; font-size: 0.6rem; color: #000; font-weight: 900; }
 
-        /* CHAT INTEGRADO */
-        .chat-box { background: rgba(255,255,255,0.95); color: #333; border-radius: 15px; margin-top: 20px; padding: 10px; text-align: left; max-width: 360px; margin-left: auto; margin-right: auto; }
-        #mensajes { height: 80px; overflow-y: auto; font-size: 0.8rem; margin-bottom: 10px; border-bottom: 1px solid #ccc; }
-        .chat-btns { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 5px; }
-        .c-btn { background: #004d61; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; white-space: nowrap; cursor: pointer; font-weight: bold; }
-
-        .btn-bingo { width: 100%; max-width: 360px; padding: 18px; margin: 20px 0; background: #ff5252; color: white; border: none; border-radius: 40px; font-size: 1.8rem; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 #b71c1c; }
+        .chat-area { background: white; color: #333; border-radius: 15px; margin-top: 20px; padding: 10px; text-align: left; max-width: 350px; margin: 20px auto; }
+        #msjs { height: 80px; overflow-y: auto; font-size: 0.8rem; border-bottom: 1px solid #ddd; margin-bottom: 10px; }
+        
+        .btn-bingo { width: 100%; max-width: 350px; padding: 15px; background: #ff5252; color: white; border: none; border-radius: 30px; font-size: 1.5rem; font-weight: 900; cursor: pointer; box-shadow: 0 5px 0 #b71c1c; }
     </style>
 </head>
 <body>
 
-    <div class="status-bar">
-        <div id="nomSala" style="font-weight: bold; color: #ffc107;">BUSCANDO SALA...</div>
-        <div class="pote-text">Bs. <span id="poteVal">0.00</span></div>
+    <div class="header-bingo">
+        <div id="txtSala" style="color:#ffc107; font-weight:bold;">CONECTANDO...</div>
+        <div style="font-size: 1.4rem; font-weight: 900; color:#25D366;">Pote: Bs. <span id="valPote">0.00</span></div>
     </div>
 
-    <div class="bola-main" id="bolaA">--</div>
-    <div class="hist-5" id="hist5"></div>
+    <div class="bola-viva" id="bolaA">--</div>
+    <div class="hist-bolas" id="historial"></div>
 
-    <div id="zonaCartones"></div>
+    <div id="contenedorCartones"></div>
 
-    <button class="btn-bingo" id="cantarBtn">¡CANTAR BINGO!</button>
+    <button class="btn-bingo" id="btnCantar">¡CANTAR BINGO!</button>
 
-    <div class="chat-box">
-        <div id="mensajes"><i>Conectando al chat...</i></div>
-        <div class="chat-btns">
-            <button class="c-btn" onclick="sendM('¡Falta una! 😱')">¡Falta una! 😱</button>
-            <button class="c-btn" onclick="sendM('¡Casi gano! 🔥')">¡Casi gano! 🔥</button>
-            <button class="c-btn" onclick="sendM('¡Suerte! 🍀')">¡Suerte! 🍀</button>
+    <div class="chat-area">
+        <div id="msjs"></div>
+        <div style="display:flex; gap:5px;">
+            <button onclick="msg('¡Falta una!')" style="font-size:0.7rem; padding:5px; border-radius:10px;">¡Falta una! 😱</button>
+            <button onclick="msg('¡Casi!')" style="font-size:0.7rem; padding:5px; border-radius:10px;">¡Casi! 🔥</button>
         </div>
     </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, updateDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const firebaseConfig = { 
-        apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", 
-        authDomain: "bingo-club-6f019.firebaseapp.com", 
-        projectId: "bingo-club-6f019", 
-        storageBucket: "bingo-club-6f019.firebasestorage.app", 
-        messagingSenderId: "1059179173812", 
-        appId: "1:1059179173812:web:78b43eaac565d213bec4e1" 
-    };
-
+    const firebaseConfig = { apiKey: "AIzaSyA1GIQ1xaJUINYabyqOejrlfjqUAcoQwg4", authDomain: "bingo-club-6f019.firebaseapp.com", projectId: "bingo-club-6f019", storageBucket: "bingo-club-6f019.firebasestorage.app", messagingSenderId: "1059179173812", appId: "1:1059179173812:web:78b43eaac565d213bec4e1" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const urlP = new URLSearchParams(window.location.search);
-    const idS = urlP.get('sala');
-    const idSoc = urlP.get('socio');
-    const cod = urlP.get('cod') || "DEMO";
+    // LECTURA DE PARÁMETROS (REFORZADA)
+    const params = new URLSearchParams(window.location.search);
+    const idS = params.get('sala');
+    const idSoc = params.get('socio');
+    const codC = params.get('cod') || "FREE";
 
-    let bolasOficiales = [], tSala = "", miNombre = "Socio";
+    let nombreUser = "Socio";
 
-    // GENERADOR DE CARTÓN UI
+    // 1. DIBUJAR CARTÓN
     function seededRandom(s) { let x = Math.sin(s) * 10000; return x - Math.floor(x); }
-    function generarCartonUI(semilla, padre, num) {
-        let seed = 0; for(let i=0; i<semilla.length; i++) seed += semilla.charCodeAt(i);
-        const box = document.createElement('div');
-        box.className = 'carton-box';
-        box.innerHTML = `<div style="color:#333; font-weight:900; font-size:0.8rem; margin-bottom:5px;">CARTÓN #${num} - COD: ${semilla}</div>`;
-        const grid = document.createElement('div');
-        grid.className = 'grid-5x5';
-
+    function crearCarton(seedStr, padre, n) {
+        let seed = 0; for(let i=0; i<seedStr.length; i++) seed += seedStr.charCodeAt(i);
+        const divC = document.createElement('div'); divC.className = 'carton';
+        divC.innerHTML = `<div style="color:#222; font-size:0.7rem; font-weight:bold; margin-bottom:5px;">CARTÓN #${n}</div>`;
+        const grid = document.createElement('div'); grid.className = 'grid-bingo';
+        
         const rangos = [[1,15],[16,30],[31,45],[46,60],[61,75]];
-        let cols = [[],[],[],[],[]];
         for(let i=0; i<5; i++) {
-            let p = []; for(let n=rangos[i][0]; n<=rangos[i][1]; n++) p.push(n);
+            let pool = []; for(let x=rangos[i][0]; x<=rangos[i][1]; x++) pool.push(x);
+            let colNums = [];
             for(let j=0; j<5; j++) {
-                let idx = Math.floor(seededRandom(seed + i + j) * p.length);
-                cols[i].push(p.splice(idx, 1)[0]);
+                let idx = Math.floor(seededRandom(seed + i + j) * pool.length);
+                colNums.push(pool.splice(idx, 1)[0]);
             }
+            // Dibujar por columnas
+            window.tempCols = window.tempCols || [];
+            window.tempCols[i] = colNums;
         }
 
         for(let f=0; f<5; f++) {
             for(let c=0; c<5; c++) {
-                const div = document.createElement('div');
-                if(f===2 && c===2) { div.className = 'celda free marcada'; div.innerText = "BINGO"; }
+                const celda = document.createElement('div');
+                if(f===2 && c===2) { celda.className='celda free marcada'; celda.innerText='BINGO'; }
                 else {
-                    div.className = 'celda'; div.innerText = cols[c][f];
-                    div.onclick = () => div.classList.toggle('marcada');
+                    celda.className='celda'; celda.innerText = window.tempCols[c][f];
+                    celda.onclick = () => celda.classList.toggle('marcada');
                 }
-                grid.appendChild(div);
+                grid.appendChild(celda);
             }
         }
-        box.appendChild(grid);
-        padre.appendChild(box);
+        divC.appendChild(grid); padre.appendChild(divC);
     }
 
-    // --- EL SISTEMA DE DIAGNÓSTICO ---
-    const zona = document.getElementById('zonaCartones');
-
-    if(!idS || !idSoc) {
-        // SI FALTAN LOS DATOS EN EL ENLACE, MOSTRAMOS UN ERROR CLARO
-        document.getElementById('nomSala').innerHTML = "<span style='color:red;'>⚠️ ERROR EN EL ENLACE</span>";
-        document.getElementById('poteVal').innerText = "FALTAN IDs";
-        document.getElementById('mensajes').innerHTML = "<i>Asegúrate de que el enlace termine en ?sala=ID&socio=ID</i>";
-        generarCartonUI("DEMO123", zona, 1); // Generamos un cartón de prueba para que veas que el diseño sirve
-    } else {
-        // SI LOS DATOS EXISTEN, ARRANCAMOS EL JUEGO REAL
-        cargarSocio();
-        escucharSala();
-    }
-
-    async function cargarSocio() {
-        try {
-            const sSnap = await getDoc(doc(db, "socios", idSoc));
-            if(sSnap.exists()) {
-                const sData = sSnap.data();
-                miNombre = sData.nombre || "Socio";
-                const nCartones = sData.cartones || 1;
-                for(let i=0; i<nCartones; i++) {
-                    generarCartonUI(cod + i, zona, i+1);
-                }
-            } else {
-                document.getElementById('nomSala').innerHTML = "<span style='color:red;'>SOCIO NO ENCONTRADO</span>";
-            }
-        } catch(error) {
-            console.error("Error cargando socio:", error);
-            document.getElementById('nomSala').innerText = "ERROR DE CONEXIÓN BD";
+    // 2. LÓGICA DE INICIO
+    async function arrancar() {
+        if(!idS || !idSoc) {
+            document.getElementById('txtSala').innerText = "ERROR: ENLACE SIN DATOS";
+            return;
         }
-    }
 
-    function escucharSala() {
+        // Cargar Socio y Cartones
+        const sDoc = await getDoc(doc(db, "socios", idSoc));
+        if(sDoc.exists()) {
+            const d = sDoc.data();
+            nombreUser = d.nombre;
+            const cant = d.cartones || 1;
+            const cont = document.getElementById('contenedorCartones');
+            for(let i=0; i<cant; i++) { crearCarton(codC + i, cont, i+1); }
+        }
+
+        // Escuchar Sala
         onSnapshot(doc(db, "salas", idS), (snap) => {
             if(snap.exists()) {
-                const d = snap.data();
-                document.getElementById('nomSala').innerText = d.nombre.toUpperCase();
-                document.getElementById('poteVal').innerText = d.premioBs;
-                document.getElementById('bolaA').innerText = d.ultimaBola || "--";
-                bolasOficiales = d.bolas || [];
-                tSala = d.tipo;
-
-                const h = document.getElementById('hist5');
-                h.innerHTML = bolasOficiales.slice(-6, -1).reverse().map(b => `<div class="b-small">${b}</div>`).join('');
-
-                const msgDiv = document.getElementById('mensajes');
-                if(d.mensajes) {
-                    msgDiv.innerHTML = d.mensajes.slice(-5).map(m => `<div><b>${m.user}:</b> ${m.texto}</div>`).join('');
-                    msgDiv.scrollTop = msgDiv.scrollHeight;
+                const data = snap.data();
+                document.getElementById('txtSala').innerText = data.nombre.toUpperCase();
+                document.getElementById('valPote').innerText = data.premioBs;
+                document.getElementById('bolaA').innerText = data.ultimaBola || "--";
+                
+                const bolas = data.bolas || [];
+                document.getElementById('historial').innerHTML = bolas.slice(-6, -1).reverse().map(b => `<div class="b-small">${b}</div>`).join('');
+                
+                if(data.mensajes) {
+                    document.getElementById('msjs').innerHTML = data.mensajes.slice(-5).map(m => `<div><b>${m.user}:</b> ${m.texto}</div>`).join('');
                 }
-            } else {
-                document.getElementById('nomSala').innerHTML = "<span style='color:red;'>SALA NO EXISTE</span>";
             }
-        }, (error) => {
-            console.error(error);
-            document.getElementById('nomSala').innerText = "ERROR DE PERMISOS";
         });
     }
 
-    window.sendM = async (t) => {
-        if(!idS) return alert("Modo Demo: No se puede enviar mensajes.");
-        await updateDoc(doc(db, "salas", idS), { mensajes: arrayUnion({ user: miNombre, texto: t }) });
+    window.msg = async (t) => {
+        await updateDoc(doc(db, "salas", idS), { mensajes: arrayUnion({ user: nombreUser, texto: t }) });
     };
 
-    document.getElementById('cantarBtn').onclick = async () => {
-        if(!idSoc) return alert("Modo Demo: ¡Este botón funcionará en el juego real!");
+    document.getElementById('btnCantar').onclick = async () => {
         await updateDoc(doc(db, "socios", idSoc), { cantoBingo: true });
-        alert("¡BINGO CANTADO! El administrador revisará tu cartón.");
+        alert("¡BINGO ENVIADO!");
     };
 
+    arrancar();
 </script>
 </body>
 </html>
